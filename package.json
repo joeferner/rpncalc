@@ -1,0 +1,27 @@
+{
+  "name": "rpncalc",
+  "version": "0.0.1",
+  "description": "RPN Calculator written with AppJS and Node.js",
+  "main": "index.js",
+  "scripts": {
+    "test": "./node_modules/.bin/nodeunit test"
+  },
+  "repository": "",
+  "keywords": [
+    "rpn",
+    "calculator",
+    "appjs"
+  ],
+  "author": "Joe Ferner <joe@fernsroth.com>",
+  "license": "MIT",
+  "dependencies": {
+    "browserify": "~1.17.2",
+    "express": "~3.0.6",
+    "optimist": "~0.3.5",
+    "sf": "~0.1.6",
+    "less-middleware": "~0.1.9"
+  },
+  "devDependencies": {
+    "nodeunit": "~0.7.4"
+  }
+}

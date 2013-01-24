@@ -1,0 +1,19 @@
+#calc {
+  display: inline-block;
+  border: 1px solid #000000;
+}
+/*********** status bar ************/
+#statusBar {
+  text-align: center;
+}
+#statusBar div {
+  display: inline-block;
+}
+/*********** stack *****************/
+.stackItemNumber {
+  float: left;
+}
+.stackItemValue {
+  text-align: right;
+}
+/*********** buttons ***************/

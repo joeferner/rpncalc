@@ -1,10 +1,12 @@
-<% if(currentError) { %>
-    <div id="stackError"><%= currentError.message %></div>
-<% } %>
-<% for(var i = stackItemsToDisplay - 1 - (currentError ? 1 : 0); i >= 0; i--) { %>
+<div id="stackError"><%= currentError ? currentError.message : '&nbsp;' %></div>
+<div id="stackItemsContainer">
+  <% for(var i = Math.max(stackItemsToDisplay - 1, rpncalc.stack.length - 1); i >= 0; i--) { %>
     <div class="stackItem">
       <div class="stackItemNumber"><%= (i + 1) %>:</div>
       <div class="stackItemValue"><%= helpers.stackItemToString(rpncalc.stack[i]) %></div>
     </div>
-<% } %>
-<input id="stackInput" class="stackItem stackItemInput" value="<%= stackInputValue %>">
+  <% } %>
+</div>
+<div id="stackInputContainer">
+  <input id="stackInput" class="stackItem stackItemInput" value="<%= stackInputValue %>">
+</div>

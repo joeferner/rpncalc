@@ -13,6 +13,7 @@ $(function() {
   var stackTemplate = new EJS({ url: '/templates/stack.ejs' });
   update();
 
+  $('#buttons button').click(onButtonClick);
   $('body').keypress(onKeyPress);
   $('body').keydown(onKeyDown);
   $(window).resize(onWindowResize);
@@ -41,6 +42,8 @@ $(function() {
     });
     inputElem = document.getElementById('stackInput');
     inputElem.focus();
+    var stackItemsContainerElem = document.getElementById('stackItemsContainer');
+    stackItemsContainerElem.scrollTop = stackItemsContainerElem.scrollHeight;
   }
 
   function updateStatusBar() {
@@ -59,7 +62,7 @@ $(function() {
 
   function displayError(err) {
     currentError = err;
-    console.log(err);
+    console.error('Error:', err.message);
     update();
   }
 
@@ -132,6 +135,84 @@ $(function() {
       default:
         console.log('onKeyDown', event.which);
       }
+    } catch (e) {
+      displayError(e);
+    }
+  }
+
+  function onButtonClick() {
+    var val = getStackInputValue();
+    clearError();
+    try {
+      var key = $(this).html().trim().toLowerCase();
+      switch (key) {
+      case 'enter':
+        pushInput();
+        break;
+
+      case 'drop':
+        rpncalc.drop();
+        update();
+        break;
+
+      case 'swap':
+        rpncalc.swap();
+        update();
+        break;
+
+      case '+/-':
+        if (val.length > 0) {
+          if (inputElem.value[0] == '-') {
+            inputElem.value = inputElem.value.substr(1);
+          } else {
+            inputElem.value = '-' + inputElem.value;
+          }
+        } else {
+          rpncalc.neg();
+          update();
+        }
+        break;
+
+      case '0':
+      case '1':
+      case '2':
+      case '3':
+      case '4':
+      case '5':
+      case '6':
+      case '7':
+      case '8':
+      case '9':
+      case '.':
+        inputElem.value += key;
+        break;
+
+      case 'x':
+      case '/':
+      case '+':
+      case '-':
+        pushInput();
+        switch (key) {
+        case 'x':
+          rpncalc.multiply();
+          break;
+        case '/':
+          rpncalc.divide();
+          break;
+        case '+':
+          rpncalc.plus();
+          break;
+        case '-':
+          rpncalc.subtract();
+          break;
+        }
+        update();
+        break;
+
+      default:
+        throw new Error("Unhandled key: " + key);
+      }
+      inputElem.focus();
     } catch (e) {
       displayError(e);
     }

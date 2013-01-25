@@ -25,6 +25,16 @@ body {
 
 }
 
+#stackItemsContainer {
+  height: 9.6em;
+  overflow-y: scroll;
+  padding-right: 5px;
+}
+
+.stackItem {
+  height: 1.2em;
+}
+
 .stackItemNumber {
   float: left;
 }
@@ -38,6 +48,11 @@ body {
   border: none;
 }
 
+#stackInputContainer {
+  height: 1em;
+  margin-left: 0px;
+}
+
 #stackInput:focus {
   outline: none;
 }
@@ -45,4 +60,14 @@ body {
 /*********** buttons ***************/
 #buttons {
 
+}
+
+#buttons button {
+  width: 50px;
+  height: 30px;
+  margin: 3px;
+}
+
+#buttons button.empty {
+  visibility: hidden;
 }

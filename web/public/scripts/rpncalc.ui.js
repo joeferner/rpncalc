@@ -20,10 +20,7 @@ $(function() {
   $(window).resize(onWindowResize);
 
   function onWindowResize() {
-    $(inputElem).width($(stackElem).width());
-    $('#stackItemsContainer').height(window.innerHeight - $('#buttons').height() - $('#statusBar').height() - 70);
-    var stackItemsContainerElem = document.getElementById('stackItemsContainer');
-    stackItemsContainerElem.scrollTop = stackItemsContainerElem.scrollHeight;
+    scrollStackToBottom();
   }
 
   function update() {
@@ -40,12 +37,21 @@ $(function() {
     stackElem.innerHTML = stackTemplate.render({
       rpncalc: rpncalc,
       helpers: templateHelpers,
-      stackItemsToDisplay: parseInt($('#stackItemsContainer').height() / 20),
+      stackItemsToDisplay: 20,
       stackInputValue: stackInputValue,
       currentError: currentError
     });
     inputElem = document.getElementById('stackInput');
+    inputElem.onblur = function() {
+      setTimeout(function() {
+        inputElem.focus();
+      }, 100);
+    };
     inputElem.focus();
+    scrollStackToBottom();
+  }
+
+  function scrollStackToBottom() {
     var stackItemsContainerElem = document.getElementById('stackItemsContainer');
     stackItemsContainerElem.scrollTop = stackItemsContainerElem.scrollHeight;
   }

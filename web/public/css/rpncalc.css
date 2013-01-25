@@ -1,21 +1,38 @@
+html,
+body {
+  height: 100%;
+}
 body {
   margin: 0;
-}
-#calc {
-  padding: 5px;
 }
 /*********** status bar ************/
 #statusBar {
   text-align: center;
+  height: 20px;
 }
 #statusBar div {
   display: inline-block;
 }
 /*********** stack *****************/
+#stack {
+  left: 0;
+  right: -1;
+  top: 20px;
+  bottom: 190px;
+  position: fixed;
+}
+#stackError {
+  height: 20px;
+}
 #stackItemsContainer {
   overflow-y: scroll;
-  vertical-align: text-bottom;
   padding-right: 5px;
+  position: fixed;
+  left: 0;
+  right: -1;
+  top: 40px;
+  bottom: 216px;
+  padding-left: 5px;
 }
 .stackItem {
   height: 1.2em;
@@ -28,17 +45,27 @@ body {
 }
 #stackInput {
   text-align: left;
+  width: 100%;
   border: none;
   font-size: 12pt;
 }
 #stackInputContainer {
   height: 25px;
-  margin-left: 0px;
+  position: fixed;
+  left: 0;
+  right: -1;
+  bottom: 190px;
+  padding-left: 5px;
 }
 #stackInput:focus {
   outline: none;
 }
 /*********** buttons ***************/
+#buttons {
+  bottom: 0;
+  height: 190px;
+  position: fixed;
+}
 #buttons button {
   width: 50px;
   height: 30px;

@@ -1,14 +1,23 @@
+@statusBarHeight: 20px;
+@buttonsHeight: 190px;
+@stackErrorHeight: 20px;
+@stackInputContainerHeight: 25px;
+
+html, body {
+  height: 100%;
+}
+
 body {
   margin: 0;
 }
 
 #calc {
-  padding: 5px;
 }
 
 /*********** status bar ************/
 #statusBar {
   text-align: center;
+  height: @statusBarHeight;
 }
 
 #statusBar div {
@@ -17,16 +26,26 @@ body {
 
 /*********** stack *****************/
 #stack {
-
+  left: 0;
+  right: -1;
+  top: @statusBarHeight;
+  bottom: @buttonsHeight;
+  position: fixed;
 }
 
 #stackError {
-
+  height: @stackErrorHeight;
 }
 
 #stackItemsContainer {
   overflow-y: scroll;
   padding-right: 5px;
+  position: fixed;
+  left: 0;
+  right: -1;
+  top: (@statusBarHeight + @stackErrorHeight);
+  bottom: (@buttonsHeight + @stackInputContainerHeight + 1);
+  padding-left: 5px;
 }
 
 .stackItem {
@@ -43,13 +62,18 @@ body {
 
 #stackInput {
   text-align: left;
+  width: 100%;
   border: none;
   font-size: 12pt;
 }
 
 #stackInputContainer {
-  height: 25px;
-  margin-left: 0px;
+  height: @stackInputContainerHeight;
+  position: fixed;
+  left: 0;
+  right: -1;
+  bottom: @buttonsHeight;
+  padding-left: 5px;
 }
 
 #stackInput:focus {
@@ -58,7 +82,9 @@ body {
 
 /*********** buttons ***************/
 #buttons {
-
+  bottom: 0;
+  height: @buttonsHeight;
+  position: fixed;
 }
 
 #buttons button {

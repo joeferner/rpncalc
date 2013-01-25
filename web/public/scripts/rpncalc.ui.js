@@ -12,7 +12,7 @@ $(function() {
   var statusBarTemplate = new EJS({ element: 'statusBarTemplate' });
   var stackTemplate = new EJS({ element: 'stackTemplate' });
   update();
-  setTimeout(onWindowResize, 500);
+  setTimeout(onWindowResize, 100);
 
   $('#buttons button').click(onButtonClick);
   $('body').keypress(onKeyPress);

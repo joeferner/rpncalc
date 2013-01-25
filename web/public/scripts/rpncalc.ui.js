@@ -156,6 +156,8 @@ $(function() {
           return 'Decimal';
         case 16:
           return 'Hexadecimal';
+        case 8:
+          return 'Octal';
         case 2:
           return 'Binary';
         default:

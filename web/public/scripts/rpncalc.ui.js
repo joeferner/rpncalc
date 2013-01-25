@@ -207,94 +207,21 @@ $(function() {
         inputElem.value += key;
         break;
 
-      case 'x':
-      case '/':
-      case '+':
-      case '-':
       case 'pi':
-      case '1/x':
-      case 'sqrt':
-      case 'x^2':
-      case 'y^x':
-      case 'sin':
-      case 'cos':
-      case 'tan':
-      case 'asin':
-      case 'acos':
-      case 'atan':
-      case 'nroot':
-      case 'log':
-      case 'ln':
-      case 'fact':
-      case 'exp':
         pushInput();
-        switch (key) {
-        case 'x':
-          rpncalc.multiply();
-          break;
-        case '/':
-          rpncalc.divide();
-          break;
-        case '+':
-          rpncalc.plus();
-          break;
-        case '-':
-          rpncalc.subtract();
-          break;
-        case '1/x':
-          rpncalc.inv();
-          break;
-        case 'sqrt':
-          rpncalc.sqrt();
-          break;
-        case 'x^2':
-          rpncalc.pow2();
-          break;
-        case 'y^x':
-          rpncalc.pow();
-          break;
-        case 'sin':
-          rpncalc.sin();
-          break;
-        case 'cos':
-          rpncalc.cos();
-          break;
-        case 'tan':
-          rpncalc.tan();
-          break;
-        case 'asin':
-          rpncalc.asin();
-          break;
-        case 'acos':
-          rpncalc.acos();
-          break;
-        case 'atan':
-          rpncalc.atan();
-          break;
-        case 'nroot':
-          rpncalc.nroot();
-          break;
-        case 'log':
-          rpncalc.log();
-          break;
-        case 'ln':
-          rpncalc.ln();
-          break;
-        case 'fact':
-          rpncalc.factorial();
-          break;
-        case 'exp':
-          rpncalc.exp();
-          break;
-        case 'pi':
-          rpncalc.push(Math.PI);
-          break;
-        }
+        rpncalc.push(Math.PI);
         update();
         break;
 
       default:
-        throw new Error("Unhandled key: " + key);
+        if (rpncalc[key]) {
+          pushInput();
+          rpncalc[key]();
+          update();
+        } else {
+          throw new Error("Unhandled key: " + key);
+        }
+        break;
       }
       inputElem.focus();
     } catch (e) {

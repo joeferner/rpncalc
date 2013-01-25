@@ -226,6 +226,7 @@ $(function() {
       case 'log':
       case 'ln':
       case 'fact':
+      case 'exp':
         pushInput();
         switch (key) {
         case 'x':
@@ -281,6 +282,9 @@ $(function() {
           break;
         case 'fact':
           rpncalc.factorial();
+          break;
+        case 'exp':
+          rpncalc.exp();
           break;
         case 'pi':
           rpncalc.push(Math.PI);

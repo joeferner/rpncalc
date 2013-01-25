@@ -37,7 +37,7 @@ $(function() {
     stackElem.innerHTML = stackTemplate.render({
       rpncalc: rpncalc,
       helpers: templateHelpers,
-      stackItemsToDisplay: 20,
+      stackItemsToDisplay: 50,
       stackInputValue: stackInputValue,
       currentError: currentError
     });
@@ -201,6 +201,19 @@ $(function() {
       case '/':
       case '+':
       case '-':
+      case 'pi':
+      case '1/x':
+      case 'sqrt':
+      case 'x^2':
+      case 'sin':
+      case 'cos':
+      case 'tan':
+      case 'asin':
+      case 'acos':
+      case 'atan':
+      case 'nroot':
+      case 'log':
+      case 'ln':
         pushInput();
         switch (key) {
         case 'x':
@@ -214,6 +227,45 @@ $(function() {
           break;
         case '-':
           rpncalc.subtract();
+          break;
+        case '1/x':
+          rpncalc.inv();
+          break;
+        case 'sqrt':
+          rpncalc.sqrt();
+          break;
+        case 'x^2':
+          rpncalc.pow2();
+          break;
+        case 'sin':
+          rpncalc.sin();
+          break;
+        case 'cos':
+          rpncalc.cos();
+          break;
+        case 'tan':
+          rpncalc.tan();
+          break;
+        case 'asin':
+          rpncalc.asin();
+          break;
+        case 'acos':
+          rpncalc.acos();
+          break;
+        case 'atan':
+          rpncalc.atan();
+          break;
+        case 'nroot':
+          rpncalc.nroot();
+          break;
+        case 'log':
+          rpncalc.log();
+          break;
+        case 'ln':
+          rpncalc.ln();
+          break;
+        case 'pi':
+          rpncalc.push(Math.PI);
           break;
         }
         update();

@@ -29,7 +29,7 @@ openport.find(function(err, port) {
   appjs.serveFilesFrom(path.resolve(__dirname, '../web/public/loading'));
 
   var window = appjs.createWindow({
-    width: 400,
+    width: 500,
     height: 600,
     icons: path.join(__dirname, 'icons'),
     url: 'http://localhost:' + port + '/'

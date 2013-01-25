@@ -164,7 +164,10 @@ $(function() {
     var val = getStackInputValue();
     clearError();
     try {
-      var key = $(this).html().trim().toLowerCase();
+      var key = $(this).attr('fn');
+      if (!key) {
+        key = $(this).html().trim().toLowerCase();
+      }
       switch (key) {
       case 'enter':
         pushInput();
@@ -215,6 +218,7 @@ $(function() {
       case '1/x':
       case 'sqrt':
       case 'x^2':
+      case 'y^x':
       case 'sin':
       case 'cos':
       case 'tan':
@@ -246,6 +250,9 @@ $(function() {
           break;
         case 'x^2':
           rpncalc.pow2();
+          break;
+        case 'y^x':
+          rpncalc.pow();
           break;
         case 'sin':
           rpncalc.sin();

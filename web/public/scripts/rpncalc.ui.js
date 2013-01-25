@@ -13,11 +13,26 @@ $(function() {
   var stackTemplate = new EJS({ element: 'stackTemplate' });
   update();
   setTimeout(onWindowResize, 100);
+  setTimeout(loadState, 100);
 
   $('#buttons button').click(onButtonClick);
   $('body').keypress(onKeyPress);
   $('body').keydown(onKeyDown);
   $(window).resize(onWindowResize);
+
+  window.document.clearState = function() {
+    rpncalc.clear();
+    update();
+  };
+
+  function loadState() {
+    var state = window.rpncalcState;
+    if (state) {
+      state = JSON.parse(state);
+      rpncalc.loadState(state);
+      update();
+    }
+  }
 
   function onWindowResize() {
     scrollStackToBottom();

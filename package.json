@@ -19,7 +19,10 @@
     "express": "~3.0.6",
     "optimist": "~0.3.5",
     "sf": "~0.1.6",
-    "less-middleware": "~0.1.9"
+    "less-middleware": "~0.1.9",
+    "appjs-linux-x64": "0.0.19",
+    "appjs": "0.0.20",
+    "openport": "0.0.3"
   },
   "devDependencies": {
     "nodeunit": "~0.7.4"

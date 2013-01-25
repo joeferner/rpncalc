@@ -2,7 +2,6 @@ body {
   margin: 0;
 }
 #calc {
-  border: 1px solid #000000;
   padding: 5px;
 }
 /*********** status bar ************/
@@ -14,8 +13,8 @@ body {
 }
 /*********** stack *****************/
 #stackItemsContainer {
-  height: 9.6em;
   overflow-y: scroll;
+  vertical-align: text-bottom;
   padding-right: 5px;
 }
 .stackItem {
@@ -30,9 +29,10 @@ body {
 #stackInput {
   text-align: left;
   border: none;
+  font-size: 12pt;
 }
 #stackInputContainer {
-  height: 1em;
+  height: 25px;
   margin-left: 0px;
 }
 #stackInput:focus {

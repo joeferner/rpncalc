@@ -9,9 +9,10 @@ $(function() {
   var statusBarElem = document.getElementById('statusBar');
   var inputElem = null;
   var currentError = null;
-  var statusBarTemplate = new EJS({ url: '/templates/statusBar.ejs' });
-  var stackTemplate = new EJS({ url: '/templates/stack.ejs' });
+  var statusBarTemplate = new EJS({ element: 'statusBarTemplate' });
+  var stackTemplate = new EJS({ element: 'stackTemplate' });
   update();
+  setTimeout(onWindowResize, 500);
 
   $('#buttons button').click(onButtonClick);
   $('body').keypress(onKeyPress);
@@ -20,6 +21,9 @@ $(function() {
 
   function onWindowResize() {
     $(inputElem).width($(stackElem).width());
+    $('#stackItemsContainer').height(window.innerHeight - $('#buttons').height() - $('#statusBar').height() - 70);
+    var stackItemsContainerElem = document.getElementById('stackItemsContainer');
+    stackItemsContainerElem.scrollTop = stackItemsContainerElem.scrollHeight;
   }
 
   function update() {
@@ -36,7 +40,7 @@ $(function() {
     stackElem.innerHTML = stackTemplate.render({
       rpncalc: rpncalc,
       helpers: templateHelpers,
-      stackItemsToDisplay: 8,
+      stackItemsToDisplay: parseInt($('#stackItemsContainer').height() / 20),
       stackInputValue: stackInputValue,
       currentError: currentError
     });

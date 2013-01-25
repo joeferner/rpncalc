@@ -1,0 +1,175 @@
+'use strict';
+
+$(function() {
+  var templateHelpers = createTemplateHelpers();
+  var keys = document.require('../../lib/keys');
+  var RpnCalc = document.require('../../');
+  var rpncalc = document.rpncalc = new RpnCalc();
+  var stackElem = document.getElementById('stack');
+  var statusBarElem = document.getElementById('statusBar');
+  var inputElem = null;
+  var currentError = null;
+  var statusBarTemplate = new EJS({ url: '/templates/statusBar.ejs' });
+  var stackTemplate = new EJS({ url: '/templates/stack.ejs' });
+  update();
+
+  $('body').keypress(onKeyPress);
+  $('body').keydown(onKeyDown);
+  $(window).resize(onWindowResize);
+
+  function onWindowResize() {
+    $(inputElem).width($(stackElem).width());
+  }
+
+  function update() {
+    updateStatusBar();
+    updateStack();
+    onWindowResize();
+  }
+
+  function updateStack() {
+    var stackInputValue = '';
+    if (inputElem) {
+      stackInputValue = $(inputElem).val();
+    }
+    stackElem.innerHTML = stackTemplate.render({
+      rpncalc: rpncalc,
+      helpers: templateHelpers,
+      stackItemsToDisplay: 8,
+      stackInputValue: stackInputValue,
+      currentError: currentError
+    });
+    inputElem = document.getElementById('stackInput');
+    inputElem.focus();
+  }
+
+  function updateStatusBar() {
+    statusBarElem.innerHTML = statusBarTemplate.render({
+      rpncalc: rpncalc,
+      helpers: templateHelpers
+    });
+  }
+
+  function getStackInputValue() {
+    if (inputElem) {
+      return $(inputElem).val();
+    }
+    return '';
+  }
+
+  function displayError(err) {
+    currentError = err;
+    console.log(err);
+    update();
+  }
+
+  function clearError() {
+    if (currentError) {
+      currentError = null;
+      update();
+    }
+  }
+
+  function pushInput() {
+    var val = getStackInputValue();
+    if (val.length > 0) {
+      rpncalc.push(val);
+      $(inputElem).val('');
+      update();
+    }
+  }
+
+  function onKeyPress(event) {
+    try {
+      switch (event.which) {
+      case keys.PLUS:
+      case keys.MINUS:
+      case keys.ASTERISK:
+      case keys.FORWARD_SLASH:
+        event.preventDefault();
+        pushInput();
+        switch (event.which) {
+        case keys.PLUS:
+          rpncalc.plus();
+          break;
+        case keys.MINUS:
+          rpncalc.subtract();
+          break;
+        case keys.ASTERISK:
+          rpncalc.multiply();
+          break;
+        case keys.FORWARD_SLASH:
+          rpncalc.divide();
+          break;
+        }
+        update();
+        break;
+      default:
+        console.log('onKeyPress', event.which);
+      }
+    } catch (e) {
+      displayError(e);
+    }
+  }
+
+  function onKeyDown(event) {
+    clearError();
+    try {
+      switch (event.which) {
+      case keys.BACKSPACE:
+        if (getStackInputValue().length > 0) {
+          // do nothing
+        } else {
+          rpncalc.drop();
+          update();
+        }
+        break;
+
+      case keys.ENTER:
+        pushInput();
+        break;
+
+      default:
+        console.log('onKeyDown', event.which);
+      }
+    } catch (e) {
+      displayError(e);
+    }
+  }
+
+  function createTemplateHelpers() {
+    return {
+      angleModeToString: function(angleMode) {
+        switch (angleMode) {
+        case 'rad':
+          return 'Radians';
+        case 'deg':
+          return 'Degrees';
+        default:
+          return 'Unknown: ' + angleMode
+        }
+      },
+
+      numBaseToString: function(numBase) {
+        switch (numBase) {
+        case 10:
+          return 'Decimal';
+        case 16:
+          return 'Hexadecimal';
+        case 2:
+          return 'Binary';
+        default:
+          return 'Base: ' + numBase
+        }
+      },
+
+      stackItemToString: function(stackItem) {
+        if (!stackItem) {
+          return '&nbsp;';
+        }
+        return stackItem.toString(rpncalc.numBase);
+      }
+    };
+  }
+});
+

@@ -1,10 +1,10 @@
-<% console.log(stackItemsToDisplay - 1 - ((rpncalc.input && rpncalc.input.length > 0) ? 1 : 0), rpncalc.input, rpncalc.input.length) %>
-<% for(var i = stackItemsToDisplay - 1 - ((rpncalc.input && rpncalc.input.length > 0) ? 1 : 0); i >= 0; i--) { %>
+<% if(currentError) { %>
+    <div id="stackError"><%= currentError.message %></div>
+<% } %>
+<% for(var i = stackItemsToDisplay - 1 - (currentError ? 1 : 0); i >= 0; i--) { %>
     <div class="stackItem">
       <div class="stackItemNumber"><%= (i + 1) %>:</div>
       <div class="stackItemValue"><%= helpers.stackItemToString(rpncalc.stack[i]) %></div>
     </div>
 <% } %>
-<% if(rpncalc.input && rpncalc.input.length > 0) { %>
-  <div class="stackItem stackItemInput"><%= rpncalc.input %></div>
-<% } %>
+<input id="stackInput" class="stackItem stackItemInput" value="<%= stackInputValue %>">

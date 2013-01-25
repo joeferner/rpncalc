@@ -1,6 +1,9 @@
+body {
+  margin: 0;
+}
 #calc {
-  display: inline-block;
   border: 1px solid #000000;
+  padding: 5px;
 }
 /*********** status bar ************/
 #statusBar {
@@ -15,5 +18,12 @@
 }
 .stackItemValue {
   text-align: right;
+}
+#stackInput {
+  text-align: right;
+  border: none;
+}
+#stackInput:focus {
+  outline: none;
 }
 /*********** buttons ***************/

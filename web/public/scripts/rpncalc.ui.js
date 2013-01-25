@@ -7,8 +7,8 @@ $(function() {
   var rpncalc = document.rpncalc = new RpnCalc();
   var stackElem = document.getElementById('stack');
   var statusBarElem = document.getElementById('statusBar');
+  var errorElem = document.getElementById('error');
   var inputElem = null;
-  var currentError = null;
   var statusBarTemplate = new EJS({ element: 'statusBarTemplate' });
   var stackTemplate = new EJS({ element: 'stackTemplate' });
   update();
@@ -38,8 +38,7 @@ $(function() {
       rpncalc: rpncalc,
       helpers: templateHelpers,
       stackItemsToDisplay: 50,
-      stackInputValue: stackInputValue,
-      currentError: currentError
+      stackInputValue: stackInputValue
     });
     $('.stackItem').click(onStackItemClick);
     inputElem = document.getElementById('stackInput');
@@ -81,16 +80,14 @@ $(function() {
   }
 
   function displayError(err) {
-    currentError = err;
+    errorElem.innerHTML = err.message;
     console.error('Error:', err.message);
-    update();
+    $(errorElem).show();
   }
 
   function clearError() {
-    if (currentError) {
-      currentError = null;
-      update();
-    }
+    errorElem.innerHTML = '';
+    $(errorElem).hide();
   }
 
   function pushInput() {
@@ -228,6 +225,7 @@ $(function() {
       case 'nroot':
       case 'log':
       case 'ln':
+      case 'fact':
         pushInput();
         switch (key) {
         case 'x':
@@ -280,6 +278,9 @@ $(function() {
           break;
         case 'ln':
           rpncalc.ln();
+          break;
+        case 'fact':
+          rpncalc.factorial();
           break;
         case 'pi':
           rpncalc.push(Math.PI);

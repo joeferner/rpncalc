@@ -1,6 +1,7 @@
+@import "elements.less";
+
 @statusBarHeight: 20px;
 @buttonsHeight: 190px;
-@stackErrorHeight: 20px;
 @stackInputContainerHeight: 25px;
 @buttonsDoubleHeightWidth: 475px;
 @buttonsDoubleHeight: ((@buttonsHeight * 2) - 50);
@@ -33,6 +34,19 @@ body {
   border-left: 1px solid #858585;
 }
 
+/*********** error *****************/
+#error {
+  display: none;
+  background-color: #ff5858;
+  color: #f8f8f8;
+  position: fixed;
+  top: @statusBarHeight;
+  margin: 5px;
+  padding: 5px;
+  .rounded(5px);
+  z-index: 100000;
+}
+
 /*********** stack *****************/
 #stack {
   left: 0;
@@ -42,17 +56,13 @@ body {
   position: fixed;
 }
 
-#stackError {
-  height: @stackErrorHeight;
-}
-
 #stackItemsContainer {
   overflow-y: scroll;
   padding-right: 5px;
   position: fixed;
   left: 0;
   right: -1;
-  top: (@statusBarHeight + @stackErrorHeight);
+  top: @statusBarHeight;
   bottom: (@buttonsHeight + @stackInputContainerHeight + 1);
   @media (max-width: @buttonsDoubleHeightWidth) {
     bottom: (@buttonsDoubleHeight + @stackInputContainerHeight + 1);

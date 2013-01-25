@@ -1,3 +1,15 @@
+/*---------------------------------------------------
+    LESS Elements 0.6
+  ---------------------------------------------------
+    A set of useful LESS mixins by Dmitry Fadeyev
+    Special thanks for mixin suggestions to:
+      Kris Van Herzeele,
+      Benoit Adam,
+      Portenart Emile-Victor,
+      Ryan Faerman
+
+    More info at: http://lesselements.com
+-----------------------------------------------------*/
 html,
 body {
   height: 100%;
@@ -19,6 +31,23 @@ body {
   padding-left: 5px;
   border-left: 1px solid #858585;
 }
+/*********** error *****************/
+#error {
+  display: none;
+  background-color: #ff5858;
+  color: #f8f8f8;
+  position: fixed;
+  top: 20px;
+  margin: 5px;
+  padding: 5px;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  -moz-background-clip: padding;
+  -webkit-background-clip: padding-box;
+  background-clip: padding-box;
+  z-index: 100000;
+}
 /*********** stack *****************/
 #stack {
   left: 0;
@@ -27,16 +56,13 @@ body {
   bottom: 190px;
   position: fixed;
 }
-#stackError {
-  height: 20px;
-}
 #stackItemsContainer {
   overflow-y: scroll;
   padding-right: 5px;
   position: fixed;
   left: 0;
   right: -1;
-  top: 40px;
+  top: 20px;
   bottom: 216px;
   padding-left: 5px;
 }

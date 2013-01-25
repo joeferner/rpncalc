@@ -10,6 +10,7 @@
 <body>
 <div id="calc">
   <div id="statusBar"></div>
+  <div id="error"></div>
   <div id="stack"></div>
   <div id="buttons">
     <div>
@@ -65,8 +66,8 @@
       </div>
 
       <div>
-        <button>sqrt</button>
-        <button>nroot</button>
+        <button fn="sqrt">&radic;</button>
+        <button fn="nroot"><sup>x</sup>&radic;</button>
         <button>log</button>
         <button>ln</button>
       </div>
@@ -74,12 +75,12 @@
       <div>
         <button fn="x^2">x<sup>2</sup></button>
         <button fn="y^x">y<sup>x</sup></button>
+        <button fn="fact">x!</button>
       </div>
     </div>
   </div>
 </div>
 <script id="stackTemplate" type="text/ejs">
-  <div id="stackError">[%= currentError ? currentError.message : '&nbsp;' %]</div>
   <div id="stackItemsContainer">
     [% for(var i = Math.max(stackItemsToDisplay - 1, rpncalc.stack.length - 1); i >= 0; i--) { %]
     <div class="stackItem" id="stackItem_[%= i %]">

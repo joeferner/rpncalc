@@ -20,7 +20,7 @@ body {
   text-align: right;
 }
 #stackInput {
-  text-align: right;
+  text-align: left;
   border: none;
 }
 #stackInput:focus {

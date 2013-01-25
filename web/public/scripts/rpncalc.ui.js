@@ -41,6 +41,7 @@ $(function() {
       stackInputValue: stackInputValue,
       currentError: currentError
     });
+    $('.stackItem').click(onStackItemClick);
     inputElem = document.getElementById('stackInput');
     inputElem.onblur = function() {
       setTimeout(function() {
@@ -49,6 +50,15 @@ $(function() {
     };
     inputElem.focus();
     scrollStackToBottom();
+  }
+
+  function onStackItemClick() {
+    var m = $(this).attr('id').match(/^stackItem_(.*)$/);
+    var idx = parseInt(m[1]);
+    var stackItem = rpncalc.stack[idx];
+    if (stackItem) {
+      inputElem.value = stackItem.toString(rpncalc.numBase);
+    }
   }
 
   function scrollStackToBottom() {

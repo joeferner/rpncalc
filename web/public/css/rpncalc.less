@@ -2,6 +2,8 @@
 @buttonsHeight: 190px;
 @stackErrorHeight: 20px;
 @stackInputContainerHeight: 25px;
+@buttonsDoubleHeightWidth: 475px;
+@buttonsDoubleHeight: ((@buttonsHeight * 2) - 50);
 
 html, body {
   height: 100%;
@@ -22,6 +24,13 @@ body {
 
 #statusBar div {
   display: inline-block;
+  padding-right: 5px;
+  border-right: 1px solid #858585;
+}
+
+#statusBar div.firstItem {
+  padding-left: 5px;
+  border-left: 1px solid #858585;
 }
 
 /*********** stack *****************/
@@ -45,6 +54,9 @@ body {
   right: -1;
   top: (@statusBarHeight + @stackErrorHeight);
   bottom: (@buttonsHeight + @stackInputContainerHeight + 1);
+  @media (max-width: @buttonsDoubleHeightWidth) {
+    bottom: (@buttonsDoubleHeight + @stackInputContainerHeight + 1);
+  }
   padding-left: 5px;
 }
 
@@ -74,6 +86,7 @@ body {
   left: 0;
   right: -1;
   bottom: @buttonsHeight;
+  @media (max-width: @buttonsDoubleHeightWidth) { bottom: @buttonsDoubleHeight; }
   padding-left: 5px;
 }
 
@@ -85,7 +98,22 @@ body {
 #buttons {
   bottom: 0;
   height: @buttonsHeight;
+  @media (max-width: @buttonsDoubleHeightWidth) { height: @buttonsDoubleHeight; }
   position: fixed;
+}
+
+.buttonsFirstGroup {
+  float: left;
+  @media (max-width: @buttonsDoubleHeightWidth) { float: none; }
+}
+
+.buttonsSecondGroup {
+  float: right;
+  @media (max-width: @buttonsDoubleHeightWidth) { float: none; }
+}
+
+#buttons div {
+  white-space: nowrap;
 }
 
 #buttons button {

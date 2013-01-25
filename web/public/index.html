@@ -12,50 +12,70 @@
   <div id="statusBar"></div>
   <div id="stack"></div>
   <div id="buttons">
-    <button>Enter</button>
-    <button>+/-</button>
-    <button>Drop</button>
-    <button>Swap</button>
-    <button>Store</button>
-    <br/>
+    <div>
+      <button>Enter</button>
+      <button>Drop</button>
+      <button>Swap</button>
+      <button>Store</button>
+    </div>
 
-    <button>7</button>
-    <button>8</button>
-    <button>9</button>
-    <button>/</button>
-    <button>PI</button>
-    <button>sin</button>
-    <button>cos</button>
-    <button>tan</button>
-    <br/>
+    <div class="buttonsFirstGroup">
+      <div>
+        <button>7</button>
+        <button>8</button>
+        <button>9</button>
+        <button>/</button>
+      </div>
 
-    <button>4</button>
-    <button>5</button>
-    <button>6</button>
-    <button>x</button>
-    <button>1/x</button>
-    <button>asin</button>
-    <button>acos</button>
-    <button>atan</button>
-    <br/>
+      <div>
+        <button>4</button>
+        <button>5</button>
+        <button>6</button>
+        <button>x</button>
+      </div>
 
-    <button>1</button>
-    <button>2</button>
-    <button>3</button>
-    <button>-</button>
-    <button>sqrt</button>
-    <button>nroot</button>
-    <button>log</button>
-    <button>ln</button>
-    <br/>
+      <div>
+        <button>1</button>
+        <button>2</button>
+        <button>3</button>
+        <button>-</button>
+      </div>
 
-    <button class="empty"></button>
-    <button>0</button>
-    <button>.</button>
-    <button>+</button>
-    <button>x^2</button>
-    <button>y^x</button>
-    <br/>
+      <div>
+        <button>+/-</button>
+        <button>0</button>
+        <button>.</button>
+        <button>+</button>
+      </div>
+    </div>
+
+    <div class="buttonsSecondGroup">
+      <div>
+        <button>PI</button>
+        <button>sin</button>
+        <button>cos</button>
+        <button>tan</button>
+      </div>
+
+      <div>
+        <button>1/x</button>
+        <button>asin</button>
+        <button>acos</button>
+        <button>atan</button>
+      </div>
+
+      <div>
+        <button>sqrt</button>
+        <button>nroot</button>
+        <button>log</button>
+        <button>ln</button>
+      </div>
+
+      <div>
+        <button>x^2</button>
+        <button>y^x</button>
+      </div>
+    </div>
   </div>
 </div>
 <script id="stackTemplate" type="text/ejs">
@@ -73,7 +93,7 @@
   </div>
 </script>
 <script id="statusBarTemplate" type="text/ejs">
-  <div id="angleMode">[%= helpers.angleModeToString(rpncalc.angleMode) %]</div>
+  <div id="angleMode" class="firstItem">[%= helpers.angleModeToString(rpncalc.angleMode) %]</div>
   <div id="numBase">[%= helpers.numBaseToString(rpncalc.numBase) %]</div>
 </script>
 </body>

@@ -3,7 +3,7 @@
 @statusBarHeight: 20px;
 @buttonsHeight: 190px;
 @stackInputContainerHeight: 25px;
-@buttonsDoubleHeightWidth: 475px;
+@buttonsDoubleHeightWidth: 400px;
 @buttonsDoubleHeight: ((@buttonsHeight * 2) - 50);
 
 html, body {
@@ -127,9 +127,13 @@ body {
 }
 
 #buttons button {
-  width: 50px;
+  width: 40px;
   height: 30px;
   margin: 3px;
+}
+
+#buttons div.wider button {
+  width: 51.5px;
 }
 
 #buttons button.empty {

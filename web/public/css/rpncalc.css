@@ -66,7 +66,7 @@ body {
   bottom: 216px;
   padding-left: 5px;
 }
-@media (max-width: 475px) {
+@media (max-width: 400px) {
   #stackItemsContainer {
     bottom: 356px;
   }
@@ -95,7 +95,7 @@ body {
   bottom: 190px;
   padding-left: 5px;
 }
-@media (max-width: 475px) {
+@media (max-width: 400px) {
   #stackInputContainer {
     bottom: 330px;
   }
@@ -109,7 +109,7 @@ body {
   height: 190px;
   position: fixed;
 }
-@media (max-width: 475px) {
+@media (max-width: 400px) {
   #buttons {
     height: 330px;
   }
@@ -117,7 +117,7 @@ body {
 .buttonsFirstGroup {
   float: left;
 }
-@media (max-width: 475px) {
+@media (max-width: 400px) {
   .buttonsFirstGroup {
     float: none;
   }
@@ -125,7 +125,7 @@ body {
 .buttonsSecondGroup {
   float: right;
 }
-@media (max-width: 475px) {
+@media (max-width: 400px) {
   .buttonsSecondGroup {
     float: none;
   }
@@ -134,9 +134,12 @@ body {
   white-space: nowrap;
 }
 #buttons button {
-  width: 50px;
+  width: 40px;
   height: 30px;
   margin: 3px;
+}
+#buttons div.wider button {
+  width: 51.5px;
 }
 #buttons button.empty {
   visibility: hidden;

@@ -67,8 +67,8 @@ readRpnCalcState(function(err, rpncalcState) {
     ]);
 
     var window = appjs.createWindow({
-      width: 480,
-      height: 600,
+      width: 410,
+      height: 500,
       icons: path.join(__dirname, 'icons'),
       url: 'http://localhost:' + port + '/'
     });

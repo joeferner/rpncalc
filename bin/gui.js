@@ -27,7 +27,13 @@ function readRpnCalcState(callback) {
     if (err && err.message.indexOf('EEXIST') < 0) {
       return callback(err);
     }
-    return fs.readFile(rpncalcStateFileName, 'utf8', callback);
+    return fs.exists(rpncalcStateFileName, function(exists) {
+      if (exists) {
+        return fs.readFile(rpncalcStateFileName, 'utf8', callback);
+      } else {
+        return callback(null, {});
+      }
+    });
   });
 }
 

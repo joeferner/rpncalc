@@ -69,6 +69,17 @@ readRpnCalcState(function(err, rpncalcState) {
             }
           }
         ]
+      },
+      {
+        label: '&Help',
+        submenu: [
+          {
+            label: 'Help &Topics',
+            action: function() {
+              showHelp();
+            }
+          }
+        ]
       }
     ]);
 
@@ -113,6 +124,19 @@ readRpnCalcState(function(err, rpncalcState) {
     });
 
     return 0;
+
+    function showHelp() {
+      var helpWindow = appjs.createWindow({
+        width: 600,
+        height: 500,
+        icons: path.join(__dirname, 'icons'),
+        url: 'http://localhost:' + port + '/help'
+      });
+
+      helpWindow.on('create', function() {
+        helpWindow.frame.show();
+      });
+    }
   });
 });
 

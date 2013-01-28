@@ -144,3 +144,39 @@ body {
 #buttons button.empty {
   visibility: hidden;
 }
+/*********** help ******************/
+#help h2 {
+  margin-bottom: 5px;
+}
+#help h3 {
+  margin-left: 10px;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+#help pre {
+  margin-top: 0;
+  display: inline-block;
+  margin-left: 20px;
+  padding: 5px;
+  background-color: #f3eed6;
+}
+.helpEnter {
+  color: #505050;
+  font-size: 8pt;
+}
+#commandList {
+  margin-top: 0;
+  margin-left: 0;
+  padding-left: 0;
+  list-style: none;
+}
+#commandList .commandName {
+  display: inline-block;
+  width: 75px;
+  font-weight: bold;
+  text-align: right;
+  margin-right: 10px;
+}
+#commandList .commandDescription {
+  display: inline;
+}

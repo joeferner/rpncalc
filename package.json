@@ -20,9 +20,10 @@
     "optimist": "~0.3.5",
     "sf": "~0.1.6",
     "less-middleware": "~0.1.9",
-    "appjs-linux-x64": "0.0.19",
     "appjs": "0.0.20",
-    "openport": "0.0.3"
+    "openport": "0.0.3",
+    "ejs": "~0.8.3",
+    "async": "~0.1.22"
   },
   "devDependencies": {
     "nodeunit": "~0.7.4"

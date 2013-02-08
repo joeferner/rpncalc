@@ -68,10 +68,12 @@ $(function() {
 
   function onStackItemClick() {
     var m = $(this).attr('id').match(/^stackItem_(.*)$/);
-    var idx = parseInt(m[1]);
-    var stackItem = rpncalc.stack[idx];
-    if (stackItem) {
-      inputElem.value = stackItem.toString(rpncalc.numBase);
+    if (m) {
+      var idx = parseInt(m[1]);
+      var stackItem = rpncalc.stack[idx];
+      if (stackItem) {
+        inputElem.value = stackItem.toString(rpncalc.numBase);
+      }
     }
   }
 

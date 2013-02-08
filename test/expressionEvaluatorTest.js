@@ -29,6 +29,7 @@ module.exports = {
     test.equals(0, this.evalExpr('1-1'));
     test.equals(10, this.evalExpr('5*2'));
     test.equals(0.5, this.evalExpr('1/2'));
+    test.equals(8, this.evalExpr('2^3'));
     test.done();
   },
 
@@ -43,6 +44,19 @@ module.exports = {
   'functions': function(test) {
     test.ok(Math.abs(0.5 - this.evalExpr('sin(30)').value) < 0.0001);
     test.equals(8, this.evalExpr('pow(2, 3)'));
+    test.done();
+  },
+
+  'variables': function(test) {
+    this.rpncalc.push('3');
+    this.rpncalc.push("'x'");
+    this.rpncalc.push('store');
+    test.equals(8, this.evalExpr('pow(2, x)'));
+    test.done();
+  },
+
+  'constants': function(test) {
+    test.ok(Math.abs(Math.PI - this.evalExpr('pi').value) < 0.0001);
     test.done();
   }
 };

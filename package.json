@@ -23,7 +23,9 @@
     "appjs": "0.0.20",
     "openport": "0.0.3",
     "ejs": "~0.8.3",
-    "async": "~0.1.22"
+    "async": "~0.1.22",
+    "jison": "~0.4.2",
+    "nodeunit": "~0.7.4"
   },
   "devDependencies": {
     "nodeunit": "~0.7.4"

@@ -115,6 +115,10 @@ $(function() {
   }
 
   function onKeyPress(event) {
+    if (getStackInputValue()[0] == "'") {
+      return;
+    }
+
     try {
       switch (event.which) {
       case keys.PLUS:
@@ -149,7 +153,17 @@ $(function() {
 
   function onKeyDown(event) {
     clearError();
+
     try {
+      if (getStackInputValue()[0] == "'") {
+        switch (event.which) {
+        case keys.ENTER:
+          pushInput();
+          break;
+        }
+        return;
+      }
+
       switch (event.which) {
       case keys.BACKSPACE:
         if (getStackInputValue().length > 0) {

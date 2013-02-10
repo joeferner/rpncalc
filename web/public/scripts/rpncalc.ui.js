@@ -1,67 +1,56 @@
 'use strict';
 
 $(function() {
-  var templateHelpers = createTemplateHelpers();
   var keys = document.require('../../lib/keys');
-  var RpnCalc = document.require('../../');
-  var rpncalc = document.rpncalc = new RpnCalc();
   var stackElem = document.getElementById('stack');
-  var statusBarElem = document.getElementById('statusBar');
   var errorElem = document.getElementById('error');
-  var inputElem = null;
-  var statusBarTemplate = new EJS({ element: 'statusBarTemplate' });
   var stackTemplate = new EJS({ element: 'stackTemplate' });
+
+  var inputElem = document.getElementById('stackInput');
+  inputElem.onblur = function() {
+    setTimeout(function() {
+      inputElem.focus();
+    }, 100);
+  };
+
   update();
   setTimeout(onWindowResize, 100);
-  setTimeout(loadState, 100);
 
   $('#buttons button').click(onButtonClick);
   $('body').keypress(onKeyPress);
   $('body').keydown(onKeyDown);
   $(window).resize(onWindowResize);
 
-  window.document.clearState = function() {
-    rpncalc.clear();
-    update();
-  };
-
-  function loadState() {
-    var state = window.rpncalcState;
-    if (state) {
-      state = JSON.parse(state);
-      rpncalc.loadState(state);
-      update();
-    }
-  }
-
   function onWindowResize() {
     scrollStackToBottom();
   }
 
   function update() {
-    updateStatusBar();
-    updateStack();
-    onWindowResize();
+    var jqxhr = $.get(
+      '/rpncalc',
+      function(rpncalc) {
+        updateStatusBar(rpncalc);
+        updateStack(rpncalc);
+        onWindowResize();
+      })
+      .fail(function() {
+        var json = JSON.parse(jqxhr.responseText);
+        console.log('stack update failed:', json.message);
+        displayError(new Error(json.message));
+      });
   }
 
-  function updateStack() {
+  function updateStack(rpncalc) {
     var stackInputValue = '';
     if (inputElem) {
       stackInputValue = $(inputElem).val();
     }
     stackElem.innerHTML = stackTemplate.render({
       rpncalc: rpncalc,
-      helpers: templateHelpers,
       stackItemsToDisplay: 50,
       stackInputValue: stackInputValue
     });
     $('.stackItem').click(onStackItemClick);
-    inputElem = document.getElementById('stackInput');
-    inputElem.onblur = function() {
-      setTimeout(function() {
-        inputElem.focus();
-      }, 100);
-    };
     inputElem.focus();
     scrollStackToBottom();
   }
@@ -82,11 +71,36 @@ $(function() {
     stackItemsContainerElem.scrollTop = stackItemsContainerElem.scrollHeight;
   }
 
-  function updateStatusBar() {
-    statusBarElem.innerHTML = statusBarTemplate.render({
-      rpncalc: rpncalc,
-      helpers: templateHelpers
-    });
+  function updateStatusBar(rpncalc) {
+    $('#angleMode').html(angleModeToString(rpncalc.angleMode));
+    $('#numBase').html(numBaseToString(rpncalc.numBase));
+    return 0;
+
+    function angleModeToString(angleMode) {
+      switch (angleMode) {
+      case 'rad':
+        return 'Radians';
+      case 'deg':
+        return 'Degrees';
+      default:
+        return 'Unknown: ' + angleMode
+      }
+    }
+
+    function numBaseToString(numBase) {
+      switch (numBase) {
+      case 10:
+        return 'Decimal';
+      case 16:
+        return 'Hexadecimal';
+      case 8:
+        return 'Octal';
+      case 2:
+        return 'Binary';
+      default:
+        return 'Base: ' + numBase
+      }
+    }
   }
 
   function getStackInputValue() {
@@ -107,13 +121,31 @@ $(function() {
     $(errorElem).hide();
   }
 
-  function pushInput() {
+  function push(val, callback) {
+    callback = callback || function() {};
+    var jqxhr = $.post(
+      '/rpncalc/push',
+      {
+        value: val
+      },
+      function() {
+        $(inputElem).val('');
+        return callback();
+      })
+      .fail(function() {
+        var json = JSON.parse(jqxhr.responseText);
+        var err = new Error(json.message);
+        displayError(err);
+        return callback(err);
+      });
+  }
+
+  function pushInput(callback) {
     var val = getStackInputValue();
-    if (val.length > 0) {
-      rpncalc.push(val);
-      $(inputElem).val('');
-      update();
+    if (val.length == 0) {
+      return callback();
     }
+    push(val, callback);
   }
 
   function onKeyPress(event) {
@@ -128,19 +160,18 @@ $(function() {
       case keys.ASTERISK:
       case keys.FORWARD_SLASH:
         event.preventDefault();
-        pushInput();
         switch (event.which) {
         case keys.PLUS:
-          rpncalc.plus();
+          execute('plus');
           break;
         case keys.MINUS:
-          rpncalc.subtract();
+          execute('subtract');
           break;
         case keys.ASTERISK:
-          rpncalc.multiply();
+          execute('multiply');
           break;
         case keys.FORWARD_SLASH:
-          rpncalc.divide();
+          execute('divide');
           break;
         }
         update();
@@ -160,7 +191,9 @@ $(function() {
       if (getStackInputValue()[0] == "'") {
         switch (event.which) {
         case keys.ENTER:
-          pushInput();
+          pushInput(function() {
+            update();
+          });
           break;
         }
         return;
@@ -171,13 +204,14 @@ $(function() {
         if (getStackInputValue().length > 0) {
           // do nothing
         } else {
-          rpncalc.drop();
-          update();
+          execute('drop');
         }
         break;
 
       case keys.ENTER:
-        pushInput();
+        pushInput(function() {
+          update();
+        });
         break;
 
       default:
@@ -186,6 +220,14 @@ $(function() {
     } catch (e) {
       displayError(e);
     }
+  }
+
+  function execute(fn) {
+    pushInput(function() {
+      push(fn, function() {
+        update();
+      });
+    });
   }
 
   function onButtonClick() {
@@ -198,17 +240,17 @@ $(function() {
       }
       switch (key) {
       case 'enter':
-        pushInput();
+        pushInput(function() {
+          update();
+        });
         break;
 
       case 'drop':
-        rpncalc.drop();
-        update();
+        execute('drop');
         break;
 
       case 'swap':
-        rpncalc.swap();
-        update();
+        execute('swap');
         break;
 
       case '+/-':
@@ -219,8 +261,7 @@ $(function() {
             inputElem.value = '-' + inputElem.value;
           }
         } else {
-          rpncalc.neg();
-          update();
+          execute('neg');
         }
         break;
 
@@ -239,62 +280,22 @@ $(function() {
         break;
 
       case 'pi':
-        pushInput();
-        rpncalc.push(Math.PI);
-        update();
+        pushInput(function() {
+          inputElem.value = Math.PI;
+          pushInput(function() {
+            update();
+          });
+        });
         break;
 
       default:
-        if (rpncalc[key]) {
-          pushInput();
-          rpncalc[key]();
-          update();
-        } else {
-          throw new Error("Unhandled key: " + key);
-        }
+        execute(key);
         break;
       }
       inputElem.focus();
     } catch (e) {
       displayError(e);
     }
-  }
-
-  function createTemplateHelpers() {
-    return {
-      angleModeToString: function(angleMode) {
-        switch (angleMode) {
-        case 'rad':
-          return 'Radians';
-        case 'deg':
-          return 'Degrees';
-        default:
-          return 'Unknown: ' + angleMode
-        }
-      },
-
-      numBaseToString: function(numBase) {
-        switch (numBase) {
-        case 10:
-          return 'Decimal';
-        case 16:
-          return 'Hexadecimal';
-        case 8:
-          return 'Octal';
-        case 2:
-          return 'Binary';
-        default:
-          return 'Base: ' + numBase
-        }
-      },
-
-      stackItemToString: function(stackItem) {
-        if (!stackItem) {
-          return '&nbsp;';
-        }
-        return stackItem.toString(rpncalc.numBase);
-      }
-    };
   }
 });
 

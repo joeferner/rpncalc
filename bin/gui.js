@@ -29,7 +29,16 @@ function readRpnCalcState(callback) {
     }
     return fs.exists(rpncalcStateFileName, function(exists) {
       if (exists) {
-        return fs.readFile(rpncalcStateFileName, 'utf8', callback);
+        return fs.readFile(rpncalcStateFileName, 'utf8', function(err, data) {
+          if (err) {
+            return callback(err);
+          }
+          try {
+            return callback(null, JSON.parse(data));
+          } catch (e) {
+            return callback(e);
+          }
+        });
       } else {
         return callback(null, {});
       }
@@ -46,8 +55,9 @@ readRpnCalcState(function(err, rpncalcState) {
       return console.error('Could not find open port', err);
     }
 
-    server({
-      port: port
+    var serverInstance = server({
+      port: port,
+      rpncalcState: rpncalcState
     });
 
     appjs.serveFilesFrom(path.resolve(__dirname, '../web/public/loading'));
@@ -59,7 +69,8 @@ readRpnCalcState(function(err, rpncalcState) {
           {
             label: '&Clear',
             action: function() {
-              window.document.clearState();
+              serverInstance.app.rpncalc.clear();
+              window.document.location.reload(true);
             }
           },
           {
@@ -101,7 +112,6 @@ readRpnCalcState(function(err, rpncalcState) {
       window.require = require;
       window.process = process;
       window.module = module;
-      window.rpncalcState = rpncalcState;
       window.addEventListener('keydown', function(e) {
         if (e.keyIdentifier === 'F12') {
           window.frame.openDevTools();
@@ -111,9 +121,8 @@ readRpnCalcState(function(err, rpncalcState) {
 
     window.on('close', function() {
       console.log("Window Closed");
-      var state = window.document.rpncalc;
-      state = window.JSON.stringify(state, null, '  ');
-      console.log('saving state');
+      var state = JSON.stringify(serverInstance.app.rpncalc, null, '  ');
+      console.log('saving state', state);
       fs.writeFile(rpncalcStateFileName, state, function(err) {
         if (err) {
           console.error('could not save state', err);

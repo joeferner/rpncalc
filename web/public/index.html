@@ -9,9 +9,15 @@
 </head>
 <body>
 <div id="calc">
-  <div id="statusBar"></div>
+  <div id="statusBar">
+    <div id="angleMode" class="firstItem"></div>
+    <div id="numBase"></div>
+  </div>
   <div id="error"></div>
   <div id="stack"></div>
+  <div id="stackInputContainer">
+    <input id="stackInput" class="stackItem stackItemInput" value="">
+  </div>
   <div id="buttons">
     <div class="wider">
       <button>Enter</button>
@@ -87,17 +93,10 @@
     [% for(var i = Math.max(stackItemsToDisplay - 1, rpncalc.stack.length - 1); i >= 0; i--) { %]
     <div class="stackItem" id="stackItem_[%= i %]">
       <div class="stackItemNumber">[%= (i + 1) %]:</div>
-      <div class="stackItemValue">[%= helpers.stackItemToString(rpncalc.stack[i]) %]</div>
+      <div class="stackItemValue">[%= rpncalc.stack[i] %]</div>
     </div>
     [% } %]
   </div>
-  <div id="stackInputContainer">
-    <input id="stackInput" class="stackItem stackItemInput" value="[%= stackInputValue %]">
-  </div>
-</script>
-<script id="statusBarTemplate" type="text/ejs">
-  <div id="angleMode" class="firstItem">[%= helpers.angleModeToString(rpncalc.angleMode) %]</div>
-  <div id="numBase">[%= helpers.numBaseToString(rpncalc.numBase) %]</div>
 </script>
 </body>
 </html>

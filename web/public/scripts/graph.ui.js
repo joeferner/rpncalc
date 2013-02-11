@@ -73,7 +73,6 @@ $(function() {
     opts.scaleX = opts.width / (opts.maxX - opts.minX);
     opts.scaleY = opts.height / (opts.maxY - opts.minY);
     lastRenderOpts = opts;
-    console.log(opts);
     var html = '<g>';
 
     // x-axis
@@ -112,7 +111,6 @@ $(function() {
     var i;
     var points = [];
     var expressionTree = expressionEvaluator.parse(equation.equation);
-    console.log(expressionTree);
 
     for (i = -10; i < opts.width + 10; i += 0.1) {
       var x = (i / opts.scaleX) + opts.minX;

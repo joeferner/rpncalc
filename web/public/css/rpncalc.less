@@ -68,7 +68,7 @@ body {
   @media (max-width: @buttonsDoubleHeightWidth) {
     bottom: (@buttonsDoubleHeight + @stackInputContainerHeight + 1);
   }
-  padding-left: 5px;
+padding-left: 5 px;
 }
 
 .stackItem {
@@ -97,8 +97,10 @@ body {
   left: 0;
   right: -1;
   bottom: @buttonsHeight;
-  @media (max-width: @buttonsDoubleHeightWidth) { bottom: @buttonsDoubleHeight; }
-  padding-left: 5px;
+  @media (max-width: @buttonsDoubleHeightWidth) {
+    bottom: @buttonsDoubleHeight;
+  }
+padding-left: 5 px;
 }
 
 #stackInput:focus {
@@ -109,18 +111,24 @@ body {
 #buttons {
   bottom: 0;
   height: @buttonsHeight;
-  @media (max-width: @buttonsDoubleHeightWidth) { height: @buttonsDoubleHeight; }
-  position: fixed;
+  @media (max-width: @buttonsDoubleHeightWidth) {
+    height: @buttonsDoubleHeight;
+  }
+position: fixed;
 }
 
 .buttonsFirstGroup {
   float: left;
-  @media (max-width: @buttonsDoubleHeightWidth) { float: none; }
+  @media (max-width: @buttonsDoubleHeightWidth) {
+    float: none;
+  }
 }
 
 .buttonsSecondGroup {
   float: right;
-  @media (max-width: @buttonsDoubleHeightWidth) { float: none; }
+  @media (max-width: @buttonsDoubleHeightWidth) {
+    float: none;
+  }
 }
 
 #buttons div {
@@ -186,4 +194,34 @@ body {
 
 #commandList .commandDescription {
   display: inline;
+}
+
+/*************** graph **************/
+#graphBody {
+
+}
+
+input.graphExtent {
+  border: none;
+  text-align: right;
+  width: 50px;
+}
+
+input.graphExtent:focus {
+  outline: none;
+}
+
+#graph {
+  border: 1px solid black;
+}
+
+.graphAxis {
+  stroke: #989898;
+  width: 1;
+}
+
+.graphEquation {
+  stroke: #ee0300;
+  fill: none;
+  width: 1;
 }

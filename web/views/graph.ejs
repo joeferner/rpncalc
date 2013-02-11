@@ -1,0 +1,42 @@
+<html>
+<head>
+  <title>RPNCalc - Graph</title>
+  <script type="text/javascript" src="/scripts/jquery-1.9.0.js"></script>
+  <script type="text/javascript" src="/scripts/ejs-1.0.js"></script>
+  <script type="text/javascript" src="/browserify.js"></script>
+  <script type="text/javascript" src="/scripts/innersvg.js"></script>
+  <script type="text/javascript" src="/scripts/graph.ui.js"></script>
+  <link type="text/css" rel="stylesheet" href="/css/rpncalc.css">
+</head>
+<body id="graphBody">
+Equation: <input id="eq1" value="<%= eq1 %>">
+<button id="generateGraph">Graph</button>
+
+<table>
+  <tr>
+    <td>
+      <input class="graphExtent" id="maxY" value="10"/>
+    </td>
+    <td rowspan="2" colspan="2">
+      <svg id="graph" width="400" height="400" xmlns="http://www.w3.org/2000/svg" version="1.1">
+
+      </svg>
+    </td>
+  </tr>
+  <tr>
+    <td style="vertical-align: bottom;">
+      <input class="graphExtent" id="minY" value="-10"/>
+    </td>
+  </tr>
+  <tr>
+    <td></td>
+    <td>
+      <input class="graphExtent" id="minX" value="-10" style="text-align: left;"/>
+    </td>
+    <td style="text-align: right;">
+      <input class="graphExtent" id="maxX" value="10"/>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

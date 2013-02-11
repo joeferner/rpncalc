@@ -65,7 +65,7 @@ body {
   right: -1;
   top: 20px;
   bottom: 216px;
-  padding-left: 5px;
+  padding-left: 5 px;
 }
 @media (max-width: 400px) {
   #stackItemsContainer {
@@ -94,7 +94,7 @@ body {
   left: 0;
   right: -1;
   bottom: 190px;
-  padding-left: 5px;
+  padding-left: 5 px;
 }
 @media (max-width: 400px) {
   #stackInputContainer {
@@ -183,4 +183,25 @@ body {
 }
 #commandList .commandDescription {
   display: inline;
+}
+/*************** graph **************/
+input.graphExtent {
+  border: none;
+  text-align: right;
+  width: 50px;
+}
+input.graphExtent:focus {
+  outline: none;
+}
+#graph {
+  border: 1px solid black;
+}
+.graphAxis {
+  stroke: #989898;
+  width: 1;
+}
+.graphEquation {
+  stroke: #ee0300;
+  fill: none;
+  width: 1;
 }

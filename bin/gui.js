@@ -59,6 +59,9 @@ readRpnCalcState(function(err, rpncalcState) {
       port: port,
       rpncalcState: rpncalcState
     });
+    serverInstance.on('graph', function(graphOpts) {
+      showGraph(graphOpts);
+    });
 
     appjs.serveFilesFrom(path.resolve(__dirname, '../web/public/loading'));
 
@@ -144,6 +147,19 @@ readRpnCalcState(function(err, rpncalcState) {
 
       helpWindow.on('create', function() {
         helpWindow.frame.show();
+      });
+    }
+
+    function showGraph(graphOpts) {
+      var graphWindow = appjs.createWindow({
+        width: 600,
+        height: 500,
+        icons: path.join(__dirname, 'icons'),
+        url: 'http://localhost:' + port + '/graph?eq1=' + graphOpts.equation
+      });
+
+      graphWindow.on('create', function() {
+        graphWindow.frame.show();
       });
     }
   });

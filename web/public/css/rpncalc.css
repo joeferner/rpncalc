@@ -185,6 +185,9 @@ body {
   display: inline;
 }
 /*************** graph **************/
+#graphBody table {
+  margin: 10px;
+}
 input.graphExtent {
   border: none;
   text-align: right;

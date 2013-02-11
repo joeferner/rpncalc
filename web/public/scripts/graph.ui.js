@@ -5,11 +5,22 @@ $(function() {
   var RpnCalc = document.require('../../lib/rpncalc');
   var StackItem = document.require('../../lib/stackItem');
   var sf = document.require('sf');
+  var regenerateGraphOnResizeTimeout = null;
 
+  $(window).resize(onResize);
   $('#generateGraph').click(generateGraph);
-  generateGraph();
+  setTimeout(onResize, 100);
+
+  function onResize() {
+    var graphElem = document.getElementById('graph');
+    $(graphElem).width($(window).width() - $('#maxY').width() - 40);
+    $(graphElem).height($(window).height() - $('#equations').height() - $('#maxX').height() - 40);
+    clearTimeout(regenerateGraphOnResizeTimeout);
+    regenerateGraphOnResizeTimeout = setTimeout(generateGraph, 100);
+  }
 
   function generateGraph() {
+    regenerateGraphOnResizeTimeout = null;
     var jqxhr = $.get(
       '/rpncalc',
       function(rpncalcState) {

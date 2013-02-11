@@ -58,10 +58,10 @@ $(function() {
   function onStackItemClick() {
     var m = $(this).attr('id').match(/^stackItem_(.*)$/);
     if (m) {
-      var idx = parseInt(m[1]);
-      var stackItem = rpncalc.stack[idx];
-      if (stackItem) {
-        inputElem.value = stackItem.toString(rpncalc.numBase);
+      var id = parseInt(m[1]);
+      var val = $('#stackItem_' + id + ' .stackItemValue').html();
+      if (val && val.length > 0) {
+        inputElem.value = val;
       }
     }
   }

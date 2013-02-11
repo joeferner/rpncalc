@@ -9,12 +9,18 @@
   <link type="text/css" rel="stylesheet" href="/css/rpncalc.css">
 </head>
 <body id="graphBody">
-<div id="equations">
-  Equation: <input id="eq1" value="<%= eq1 %>">
-  <button id="generateGraph">Graph</button>
-</div>
-
 <table>
+  <tr>
+    <td colspan="3">
+      <div id="equations"  style="float: left;">
+        Equation: <input id="eq1" value="<%= eq1 %>">
+        <button id="generateGraph">Graph</button>
+      </div>
+      <div style="float: right;">
+        <div id="currentCoordinates"></div>
+      </div>
+    </td>
+  </tr>
   <tr>
     <td>
       <input class="graphExtent" id="maxY" value="10"/>

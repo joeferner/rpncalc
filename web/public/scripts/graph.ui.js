@@ -6,9 +6,12 @@ $(function() {
   var StackItem = document.require('../../lib/stackItem');
   var sf = document.require('sf');
   var regenerateGraphOnResizeTimeout = null;
+  var lastRenderOpts = null;
 
   $(window).resize(onResize);
   $('#generateGraph').click(generateGraph);
+  $('#graph').mousemove(onGraphMouseMove);
+  $('#graph').mouseleave(onGraphMouseLeave);
   setTimeout(onResize, 100);
 
   function onResize() {
@@ -17,6 +20,23 @@ $(function() {
     $(graphElem).height($(window).height() - $('#equations').height() - $('#maxX').height() - 40);
     clearTimeout(regenerateGraphOnResizeTimeout);
     regenerateGraphOnResizeTimeout = setTimeout(generateGraph, 100);
+  }
+
+  function onGraphMouseMove(event) {
+    var pt = fromPoint({x: event.offsetX, y: event.offsetY}, lastRenderOpts);
+    $('#currentCoordinates').html(sf('{x:0.000}, {y:0.000}', pt));
+    $('#crosshairsX').attr('x1', event.offsetX);
+    $('#crosshairsX').attr('x2', event.offsetX);
+    $('#crosshairsY').attr('y1', event.offsetY);
+    $('#crosshairsY').attr('y2', event.offsetY);
+  }
+
+  function onGraphMouseLeave(event) {
+    $('#currentCoordinates').html('');
+    $('#crosshairsX').attr('x1', -10);
+    $('#crosshairsX').attr('x2', -10);
+    $('#crosshairsY').attr('y1', -10);
+    $('#crosshairsY').attr('y2', -10);
   }
 
   function generateGraph() {
@@ -52,6 +72,7 @@ $(function() {
     opts.height = $(graphElem).height();
     opts.scaleX = opts.width / (opts.maxX - opts.minX);
     opts.scaleY = opts.height / (opts.maxY - opts.minY);
+    lastRenderOpts = opts;
     console.log(opts);
     var html = '<g>';
 
@@ -69,6 +90,18 @@ $(function() {
 
     equations.forEach(function(equation) {
       html += graphEquation(rpncalc, opts, equation);
+    });
+
+    // x-axis crosshairs
+    html += sf('<line id="crosshairsX" x1="{pt1.x}" y1="{pt1.y}" x2="{pt2.x}" y2="{pt2.y}" class="graphCrosshairs" />', {
+      pt1: toPoint({x: opts.minX - 10, y: opts.minY}, opts),
+      pt2: toPoint({x: opts.minX - 10, y: opts.maxY}, opts)
+    });
+
+    // y-axis crosshairs
+    html += sf('<line id="crosshairsY" x1="{pt1.x}" y1="{pt1.y}" x2="{pt2.x}" y2="{pt2.y}" class="graphCrosshairs" />', {
+      pt1: toPoint({x: opts.minX, y: opts.minY - 10}, opts),
+      pt2: toPoint({x: opts.maxX, y: opts.minY - 10}, opts)
     });
 
     html += '</g>';
@@ -107,6 +140,12 @@ $(function() {
         return pt.x + ',' + pt.y;
       }).join(' ')});
     }
+  }
+
+  function fromPoint(pt, opts) {
+    var x = (pt.x / opts.scaleX) + opts.minX;
+    var y = ((opts.height - pt.y) / opts.scaleY) + opts.minY;
+    return {x: x, y: y};
   }
 
   function toPoint(pt, opts) {

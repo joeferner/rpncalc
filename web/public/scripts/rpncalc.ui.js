@@ -259,14 +259,6 @@ $(function() {
         });
         break;
 
-      case 'drop':
-        execute('drop');
-        break;
-
-      case 'swap':
-        execute('swap');
-        break;
-
       case '+/-':
         if (val.length > 0) {
           if (inputElem.value[0] == '-') {

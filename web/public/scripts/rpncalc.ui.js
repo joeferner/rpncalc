@@ -148,6 +148,10 @@ $(function() {
     push(val, callback);
   }
 
+  function isExponentionalNotation(v) {
+    return /^([0-9\.-]+)e([0-9]*)$/.test(v);
+  }
+
   function onKeyPress(event) {
     if (getStackInputValue()[0] == "'") {
       return;
@@ -159,19 +163,29 @@ $(function() {
       case keys.MINUS:
       case keys.ASTERISK:
       case keys.FORWARD_SLASH:
-        event.preventDefault();
         switch (event.which) {
         case keys.PLUS:
+          event.preventDefault();
           execute('plus');
           break;
         case keys.MINUS:
-          execute('subtract');
+          if (isExponentionalNotation(getStackInputValue())) {
+            return;
+          } else {
+            event.preventDefault();
+            execute('subtract');
+          }
           break;
         case keys.ASTERISK:
+          event.preventDefault();
           execute('multiply');
           break;
         case keys.FORWARD_SLASH:
+          event.preventDefault();
           execute('divide');
+          break;
+        default:
+          event.preventDefault();
           break;
         }
         update();

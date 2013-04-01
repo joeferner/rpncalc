@@ -85,6 +85,18 @@ readRpnCalcState(function(err, rpncalcState) {
         ]
       },
       {
+        label: '&View',
+        submenu: [
+          {
+            label: '&Digit Grouping',
+            action: function() {
+              serverInstance.app.rpncalc.setDigitGrouping(!serverInstance.app.rpncalc.digitGrouping);
+              window.document.location.reload(true);
+            }
+          }
+        ]
+      },
+      {
         label: '&Help',
         submenu: [
           {

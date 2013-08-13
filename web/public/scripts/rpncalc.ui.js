@@ -50,8 +50,9 @@ $(function() {
         clear();
       }
     }));
+    fileMenu.append(new gui.MenuItem({ type: 'separator' }));
     fileMenu.append(new gui.MenuItem({
-      label: 'Close',
+      label: 'Exit',
       click: function() {
         win.close();
       }

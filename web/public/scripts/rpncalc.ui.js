@@ -1,7 +1,16 @@
 'use strict';
 
 $(function() {
-  var keys = document.require('../../lib/keys');
+  var urlPrefix = 'http://localhost:9999';
+  var keys = {
+    BACKSPACE: 8,
+    ENTER: 13,
+    PLUS: 43,
+    MINUS: 45,
+    ASTERISK: 42,
+    FORWARD_SLASH: 47
+  };
+
   var stackElem = document.getElementById('stack');
   var errorElem = document.getElementById('error');
   var stackTemplate = new EJS({ element: 'stackTemplate' });
@@ -13,7 +22,7 @@ $(function() {
     }, 100);
   };
 
-  update();
+  setTimeout(load, 500);
   setTimeout(onWindowResize, 100);
 
   $('#buttons button').click(onButtonClick);
@@ -25,9 +34,76 @@ $(function() {
     scrollStackToBottom();
   }
 
+  function load() {
+    var gui = require('nw.gui');
+    var fs = require('fs');
+    var path = require('path');
+    var settingsDir = path.resolve(getUserHome(), '.rpncalc');
+
+    var win = gui.Window.get();
+    var menubar = new gui.Menu({ type: 'menubar' });
+
+    var fileMenu = new gui.Menu();
+    fileMenu.append(new gui.MenuItem({
+      label: 'Clear',
+      click: function() {
+        clear();
+      }
+    }));
+    fileMenu.append(new gui.MenuItem({
+      label: 'Close',
+      click: function() {
+        win.close();
+      }
+    }));
+    menubar.append(new gui.MenuItem({ label: 'File', submenu: fileMenu }));
+
+    var viewMenu = new gui.Menu();
+    viewMenu.append(new gui.MenuItem({
+      type: 'checkbox',
+      checked: true,
+      label: 'Digit Grouping',
+      click: function() {
+        setDigitGrouping(setDigitGroupingMenuItem.checked, function() {
+          update();
+        });
+      }
+    }));
+    menubar.append(new gui.MenuItem({ label: 'View', submenu: viewMenu }));
+    var setDigitGroupingMenuItem = viewMenu.items[0];
+
+    var helpMenu = new gui.Menu();
+    helpMenu.append(new gui.MenuItem({
+      label: 'Help Topics',
+      click: function() {
+        showHelp();
+      }
+    }));
+    menubar.append(new gui.MenuItem({ label: 'Help', submenu: helpMenu }));
+
+    win.menu = menubar;
+
+    win.on('close', function() {
+      saveState(function() {
+        win.close(true);
+      });
+    });
+
+    fs.readFile(path.join(settingsDir, 'port'), 'utf-8', function(err, data) {
+      urlPrefix = 'http://localhost:' + data;
+      fs.readFile(path.resolve(settingsDir, 'rpncalcState.json'), function(err, data) {
+        if(data) {
+          data = JSON.parse(data);
+          console.log(data);
+        }
+        update();
+      });
+    });
+  }
+
   function update() {
     var jqxhr = $.get(
-      '/rpncalc',
+      urlPrefix + '/rpncalc',
       function(rpncalc) {
         updateStatusBar(rpncalc);
         updateStack(rpncalc);
@@ -68,7 +144,9 @@ $(function() {
 
   function scrollStackToBottom() {
     var stackItemsContainerElem = document.getElementById('stackItemsContainer');
-    stackItemsContainerElem.scrollTop = stackItemsContainerElem.scrollHeight;
+    if(stackItemsContainerElem) {
+      stackItemsContainerElem.scrollTop = stackItemsContainerElem.scrollHeight;
+    }
   }
 
   function updateStatusBar(rpncalc) {
@@ -124,12 +202,15 @@ $(function() {
   function push(val, callback) {
     callback = callback || function() {};
     var jqxhr = $.post(
-      '/rpncalc/push',
+      urlPrefix + '/rpncalc/push',
       {
         value: val
       },
-      function() {
+      function(data) {
         $(inputElem).val('');
+        if(data && data.fn == 'graph') {
+          showGraph(data);
+        }
         return callback();
       })
       .fail(function() {
@@ -302,6 +383,74 @@ $(function() {
     } catch (e) {
       displayError(e);
     }
+  }
+
+  function getUserHome() {
+    return process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
+  }
+
+  function clear() {
+    var jqxhr = $.post(
+      urlPrefix + '/rpncalc/clear',
+      function() {
+        update();
+        return callback();
+      }).fail(function() {
+        var json = JSON.parse(jqxhr.responseText);
+        var err = new Error(json.message);
+        displayError(err);
+        return callback(err);
+      });
+  }
+
+  function saveState(callback) {
+    var jqxhr = $.post(
+      urlPrefix + '/rpncalc/save',
+      function() {
+        return callback();
+      }).fail(function() {
+        var json = JSON.parse(jqxhr.responseText);
+        var err = new Error(json.message);
+        displayError(err);
+        return callback(err);
+      });
+  }
+
+  function setDigitGrouping(enabled, callback) {
+    var jqxhr = $.post(
+      urlPrefix + '/rpncalc/setDigitGrouping',
+      {
+        enabled: enabled
+      },
+      function() {
+        return callback();
+      }).fail(function() {
+        var json = JSON.parse(jqxhr.responseText);
+        var err = new Error(json.message);
+        displayError(err);
+        return callback(err);
+      });
+    return callback();
+  }
+
+  function showHelp() {
+    var gui = require('nw.gui');
+    gui.Window.open(urlPrefix + '/help', {
+      width: 600,
+      height: 500,
+      toolbar: false
+    });
+  }
+
+  function showGraph(graphOpts) {
+    var graphWindow = gui.Window.open(urlPrefix + '/graph?eq1=' + graphOpts.equation, {
+      width: 600,
+      height: 500
+    });
+
+    graphWindow.on('create', function() {
+      graphWindow.frame.show();
+    });
   }
 });
 

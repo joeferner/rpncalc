@@ -2,7 +2,6 @@
 'use strict';
 
 var openport = require('openport');
-var appjs = require('appjs');
 var path = require('path');
 var server = require('../lib/server');
 var optimist = require('optimist');
@@ -55,125 +54,14 @@ readRpnCalcState(function(err, rpncalcState) {
       return console.error('Could not find open port', err);
     }
 
+    fs.writeFileSync(path.join(settingsDir, 'port'), port);
+
     var serverInstance = server({
       port: port,
       rpncalcState: rpncalcState
     });
-    serverInstance.on('graph', function(graphOpts) {
-      showGraph(graphOpts);
-    });
-
-    appjs.serveFilesFrom(path.resolve(__dirname, '../web/public/loading'));
-
-    var menubar = appjs.createMenu([
-      {
-        label: '&File',
-        submenu: [
-          {
-            label: '&Clear',
-            action: function() {
-              serverInstance.app.rpncalc.clear();
-              window.document.location.reload(true);
-            }
-          },
-          {
-            label: 'E&xit',
-            action: function() {
-              window.close();
-            }
-          }
-        ]
-      },
-      {
-        label: '&View',
-        submenu: [
-          {
-            label: '&Digit Grouping',
-            action: function() {
-              serverInstance.app.rpncalc.setDigitGrouping(!serverInstance.app.rpncalc.digitGrouping);
-              window.document.location.reload(true);
-            }
-          }
-        ]
-      },
-      {
-        label: '&Help',
-        submenu: [
-          {
-            label: 'Help &Topics',
-            action: function() {
-              showHelp();
-            }
-          }
-        ]
-      }
-    ]);
-
-    var window = appjs.createWindow({
-      width: 410 + (process.platform === 'win32' ? 10 : 0),
-      height: 500,
-      icons: path.join(__dirname, 'icons'),
-      url: 'http://localhost:' + port + '/'
-    });
-
-    window.on('create', function() {
-      console.log("Window Created");
-      window.frame.show();
-      window.frame.setMenuBar(menubar);
-    });
-
-    window.on('ready', function() {
-      console.log("Window Ready");
-      window.require = require;
-      window.process = process;
-      window.module = module;
-      window.addEventListener('keydown', function(e) {
-        if (e.keyIdentifier === 'F12') {
-          window.frame.openDevTools();
-        }
-      });
-    });
-
-    window.on('close', function() {
-      console.log("Window Closed");
-      var state = JSON.stringify(serverInstance.app.rpncalc, null, '  ');
-      console.log('saving state', state);
-      fs.writeFile(rpncalcStateFileName, state, function(err) {
-        if (err) {
-          console.error('could not save state', err);
-        }
-        console.log('state saved:', rpncalcStateFileName);
-        process.exit(0);
-      });
-    });
 
     return 0;
-
-    function showHelp() {
-      var helpWindow = appjs.createWindow({
-        width: 600,
-        height: 500,
-        icons: path.join(__dirname, 'icons'),
-        url: 'http://localhost:' + port + '/help'
-      });
-
-      helpWindow.on('create', function() {
-        helpWindow.frame.show();
-      });
-    }
-
-    function showGraph(graphOpts) {
-      var graphWindow = appjs.createWindow({
-        width: 600,
-        height: 500,
-        icons: path.join(__dirname, 'icons'),
-        url: 'http://localhost:' + port + '/graph?eq1=' + graphOpts.equation
-      });
-
-      graphWindow.on('create', function() {
-        graphWindow.frame.show();
-      });
-    }
   });
 });
 

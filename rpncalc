@@ -10,5 +10,5 @@ cd "`dirname "${SCRIPT_PATH}"`" > /dev/null
 SCRIPT_PATH="`pwd`";
 popd  > /dev/null
 
-/opt/node-webkit/nw $SCRIPT_PATH
+/opt/nwjs/nw $SCRIPT_PATH
 

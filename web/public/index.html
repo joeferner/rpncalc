@@ -93,6 +93,7 @@
 <script id="stackTemplate" type="text/ejs">
   <div id="stackItemsContainer">
     [% for(var i = Math.max(stackItemsToDisplay - 1, rpncalc.stack.length - 1); i >= 0; i--) { %]
+    <div class="stackItemDivider"></div>
     <div class="stackItem" id="stackItem_[%= i %]">
       <div class="stackItemNumber">[%= (i + 1) %]:</div>
       <div class="stackItemValue">[%= rpncalc.stack[i] %]</div>

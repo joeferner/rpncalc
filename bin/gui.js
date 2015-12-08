@@ -33,10 +33,11 @@ function readRpnCalcState(callback) {
             return callback(err);
           }
           try {
-            return callback(null, JSON.parse(data));
+            data = JSON.parse(data);
           } catch (e) {
             return callback(e);
           }
+          return callback(null, data);
         });
       } else {
         return callback(null, {});
@@ -54,14 +55,13 @@ readRpnCalcState(function(err, rpncalcState) {
       return console.error('Could not find open port', err);
     }
 
+    console.log('running on port:', port);
     fs.writeFileSync(path.join(settingsDir, 'port'), port);
 
     var serverInstance = server({
       port: port,
       rpncalcState: rpncalcState
     });
-
-    return 0;
   });
 });
 

@@ -50,7 +50,10 @@ readRpnCalcState(function(err, rpncalcState) {
   if (err) {
     return console.error('Could not read settings', err);
   }
-  return openport.find(function(err, port) {
+  return openport.find({
+    startingPort: 30000,
+    endingPort: 31000
+  }, function(err, port) {
     if (err) {
       return console.error('Could not find open port', err);
     }

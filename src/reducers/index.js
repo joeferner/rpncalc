@@ -94,9 +94,10 @@ function toDecimal(value) {
 }
 
 function popStack(state, count = 1) {
-  return Object.assign({}, state, {
+  return {
+    ...state,
     stack: state.stack.slice(0, state.stack.length - count)
-  })
+  };
 }
 
 function pushStack(state, newValue) {
@@ -117,10 +118,8 @@ function pushStack(state, newValue) {
 export default function reducer(state, action) {
   if (typeof state === 'undefined') {
     return {
-      input: '12',
+      input: '',
       stack: [
-        createStackItemFromDecimalValue(new Decimal(10)),
-        createStackItemFromDecimalValue(new Decimal(22.2))
       ],
       base: 10
     };
@@ -132,6 +131,10 @@ export default function reducer(state, action) {
     case 'SET_INPUT_TEXT':
       return Object.assign({}, state, {
         input: action.text
+      });
+    case 'APPEND_INPUT':
+      return Object.assign({}, state, {
+        input: state.input + action.text
       });
     case 'PUSH_STACK':
       return pushStack(state, action.text);      

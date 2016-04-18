@@ -19,3 +19,10 @@ export const executeOperator = (op) => {
     op
   }
 };
+
+export const appendInput = (text) => {
+  return {
+    type: 'APPEND_INPUT',
+    text
+  }
+};

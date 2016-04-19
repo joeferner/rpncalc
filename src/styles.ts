@@ -41,7 +41,8 @@ export const stack = {
   
   index: {
     paddingBottom: '2px',
-    paddingTop: '2px'
+    paddingTop: '2px',
+    paddingRight: '20px'
   },
   
   value: {

@@ -27,7 +27,8 @@ export const stack = {
   
   stackList: {
     listStyleType: 'none',
-    paddingLeft: 0
+    paddingLeft: 0,
+    margin: 0
   },
   
   listItem: {
@@ -57,7 +58,8 @@ export const stack = {
     textAlign: 'left',
     paddingLeft: stackLRPadding,
     paddingRight: stackLRPadding,
-    outline: 'none'
+    outline: 'none',
+    marginTop: '5px'
   }
 };
 

@@ -25,26 +25,32 @@ export const stack = {
     overflowY: 'scroll'
   },
   
-  stackListStyle: {
+  stackList: {
     listStyleType: 'none',
     paddingLeft: 0
   },
   
-  listItemStyle: {
-    clear: 'both',
+  listItem: {
+    display: 'flex',
+    flexDirection: 'row',
     paddingLeft: stackLRPadding,
-    paddingRight: stackLRPadding
+    paddingRight: stackLRPadding,
+    borderBottom: '1px solid rgb(190, 190, 190)'
   },
   
-  indexStyle: {
-    float: 'left'
+  index: {
+    paddingBottom: '2px',
+    paddingTop: '2px'
   },
   
-  valueStyle: {
-    float: 'right'
+  value: {
+    paddingBottom: '2px',
+    paddingTop: '2px',
+    flexGrow: 1,
+    textAlign: 'right'
   },
   
-  inputStyle: {
+  input: {
     width: '100%',
     border: 0,
     fontSize: stackFontSize,

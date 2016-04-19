@@ -1,8 +1,14 @@
+/// <reference path="./types.d.ts" />
 
 const stackFontSize = '14pt';
 const stackLRPadding = '5px';
 const buttonHeightPx = 30;
 const buttonPaddingPx = 2;
+
+export const error = {
+  background: '#ffdddd',
+  padding: '5px'
+};
 
 export const app = {
   container: {

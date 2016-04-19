@@ -1,6 +1,10 @@
-import Decimal from 'decimal.js';
+/// <reference path="../types.d.ts" />
 
-function clearInput(state) {
+import * as Decimal from 'decimal.js';
+import State from '../models/state';
+import * as actions from '../actions';
+
+function clearInput(state: State): State {
   return Object.assign({}, state, {
     input: ''
   });
@@ -12,7 +16,7 @@ function createStackItemFromDecimalValue(decimalValue) {
   }
 }
 
-function unaryOpInPlaceValue(state, fn) {
+function unaryOpInPlaceValue(state: State, fn): State {
   var input = state.input.trim();
   if (input.length > 0) {
     return Object.assign({}, state, {
@@ -25,8 +29,13 @@ function unaryOpInPlaceValue(state, fn) {
   }
 }
 
-function binaryOp(state, fn) {
+function binaryOp(state: State, fn): State {
   state = pushStack(state);
+  if (state.stack.length < 2) {
+    return Object.assign({}, state, {
+      error: "Not enough items on stack"
+    });
+  }
   let a = state.stack[state.stack.length - 2].value;
   let b = state.stack[state.stack.length - 1].value;
   let newValue = fn(a, b);
@@ -35,7 +44,7 @@ function binaryOp(state, fn) {
   return state;
 }
 
-function executeOperator(state, op) {
+function executeOperator(state: State, op): State {
   switch(op) {
     case '+':
     case '-':
@@ -93,14 +102,13 @@ function toDecimal(value) {
   }
 }
 
-function popStack(state, count = 1) {
-  return {
-    ...state,
+function popStack(state: State, count = 1): State {
+  return Object.assign({}, state, {
     stack: state.stack.slice(0, state.stack.length - count)
-  };
+  });
 }
 
-function pushStack(state, newValue) {
+function pushStack(state: State, newValue = null): State {
   newValue = newValue || state.input; 
   if (newValue.length === 0) {
     return state;
@@ -115,29 +123,28 @@ function pushStack(state, newValue) {
   });
 }
 
-export default function reducer(state, action) {
+export default function reducer(state: State, action: actions.Action): State {
   if (typeof state === 'undefined') {
-    return {
-      input: '',
-      stack: [
-      ],
-      base: 10
-    };
+    return new State();
   }
+  
+  state = Object.assign({}, state, {
+    error: null
+  });
   
   switch(action.type) {
     case 'EXECUTE_OPERATOR':
-      return executeOperator(state, action.op);
+      return executeOperator(state, (<actions.ExecuteOperatorAction>action).op);
     case 'SET_INPUT_TEXT':
       return Object.assign({}, state, {
-        input: action.text
+        input: (<actions.SetInputTextAction>action).text
       });
     case 'APPEND_INPUT':
       return Object.assign({}, state, {
-        input: state.input + action.text
+        input: state.input + (<actions.AppendInputAction>action).text
       });
     case 'PUSH_STACK':
-      return pushStack(state, action.text);      
+      return pushStack(state, (<actions.PushStackAction>action).text);      
     default:
       return state;
   }

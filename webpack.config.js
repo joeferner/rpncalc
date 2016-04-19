@@ -2,10 +2,12 @@ var webpack = require('webpack')
 var getConfig = require('hjs-webpack')
 
 module.exports = {
-  devtool: 'eval-source-map',
-  entry: './src/index.jsx',
+  devtool: 'source-map',
+  entry: './src/index.tsx',
   output: {
-    filename: 'build/bundle.js',
+    path: 'build',
+    filename: 'bundle.js',
+    sourceMapFilename: 'bundle.js.map',
     publicPath: '/'
   },
   plugins: [
@@ -24,11 +26,15 @@ module.exports = {
         query: {
           "presets": ["react", "es2015", "stage-0"]
         }
+      },
+      {
+        test: /\.ts|\.tsx$/,
+        loader: 'ts-loader'
       }
     ]
   },
   resolve: {
-    extensions: ['', '.js', '.jsx']
+    extensions: ['', '.js', '.jsx', '.ts', '.tsx']
   },
   externals: {
       "nw": "nw"

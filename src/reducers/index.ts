@@ -2,17 +2,10 @@
 
 import * as Decimal from 'decimal.js';
 import State from '../models/state';
+import { AngleMode } from '../models/state';
 import * as actions from '../actions';
 
-const PI = '3.14159265358979323846264338327950288419716939937510'
-           + '58209749445923078164062862089986280348253421170679'
-           + '82148086513282306647093844609550582231725359408128'
-           + '48111745028410270193852110555964462294895493038196'
-           + '44288109756659334461284756482337867831652712019091'
-           + '45648566923460348610454326648213393607260249141273'
-           + '72458700660631558817488152092096282925409171536436'
-           + '78925903600113305305488204665213841469519415116094'
-           + '33057270365759591953092186117381932611793105118548';
+const PI = Decimal.acos(-1);
 
 function clearInput(state: State): State {
   return Object.assign({}, state, {
@@ -45,7 +38,7 @@ function setError(state: State, error: Error): State {
   });
 }
 
-function binaryOp(state: State, fn: (a: any, b: any) => any): State {
+function binaryOp(state: State, fn: (a: decimal.Decimal, b: decimal.Decimal) => decimal.Decimal): State {
   state = pushStack(state);
   if (state.stack.length < 2) {
     return setError(state, new Error("Not enough items on stack"));
@@ -58,7 +51,7 @@ function binaryOp(state: State, fn: (a: any, b: any) => any): State {
   return state;
 }
 
-function unaryOp(state: State, fn: (a: any) => any): State {
+function unaryOp(state: State, fn: (a: decimal.Decimal) => decimal.Decimal): State {
   state = pushStack(state);
   if (state.stack.length < 1) {
     return setError(state, new Error("Not enough items on stack"));
@@ -84,7 +77,42 @@ function swap(state: State): State {
   return state;
 }
 
-function xroot(a, b) {
+function toRadians(val: decimal.Decimal, fromAngleMode: AngleMode): decimal.Decimal {
+  switch (fromAngleMode) {
+    case AngleMode.RADIANS:
+      return val;
+    case AngleMode.DEGREES:
+      return val.mul(PI.div(180));
+    default:
+      throw new Error('Unhandled angle mode: ' + fromAngleMode);
+  }
+}
+
+function radiansToAngleMode(radians: decimal.Decimal, angleMode: AngleMode): decimal.Decimal {
+  switch (angleMode) {
+    case AngleMode.RADIANS:
+      return radians;
+    case AngleMode.DEGREES:
+      return radians.mul(new Decimal(180).div(PI));
+    default:
+      throw new Error('Unhandled angle mode: ' + angleMode);
+  }
+}
+
+function convertAngle(state: State, fromAngleMode: AngleMode, toAngleMode: AngleMode): State {
+  state = pushStack(state);
+  if (state.stack.length < 1) {
+    return setError(state, new Error("Not enough items on stack"));
+  }
+  let val = state.stack[state.stack.length - 1].value;
+  val = toRadians(val, fromAngleMode);
+  val = radiansToAngleMode(val, toAngleMode);
+  state = popStack(state, 1);
+  state = pushStack(state, val);
+  return state;  
+}
+
+function xroot(a: decimal.Decimal, b: decimal.Decimal): decimal.Decimal {
   if (b.toString() == '2') {
     return a.sqrt();
   }
@@ -94,8 +122,66 @@ function xroot(a, b) {
   return new Decimal(Math.pow(a.toNumber(), b.toNumber()));
 }
 
+function dup(state: State): State {
+  if (state.stack.length < 1) {
+    return setError(state, new Error("Not enough items on stack"));
+  }
+  return pushStack(state, state.stack[state.stack.length - 1].value);
+}
+
+function changeAngleMode(state: State, newAngleMode: AngleMode): State {
+  return Object.assign({}, state, {
+    angleMode: newAngleMode
+  });
+}
+
+function isOperator(op: string): boolean {
+  switch(op) {
+    case 'deg':
+    case 'rad':
+    case 'deg2rad':
+    case 'rad2deg':
+    case 'swap':
+    case '+':
+    case '-':
+    case '*':
+    case '/':
+    case 'pow':
+    case 'xroot':
+    case 'sin':
+    case 'cos':
+    case 'tan':
+    case 'asin':
+    case 'acos':
+    case 'atan':
+    case 'sqrt':
+    case 'log':
+    case 'ln':
+    case 'pow2':
+    case 'exp':
+    case 'inv':
+    case 'neg':
+    case 'drop':
+    case 'dup':
+      return true;
+      
+    default:
+      return false;
+  }
+}
+
 function executeOperator(state: State, op): State {
   switch(op) {
+    case 'deg':
+      return changeAngleMode(state, AngleMode.DEGREES);
+    case 'rad':
+      return changeAngleMode(state, AngleMode.RADIANS);
+    
+    case 'deg2rad':
+      return convertAngle(state, AngleMode.DEGREES, AngleMode.RADIANS);
+    case 'rad2deg':
+      return convertAngle(state, AngleMode.RADIANS, AngleMode.DEGREES);
+    
     case 'swap':
       return swap(state);
     
@@ -144,17 +230,17 @@ function executeOperator(state: State, op): State {
       state = unaryOp(state, (a) => {
         switch(op) {
           case 'sin':
-            return a.sin();
+            return toRadians(a, state.angleMode).sin();
           case 'cos':
-            return a.cos();
+            return toRadians(a, state.angleMode).cos();
           case 'tan':
-            return a.tan();
+            return toRadians(a, state.angleMode).tan();
           case 'asin':
-            return a.asin();
+            return radiansToAngleMode(a.asin(), state.angleMode);
           case 'acos':
-            return a.acos();
+            return radiansToAngleMode(a.acos(), state.angleMode);
           case 'atan':
-            return a.atan();
+            return radiansToAngleMode(a.atan(), state.angleMode);
           case 'sqrt':
             return a.sqrt();
           case 'log':
@@ -190,6 +276,10 @@ function executeOperator(state: State, op): State {
     case 'drop':
       state = popStack(state);
       break;
+
+    case 'dup':
+      state = dup(state);
+      break;
       
     default:
       return setError(state, new Error('Invalid op "' + op + '"'));
@@ -223,6 +313,11 @@ function pushStack(state: State, newValue = null): State {
   if (newValue.length === 0) {
     return state;
   }
+  
+  if (isOperator(newValue)) {
+    return executeOperator(clearInput(state), newValue);
+  }
+  
   let dec = toDecimal(newValue);
   return Object.assign({}, state, {
     input: '',

@@ -2,19 +2,29 @@
 
 import StackItem from './stackItem';
 
-export enum StateOutputMode {
+export enum DecimalJsOutputMode {
   FIXED
 }
 
+export enum AngleMode {
+  DEGREES,
+  RADIANS
+}
+
 export class StateOutput {
-  mode: StateOutputMode;
-  dp: number;
+  decimalJsMode: DecimalJsOutputMode;
+  numberOfDecimalPoints: number;
+  base: number;
 }
 
 export default class State {
   input: string = '';
   stack: StackItem[] = [];
-  base: number = 10;
-  output: StateOutput = { mode: StateOutputMode.FIXED, dp: 20 };
+  angleMode: AngleMode = AngleMode.DEGREES;
+  output: StateOutput = {
+    decimalJsMode: DecimalJsOutputMode.FIXED,
+    numberOfDecimalPoints: 20,
+    base: 10 
+  };
   error: Error = null;
 }

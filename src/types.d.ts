@@ -1,11 +1,4 @@
-/// <reference path="../typings/react/react.d.ts" />
-/// <reference path="../typings/react/react-dom.d.ts" />
-/// <reference path="../typings/react-redux/react-redux.d.ts" />
-/// <reference path="../typings/decimal.js/decimal.js.d.ts" />
-/// <reference path="../typings/es6-shim/es6-shim.d.ts" />
-/// <reference path="../typings/redux-logger/redux-logger.d.ts" />
-/// <reference path="../typings/redux-thunk/redux-thunk.d.ts" />
-/// <reference path="../typings/redux-promise/redux-promise.d.ts" />
+/// <reference path="../typings/tsd.d.ts" />
 
 interface nwjsWindow {
   showDevTools(): void;

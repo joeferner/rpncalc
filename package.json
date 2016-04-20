@@ -47,6 +47,8 @@
     "webpack": "^1.13.0"
   },
   "window": {
+    "title": "RPN Calculator",
+    "icon": "rpncalc.png",
     "width": 435,
     "min_width": 435,
     "max_width": 435,

@@ -9,9 +9,11 @@ import thunk from 'redux-thunk';
 import * as createLogger from 'redux-logger';
 import reducers from './reducers'
 
-if (typeof nw !== 'undefined') {
-  var win = nw.Window.get();
-  win.showDevTools();
+if (process.env.NODE_ENV === 'development') {
+  if (typeof nw !== 'undefined') {
+    var win = nw.Window.get();
+    win.showDevTools();
+  }
 }
 
 const logger = createLogger();

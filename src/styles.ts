@@ -36,7 +36,13 @@ export const stack = {
   container: {
     flex: '1 1 auto',
     fontSize: stackFontSize,
-    overflowY: 'scroll'
+    overflowY: 'scroll',
+    display: 'flex',
+    flexDirection: 'column'
+  },
+  
+  beforeSpacer: {
+    flexGrow: 1
   },
   
   stackList: {

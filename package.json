@@ -47,7 +47,10 @@
     "webpack": "^1.13.0"
   },
   "window": {
-    "toolbar": true
+    "width": 435,
+    "min_width": 435,
+    "max_width": 435,
+    "height": 500
   },
   "devDependencies": {
     "redux-devtools": "^3.2.0"

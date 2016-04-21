@@ -34,6 +34,7 @@ module.exports = {
     extensions: ['', '.js', '.jsx', '.ts', '.tsx']
   },
   externals: {
-      "nw": "nw"
+      "nw": "nw",
+      "fs": "fs"
   }
 };

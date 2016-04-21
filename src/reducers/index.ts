@@ -4,6 +4,7 @@ import * as Decimal from 'decimal.js';
 import State from '../models/state';
 import { AngleMode } from '../models/state';
 import * as actions from '../actions';
+import * as path from 'path';
 
 const PI = Decimal.acos(-1);
 
@@ -328,16 +329,85 @@ function pushStack(state: State, newValue = null): State {
   });
 }
 
+function getUserHome(): string {
+  var env = nw.root.process.env;
+  return env.USERPROFILE || env.HOME || env.USER;
+}
+
+function getStateSavePath(): string {
+  return path.join(getUserHome(), '.rpncalc', 'state.json');;
+}
+
+function saveState(state: State) {
+  if (state.error) {
+    return;
+  }
+  
+  state = Object.assign({}, state, {
+    stack: state.stack.map((item) => {
+      return Object.assign({}, item, {
+        value: item.value.toString()
+      });
+    })
+  });
+
+  var data = JSON.stringify(state, null, 2);
+  
+  if (typeof nw !== 'undefined') {
+    var stateSavePath = getStateSavePath();
+    console.log('saving state', stateSavePath, state);
+    nw.fs.writeFile(stateSavePath, data);
+  } else if (typeof(Storage) !== 'undefined') {
+    console.log('saving state', state);
+    localStorage.setItem('state', data);
+  } else {
+    console.error('could not find storage for state');
+  }
+}
+
+function loadState(): State {
+  if (typeof nw !== 'undefined') {
+    var stateSavePath = getStateSavePath();
+    console.log('loading state', stateSavePath);
+    var data = nw.fs.readFileSync(stateSavePath, 'utf8');
+    return convertDecimals(data);
+  } else if (typeof(Storage) !== 'undefined') {
+    var stateStr = localStorage.getItem('state');
+    if (stateStr) {
+      return convertDecimals(stateStr);
+    } else {
+      return new State();
+    }
+  } else {
+    return new State();
+  }
+  
+  function convertDecimals(data: string): State {
+    try {
+      var state = JSON.parse(data);
+      state.stack.forEach((item) => {
+        item.value = new Decimal(item.value);
+      });
+      return state;
+    } catch(e) {
+      console.error('could not parse state: ' + data, e);
+      return new State();
+    }
+  }
+}
+
 export default function reducer(state: State, action: actions.Action): State {
   if (typeof state === 'undefined') {
-    return new State();
+    return loadState();
   }
 
   state = setError(state, null);
   try {
     switch(action.type) {
       case 'EXECUTE_OPERATOR':
-        return executeOperator(state, (<actions.ExecuteOperatorAction>action).op);
+        state = executeOperator(state, (<actions.ExecuteOperatorAction>action).op);
+        saveState(state);
+        return state;
       case 'SET_INPUT_TEXT':
         return Object.assign({}, state, {
           input: (<actions.SetInputTextAction>action).text
@@ -347,7 +417,9 @@ export default function reducer(state: State, action: actions.Action): State {
           input: state.input + (<actions.AppendInputAction>action).text
         });
       case 'PUSH_STACK':
-        return pushStack(state, (<actions.PushStackAction>action).text);      
+        state = pushStack(state, (<actions.PushStackAction>action).text);
+        saveState(state);
+        return state;      
       default:
         return state;
     }

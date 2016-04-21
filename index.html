@@ -1,6 +1,11 @@
 <html style="height: 100%;">
     <head>
         <title>RPN Calculator</title>
+        <script>
+            if(typeof nw !== 'undefined') {
+                nw.fs = require('fs');
+            }
+        </script>
     </head>
     <body style="margin: 0; height: 100%;">
         <div id="root" style="height: 100%"></div>

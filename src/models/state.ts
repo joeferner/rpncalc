@@ -15,6 +15,7 @@ export class StateOutput {
   decimalJsMode: DecimalJsOutputMode;
   numberOfDecimalPoints: number;
   base: number;
+  digitGrouping: boolean;
 }
 
 export default class State {
@@ -24,7 +25,8 @@ export default class State {
   output: StateOutput = {
     decimalJsMode: DecimalJsOutputMode.FIXED,
     numberOfDecimalPoints: 20,
-    base: 10 
+    base: 10,
+    digitGrouping: false
   };
   error: Error = null;
 }

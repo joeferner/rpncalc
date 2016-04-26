@@ -6,6 +6,73 @@ const buttonHeightPx = 30;
 const buttonPaddingPx = 2;
 const buttonWidthPx = 50;
 
+export const menu = {
+  menubar: {
+    listStyleType: 'none',
+    margin: 0,
+    padding: 0,
+    width: '100%',
+    backgroundColor: 'rgb(78,78,78)'
+  },
+  
+  link: {
+    paddingLeft: '5px',
+    paddingRight: '5px',
+    paddingTop: '5px',
+    paddingBottom: '5px',
+    textDecoration: 'none',
+    color: 'rgb(255,255,255)',
+    fontFamily: 'Verdana,sans-serif'
+  },
+  
+  menubarLink: {
+    display: 'block'    
+  },
+  
+  linkContainer: {
+    display: 'flex',
+    ':hover': {
+      backgroundColor: 'rgb(0,0,0)'
+    }
+  },
+  
+  menubarLinkContainer: {
+    
+  },
+  
+  submenuItem: {
+  },
+
+  menubarSubmenuItem: {
+    float: 'left',
+    display: 'block'
+  },
+  
+  submenu: {
+    position: 'fixed',
+    listStyleType: 'none',
+    margin: 0,
+    padding: 0
+  },
+  
+  menubarSubmenu: {
+    position: 'fixed',
+    listStyleType: 'none',
+    margin: 0,
+    padding: 0,
+    backgroundColor: 'rgb(100,100,100)',
+    minWidth: '150px'
+  },
+  
+  menuItemLeft: {
+    width: '15px',
+    textAlign: 'center',
+    color: 'white',
+    paddingTop: '4px',
+    paddingLeft: '7px'
+  }
+};
+
 export const error = {
   background: '#ffdddd',
   padding: '5px'
@@ -16,7 +83,7 @@ export const app = {
     display: 'flex',
     flexDirection: 'column',
     height: '100%',
-    width: ((buttonWidthPx + 2 * buttonPaddingPx) * 8) + 'px'
+    width: '100%'
   }
 };
 

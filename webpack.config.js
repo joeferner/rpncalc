@@ -27,6 +27,10 @@ module.exports = {
       {
         test: /\.ts|\.tsx$/,
         loader: 'ts-loader'
+      },
+      {
+        test: /nw/,
+        loader: 'nw-loader'
       }
     ]
   },
@@ -34,7 +38,6 @@ module.exports = {
     extensions: ['', '.js', '.jsx', '.ts', '.tsx']
   },
   externals: {
-      "nw": "nw",
-      "fs": "fs"
+    "fs": "fs"
   }
 };

@@ -5,6 +5,7 @@ import State from '../models/state';
 import { AngleMode } from '../models/state';
 import * as actions from '../actions';
 import * as path from 'path';
+import * as nw from 'nw';
 
 const PI = Decimal.acos(-1);
 
@@ -356,6 +357,9 @@ function saveState(state: State) {
   if (typeof nw !== 'undefined') {
     var stateSavePath = getStateSavePath();
     console.log('saving state', stateSavePath, state);
+    if(!nw.fs.existsSync(path.dirname(stateSavePath))) {
+      nw.fs.mkdirSync(path.dirname(stateSavePath));
+    }
     nw.fs.writeFile(stateSavePath, data);
   } else if (typeof(Storage) !== 'undefined') {
     console.log('saving state', state);
@@ -367,10 +371,14 @@ function saveState(state: State) {
 
 function loadState(): State {
   if (typeof nw !== 'undefined') {
-    var stateSavePath = getStateSavePath();
-    console.log('loading state', stateSavePath);
-    var data = nw.fs.readFileSync(stateSavePath, 'utf8');
-    return convertDecimals(data);
+    try {
+      var stateSavePath = getStateSavePath();
+      console.log('loading state', stateSavePath);
+      var data = nw.fs.readFileSync(stateSavePath, 'utf8');
+      return convertDecimals(data);
+    } catch(e) {
+      return new State();
+    }
   } else if (typeof(Storage) !== 'undefined') {
     var stateStr = localStorage.getItem('state');
     if (stateStr) {
@@ -396,6 +404,14 @@ function loadState(): State {
   }
 }
 
+function setDigitGrouping(state: State, digitGrouping: boolean): State {
+  return Object.assign({}, state, {
+    output: Object.assign({}, state.output, {
+      digitGrouping: digitGrouping
+    })
+  });
+}
+
 export default function reducer(state: State, action: actions.Action): State {
   if (typeof state === 'undefined') {
     return loadState();
@@ -419,8 +435,13 @@ export default function reducer(state: State, action: actions.Action): State {
       case 'PUSH_STACK':
         state = pushStack(state, (<actions.PushStackAction>action).text);
         saveState(state);
-        return state;      
+        return state;
+      case 'SET_DIGIT_GROUPING':
+        state = setDigitGrouping(state, (<actions.SetDigitGroupingAction>action).digitGrouping);
+        saveState(state);
+        return state;
       default:
+        console.error('unhandled action: ' + action.type);
         return state;
     }
   } catch(e) {

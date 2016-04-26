@@ -47,3 +47,14 @@ export const appendInput = function (text: string): AppendInputAction {
     text
   }
 };
+
+export interface SetDigitGroupingAction extends Action {
+  digitGrouping: boolean;
+}
+
+export const setDigitGrouping = function (digitGrouping: boolean): SetDigitGroupingAction {
+  return {
+    type: 'SET_DIGIT_GROUPING',
+    digitGrouping
+  }
+};

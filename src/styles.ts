@@ -68,7 +68,7 @@ export const menu = {
     width: '15px',
     textAlign: 'center',
     color: 'white',
-    paddingTop: '4px',
+    paddingTop: '5px',
     paddingLeft: '7px'
   }
 };

@@ -1,8 +1,9 @@
 var webpack = require('webpack')
 var getConfig = require('hjs-webpack')
+var WebpackNotifierPlugin = require('webpack-notifier');
 
 module.exports = {
-  devtool: 'source-map',
+  devtool: 'eval',
   entry: './src/index.tsx',
   output: {
     path: 'build',
@@ -12,7 +13,8 @@ module.exports = {
   },
   plugins: [
     new webpack.optimize.OccurenceOrderPlugin(),
-    new webpack.NoErrorsPlugin()
+    new webpack.NoErrorsPlugin(),
+    new WebpackNotifierPlugin({alwaysNotify: true})
   ],
   module: {
     loaders: [
@@ -26,7 +28,7 @@ module.exports = {
       },
       {
         test: /\.ts|\.tsx$/,
-        loader: 'ts-loader'
+        loader: 'awesome-typescript-loader'
       },
       {
         test: /nw/,

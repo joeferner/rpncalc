@@ -29,7 +29,7 @@ function unaryOpInPlaceValue(state: State, fn): State {
     });
   } else {
     let newValue = fn(state.stack[state.stack.length - 1].value);
-    state = popStack(state, 2);
+    state = popStack(state, 1);
     return pushStack(state, newValue);
   }
 }
@@ -137,8 +137,20 @@ function changeAngleMode(state: State, newAngleMode: AngleMode): State {
   });
 }
 
+function changeBase(state: State, newBase: number): State {
+  return Object.assign({}, state, {
+    output: Object.assign({}, state.output, {
+      base: newBase
+    })
+  });
+}
+
 function isOperator(op: string): boolean {
   switch(op) {
+    case 'dec':
+    case 'bin':
+    case 'oct':
+    case 'hex':
     case 'deg':
     case 'rad':
     case 'deg2rad':
@@ -174,6 +186,15 @@ function isOperator(op: string): boolean {
 
 function executeOperator(state: State, op): State {
   switch(op) {
+    case 'dec':
+      return changeBase(state, 10);
+    case 'bin':
+      return changeBase(state, 2);
+    case 'oct':
+      return changeBase(state, 8);
+    case 'hex':
+      return changeBase(state, 16);
+    
     case 'deg':
       return changeAngleMode(state, AngleMode.DEGREES);
     case 'rad':
@@ -295,6 +316,7 @@ function toDecimal(value) {
     if (value === 'pi') {
       value = PI;
     }
+    value = value.replace(/[, ]/g, '');
     return new Decimal(value);
   } else if (value instanceof Decimal) {
     return value;

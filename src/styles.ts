@@ -93,9 +93,17 @@ export const modeInfo = {
     display: 'flex',
     justifyContent: 'center'
   },
+  
+  item: {
+    flex: '0 0 auto',
+    marginLeft: '5px',
+    marginRight: '5px'
+  },
+
+  base: {
+  },
 
   angleMode: {
-    flex: '0 0 auto'
   }
 }
 

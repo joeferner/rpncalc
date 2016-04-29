@@ -28,5 +28,6 @@ export default class State {
     base: 10,
     digitGrouping: false
   };
+  store: any;
   error: Error = null;
 }

@@ -126,6 +126,44 @@ function convert(state: State): State {
   return state;
 }
 
+function store(state: State): State {
+  state = pushStack(state);
+  state = clearInput(state);
+  if (state.stack.length < 2) {
+    return setError(state, new Error("Not enough items on stack"));
+  }
+  let a = state.stack[state.stack.length - 2].value;
+  let b = state.stack[state.stack.length - 1].value;
+  
+  let m = b.match(/^'(.+?)'$/);
+  if (!m) {
+    return setError(state, new Error("Invalid expression"));
+  }
+  let name = m[1];
+
+  let newStoreItem = {};
+  newStoreItem[name] = a;
+  state = Object.assign({}, state, {
+    store: Object.assign({}, state.store, newStoreItem)
+  })  
+  state = popStack(state, 2);
+  return state;
+}
+
+function toFraction(state: State): State {
+  state = pushStack(state);
+  state = clearInput(state);
+  if (state.stack.length < 1) {
+    return setError(state, new Error("Not enough items on stack"));
+  }
+  let v = state.stack[state.stack.length - 1].value;
+  v = v.toFraction(10000);
+  v = "'" + v[0] + '/' + v[1] + "'";
+  state = popStack(state, 1);
+  state = pushStack(state, v);
+  return state;
+}
+
 function toRadians(val: decimal.Decimal, fromAngleMode: AngleMode): decimal.Decimal {
   switch (fromAngleMode) {
     case AngleMode.RADIANS:
@@ -226,6 +264,8 @@ function isOperator(op: string): boolean {
     case 'dup':
     case 'eval':
     case 'convert':
+    case 'fraction':
+    case 'store':
       return true;
       
     default:
@@ -262,6 +302,12 @@ function executeOperator(state: State, op): State {
 
     case 'convert':
       return convert(state);
+
+    case 'fraction':
+      return toFraction(state);
+
+    case 'store':
+      return store(state);
     
     case '+':
     case '-':
@@ -365,7 +411,7 @@ function executeOperator(state: State, op): State {
   return state;
 }
 
-function toDecimal(value) {
+function parseItem(state: State, value: any) {
   if (typeof value === 'number') {
     return new Decimal(value);
   }
@@ -378,8 +424,17 @@ function toDecimal(value) {
     if (utils.isExpression(value)) {
       return value;
     }
+    
+    if (state.store[value]) {
+      return parseItem(state, state.store[value]);
+    }
+    
     value = value.replace(/[, ]/g, '');
-    return new Decimal(value);
+    try {
+      return new Decimal(value);
+    } catch(e) {
+      throw new Error('Could not parse decimal: ' + value);
+    }
   }
   
   if (value instanceof Decimal) {
@@ -406,7 +461,7 @@ function pushStack(state: State, newValue = null): State {
     return executeOperator(clearInput(state), newValue);
   }
   
-  let dec = toDecimal(newValue);
+  let dec = parseItem(state, newValue);
   return Object.assign({}, state, {
     input: '',
     stack: [

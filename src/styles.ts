@@ -167,9 +167,16 @@ export const buttons = {
   button: {
     height: buttonHeightPx + 'px',
     padding: buttonPaddingPx + 'px ' + buttonPaddingPx + 'px ' + buttonPaddingPx + 'px ' + buttonPaddingPx + 'px ',
-    width: buttonWidthPx + 'px',
     background: 'none',
     border: '1px solid #aaa',
     borderRadius: '2px'
+  },
+
+  buttonWidth1: {
+    width: buttonWidthPx + 'px',
+  },
+  
+  buttonWidth2: {
+    width: ((buttonWidthPx + buttonPaddingPx) * 2) + 'px',
   }
 };

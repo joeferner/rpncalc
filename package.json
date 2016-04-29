@@ -33,6 +33,7 @@
     "babel-preset-stage-0": "^6.5.0",
     "decimal.js": "^5.0.8",
     "hjs-webpack": "^8.1.0",
+    "js-quantities": "^1.6.1",
     "jsx-loader": "^0.13.2",
     "nw": "^0.14.0-1",
     "radium": "^0.17.1",

@@ -6,6 +6,8 @@ import { AngleMode } from '../models/state';
 import * as actions from '../actions';
 import * as path from 'path';
 import * as nw from 'nw';
+import * as utils from '../utils';
+var Qty = require('js-quantities');
 
 const PI = Decimal.acos(-1);
 
@@ -76,6 +78,51 @@ function swap(state: State): State {
   state = popStack(state, 2);
   state = pushStack(state, b);
   state = pushStack(state, a);
+  return state;
+}
+
+function performEval(state: State): State {
+  state = pushStack(state);
+  state = clearInput(state);
+  if (state.stack.length < 1) {
+    return setError(state, new Error("Not enough items on stack"));
+  }
+  let v = state.stack[state.stack.length - 1].value;
+  let m = v.match(/^'(.*?)'$/);
+  if (!m) {
+    return setError(state, new Error("Invalid expression"));
+  }
+  v = eval(m[1]);
+  state = popStack(state, 1);
+  state = pushStack(state, v);
+  return state;
+}
+
+function convert(state: State): State {
+  state = pushStack(state);
+  state = clearInput(state);
+  if (state.stack.length < 2) {
+    return setError(state, new Error("Not enough items on stack"));
+  }
+  let a = state.stack[state.stack.length - 2].value;
+  let b = state.stack[state.stack.length - 1].value;
+  
+  let m = a.match(/^'(.+?)'$/);
+  if (!m) {
+    return setError(state, new Error("Invalid expression to convert from: " + a));
+  }
+  let fromValue = new Qty(m[1]);
+  
+  m = b.match(/^'(.+)'$/);
+  if (!m) {
+    return setError(state, new Error("Invalid expression to convert to: " + b));
+  }
+  let toUnits = m[1];
+  
+  let v = "'" + fromValue.to(toUnits).toString() + "'";
+  
+  state = popStack(state, 2);
+  state = pushStack(state, v);
   return state;
 }
 
@@ -177,6 +224,8 @@ function isOperator(op: string): boolean {
     case 'neg':
     case 'drop':
     case 'dup':
+    case 'eval':
+    case 'convert':
       return true;
       
     default:
@@ -207,6 +256,12 @@ function executeOperator(state: State, op): State {
     
     case 'swap':
       return swap(state);
+    
+    case 'eval':
+      return performEval(state);
+
+    case 'convert':
+      return convert(state);
     
     case '+':
     case '-':
@@ -311,19 +366,28 @@ function executeOperator(state: State, op): State {
 }
 
 function toDecimal(value) {
+  if (typeof value === 'number') {
+    return new Decimal(value);
+  }
+  
   if (typeof value === 'string') {
     value = value.trim();
     if (value === 'pi') {
       value = PI;
     }
+    if (utils.isExpression(value)) {
+      return value;
+    }
     value = value.replace(/[, ]/g, '');
     return new Decimal(value);
-  } else if (value instanceof Decimal) {
-    return value;
-  } else {
-    console.error('Unexpected value', value);
-    throw new Error('Unexpected value "' + value + '" (type: ' + (typeof value) + ')');
   }
+  
+  if (value instanceof Decimal) {
+    return value;
+  }
+  
+  console.error('Unexpected value', value);
+  throw new Error('Unexpected value "' + value + '" (type: ' + (typeof value) + ')');
 }
 
 function popStack(state: State, count = 1): State {
@@ -416,7 +480,9 @@ function loadState(): State {
     try {
       var state = JSON.parse(data);
       state.stack.forEach((item) => {
-        item.value = new Decimal(item.value);
+        if (!utils.isExpression(item.value)) {
+          item.value = new Decimal(item.value);  
+        }        
       });
       return state;
     } catch(e) {

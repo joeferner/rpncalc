@@ -3,5 +3,5 @@
 import * as decimal from 'decimal.js';
 
 export default class StackItem {
-  value: decimal.Decimal
+  value: any
 }

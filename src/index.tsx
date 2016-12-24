@@ -10,13 +10,6 @@ import * as createLogger from 'redux-logger';
 import reducers from './reducers'
 import * as nw from 'nw';
 
-if (process.env.NODE_ENV === 'development') {
-  if (typeof nw !== 'undefined') {
-    var win = nw.Window.get();
-    win.showDevTools();
-  }
-}
-
 const logger = createLogger();
 const storeMiddleware = applyMiddleware(thunk, logger);
 const store = createStore(reducers, storeMiddleware);

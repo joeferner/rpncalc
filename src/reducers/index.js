@@ -1,92 +1,84 @@
+"use strict";
 /// <reference path="../types.d.ts" />
-import * as Decimal from "decimal.js";
-import State, {AngleMode} from "../models/state";
-import * as actions from "../actions";
-import * as path from "path";
-import * as nw from "nw";
-import * as utils from "../utils";
-const Qty = require('js-quantities');
-
-const PI = Decimal.acos(-1);
-
-function clearInput(state: State): State {
+var Decimal = require("decimal.js");
+var state_1 = require("../models/state");
+var path = require("path");
+var nw = require("nw");
+var utils = require("../utils");
+var Qty = require('js-quantities');
+var PI = Decimal.acos(-1);
+function clearInput(state) {
     return Object.assign({}, state, {
         input: ''
     });
 }
-
 function createStackItemFromDecimalValue(decimalValue) {
     return {
         value: decimalValue
-    }
+    };
 }
-
-function unaryOpInPlaceValue(state: State, fn): State {
-    const input = state.input.trim();
+function unaryOpInPlaceValue(state, fn) {
+    var input = state.input.trim();
     if (input.length > 0) {
         return Object.assign({}, state, {
             input: fn(input)
         });
-    } else {
-        let newValue = fn(state.stack[state.stack.length - 1].value);
+    }
+    else {
+        var newValue = fn(state.stack[state.stack.length - 1].value);
         state = popStack(state, 1);
         return pushStack(state, newValue);
     }
 }
-
-function setError(state: State, error: Error): State {
+function setError(state, error) {
     return Object.assign({}, state, {
         error: error
     });
 }
-
-function binaryOp(state: State, fn: (a: decimal.Decimal, b: decimal.Decimal) => decimal.Decimal): State {
+function binaryOp(state, fn) {
     state = pushStack(state);
     if (state.stack.length < 2) {
         return setError(state, new Error("Not enough items on stack"));
     }
-    let a = state.stack[state.stack.length - 2].value;
-    let b = state.stack[state.stack.length - 1].value;
-    let newValue = fn(a, b);
+    var a = state.stack[state.stack.length - 2].value;
+    var b = state.stack[state.stack.length - 1].value;
+    var newValue = fn(a, b);
     state = popStack(state, 2);
     state = pushStack(state, newValue);
     return state;
 }
-
-function unaryOp(state: State, fn: (a: decimal.Decimal) => decimal.Decimal): State {
+function unaryOp(state, fn) {
     state = pushStack(state);
     if (state.stack.length < 1) {
         return setError(state, new Error("Not enough items on stack"));
     }
-    let a = state.stack[state.stack.length - 1].value;
-    let newValue = fn(a);
+    var a = state.stack[state.stack.length - 1].value;
+    var newValue = fn(a);
     state = popStack(state, 1);
     state = pushStack(state, newValue);
     return state;
 }
-
-function swap(state: State): State {
+function swap(state) {
     state = pushStack(state);
     state = clearInput(state);
     if (state.stack.length < 2) {
         return setError(state, new Error("Not enough items on stack"));
     }
-    let a = state.stack[state.stack.length - 2].value;
-    let b = state.stack[state.stack.length - 1].value;
+    var a = state.stack[state.stack.length - 2].value;
+    var b = state.stack[state.stack.length - 1].value;
     state = popStack(state, 2);
     state = pushStack(state, b);
     state = pushStack(state, a);
     return state;
 }
-
-function performEval(state: State): State {
+function performEval(state) {
     state = pushStack(state);
     state = clearInput(state);
     if (state.stack.length < 1) {
         return setError(state, new Error("Not enough items on stack"));
     }
-    let v = state.stack[state.stack.length - 1].value;
-    let m = v.match(/^'(.*?)'$/);
+    var v = state.stack[state.stack.length - 1].value;
+    var m = v.match(/^'(.*?)'$/);
     if (!m) {
         return setError(state, new Error("Invalid expression"));
     }
@@ -95,51 +87,43 @@ function performEval(state: State): State {
     state = pushStack(state, v);
     return state;
 }
-
-function convert(state: State): State {
+function convert(state) {
     state = pushStack(state);
     state = clearInput(state);
     if (state.stack.length < 2) {
         return setError(state, new Error("Not enough items on stack"));
     }
-    let a = state.stack[state.stack.length - 2].value;
-    let b = state.stack[state.stack.length - 1].value;
-
-    let m = a.match(/^'(.+?)'$/);
+    var a = state.stack[state.stack.length - 2].value;
+    var b = state.stack[state.stack.length - 1].value;
+    var m = a.match(/^'(.+?)'$/);
     if (!m) {
         return setError(state, new Error("Invalid expression to convert from: " + a));
     }
-    let fromValue = new Qty(m[1]);
-
+    var fromValue = new Qty(m[1]);
     m = b.match(/^'(.+)'$/);
     if (!m) {
         return setError(state, new Error("Invalid expression to convert to: " + b));
     }
-    let toUnits = m[1];
-
-    let v = "'" + fromValue.to(toUnits).toString() + "'";
-
+    var toUnits = m[1];
+    var v = "'" + fromValue.to(toUnits).toString() + "'";
     state = popStack(state, 2);
     state = pushStack(state, v);
     return state;
 }
-
-function store(state: State): State {
+function store(state) {
     state = pushStack(state);
     state = clearInput(state);
     if (state.stack.length < 2) {
         return setError(state, new Error("Not enough items on stack"));
     }
-    let a = state.stack[state.stack.length - 2].value;
-    let b = state.stack[state.stack.length - 1].value;
-
-    let m = b.match(/^'(.+?)'$/);
+    var a = state.stack[state.stack.length - 2].value;
+    var b = state.stack[state.stack.length - 1].value;
+    var m = b.match(/^'(.+?)'$/);
     if (!m) {
         return setError(state, new Error("Invalid expression"));
     }
-    let name = m[1];
-
-    let newStoreItem = {};
+    var name = m[1];
+    var newStoreItem = {};
     newStoreItem[name] = a;
     state = Object.assign({}, state, {
         store: Object.assign({}, state.store, newStoreItem)
@@ -147,57 +131,52 @@ function store(state: State): State {
     state = popStack(state, 2);
     return state;
 }
-
-function toFraction(state: State): State {
+function toFraction(state) {
     state = pushStack(state);
     state = clearInput(state);
     if (state.stack.length < 1) {
         return setError(state, new Error("Not enough items on stack"));
     }
-    let v = state.stack[state.stack.length - 1].value;
+    var v = state.stack[state.stack.length - 1].value;
     v = v.toFraction(10000);
     v = "'" + v[0] + '/' + v[1] + "'";
     state = popStack(state, 1);
     state = pushStack(state, v);
     return state;
 }
-
-function toRadians(val: decimal.Decimal, fromAngleMode: AngleMode): decimal.Decimal {
+function toRadians(val, fromAngleMode) {
     switch (fromAngleMode) {
-        case AngleMode.RADIANS:
+        case state_1.AngleMode.RADIANS:
             return val;
-        case AngleMode.DEGREES:
+        case state_1.AngleMode.DEGREES:
             return val.mul(PI.div(180));
         default:
             throw new Error('Unhandled angle mode: ' + fromAngleMode);
     }
 }
-
-function radiansToAngleMode(radians: decimal.Decimal, angleMode: AngleMode): decimal.Decimal {
+function radiansToAngleMode(radians, angleMode) {
     switch (angleMode) {
-        case AngleMode.RADIANS:
+        case state_1.AngleMode.RADIANS:
             return radians;
-        case AngleMode.DEGREES:
+        case state_1.AngleMode.DEGREES:
             return radians.mul(new Decimal(180).div(PI));
         default:
             throw new Error('Unhandled angle mode: ' + angleMode);
     }
 }
-
-function convertAngle(state: State, fromAngleMode: AngleMode, toAngleMode: AngleMode): State {
+function convertAngle(state, fromAngleMode, toAngleMode) {
     state = pushStack(state);
     if (state.stack.length < 1) {
         return setError(state, new Error("Not enough items on stack"));
     }
-    let val = state.stack[state.stack.length - 1].value;
+    var val = state.stack[state.stack.length - 1].value;
     val = toRadians(val, fromAngleMode);
     val = radiansToAngleMode(val, toAngleMode);
     state = popStack(state, 1);
     state = pushStack(state, val);
     return state;
 }
-
-function xroot(a: decimal.Decimal, b: decimal.Decimal): decimal.Decimal {
+function xroot(a, b) {
     if (b.toString() == '2') {
         return a.sqrt();
     }
@@ -206,29 +185,25 @@ function xroot(a: decimal.Decimal, b: decimal.Decimal): decimal.Decimal {
     }
     return new Decimal(Math.pow(a.toNumber(), b.toNumber()));
 }
-
-function dup(state: State): State {
+function dup(state) {
     if (state.stack.length < 1) {
         return setError(state, new Error("Not enough items on stack"));
     }
     return pushStack(state, state.stack[state.stack.length - 1].value);
 }
-
-function changeAngleMode(state: State, newAngleMode: AngleMode): State {
+function changeAngleMode(state, newAngleMode) {
     return Object.assign({}, state, {
         angleMode: newAngleMode
     });
 }
-
-function changeBase(state: State, newBase: number): State {
+function changeBase(state, newBase) {
     return Object.assign({}, state, {
         output: Object.assign({}, state.output, {
             base: newBase
         })
     });
 }
-
-function isOperator(op: string): boolean {
+function isOperator(op) {
     switch (op) {
         case 'dec':
         case 'bin':
@@ -265,13 +240,11 @@ function isOperator(op: string): boolean {
         case 'fraction':
         case 'store':
             return true;
-
         default:
             return false;
     }
 }
-
-function executeOperator(state: State, op): State {
+function executeOperator(state, op) {
     switch (op) {
         case 'dec':
             return changeBase(state, 10);
@@ -281,32 +254,24 @@ function executeOperator(state: State, op): State {
             return changeBase(state, 8);
         case 'hex':
             return changeBase(state, 16);
-
         case 'deg':
-            return changeAngleMode(state, AngleMode.DEGREES);
+            return changeAngleMode(state, state_1.AngleMode.DEGREES);
         case 'rad':
-            return changeAngleMode(state, AngleMode.RADIANS);
-
+            return changeAngleMode(state, state_1.AngleMode.RADIANS);
         case 'deg2rad':
-            return convertAngle(state, AngleMode.DEGREES, AngleMode.RADIANS);
+            return convertAngle(state, state_1.AngleMode.DEGREES, state_1.AngleMode.RADIANS);
         case 'rad2deg':
-            return convertAngle(state, AngleMode.RADIANS, AngleMode.DEGREES);
-
+            return convertAngle(state, state_1.AngleMode.RADIANS, state_1.AngleMode.DEGREES);
         case 'swap':
             return swap(state);
-
         case 'eval':
             return performEval(state);
-
         case 'convert':
             return convert(state);
-
         case 'fraction':
             return toFraction(state);
-
         case 'store':
             return store(state);
-
         case '+':
         case '-':
         case '*':
@@ -315,7 +280,7 @@ function executeOperator(state: State, op): State {
         case 'xroot':
             state = pushStack(state);
             state = clearInput(state);
-            state = binaryOp(state, (a, b) => {
+            state = binaryOp(state, function (a, b) {
                 switch (op) {
                     case '+':
                         return a.add(b);
@@ -334,7 +299,6 @@ function executeOperator(state: State, op): State {
                 }
             });
             break;
-
         case 'sin':
         case 'cos':
         case 'tan':
@@ -349,7 +313,7 @@ function executeOperator(state: State, op): State {
         case 'inv':
             state = pushStack(state);
             state = clearInput(state);
-            state = unaryOp(state, (a) => {
+            state = unaryOp(state, function (a) {
                 switch (op) {
                     case 'sin':
                         return toRadians(a, state.angleMode).sin();
@@ -380,40 +344,36 @@ function executeOperator(state: State, op): State {
                 }
             });
             break;
-
         case 'neg':
-            state = unaryOpInPlaceValue(state, (value) => {
+            state = unaryOpInPlaceValue(state, function (value) {
                 if (typeof value === 'string') {
                     if (value[0] == '-') {
                         return value.substr(1);
-                    } else {
+                    }
+                    else {
                         return '-' + value;
                     }
-                } else {
+                }
+                else {
                     return value.neg();
                 }
             });
             break;
-
         case 'drop':
             state = popStack(state);
             break;
-
         case 'dup':
             state = dup(state);
             break;
-
         default:
             return setError(state, new Error('Invalid op "' + op + '"'));
     }
     return state;
 }
-
-function parseItem(state: State, value: any) {
+function parseItem(state, value) {
     if (typeof value === 'number') {
         return new Decimal(value);
     }
-
     if (typeof value === 'string') {
         value = value.trim();
         if (value === 'pi') {
@@ -422,175 +382,168 @@ function parseItem(state: State, value: any) {
         if (utils.isExpression(value)) {
             return value;
         }
-
         if (state.store && state.store[value]) {
             return parseItem(state, state.store[value]);
         }
-
         value = value.replace(/[, ]/g, '');
         try {
             return new Decimal(value);
-        } catch (e) {
+        }
+        catch (e) {
             throw new Error('Could not parse decimal: ' + value);
         }
     }
-
     if (value instanceof Decimal) {
         return value;
     }
-
     console.error('Unexpected value', value);
     throw new Error('Unexpected value "' + value + '" (type: ' + (typeof value) + ')');
 }
-
-function popStack(state: State, count = 1): State {
+function popStack(state, count) {
+    if (count === void 0) { count = 1; }
     return Object.assign({}, state, {
         stack: state.stack.slice(0, state.stack.length - count)
     });
 }
-
-function pushStack(state: State, newValue = null): State {
+function pushStack(state, newValue) {
+    if (newValue === void 0) { newValue = null; }
     newValue = newValue || state.input;
     if (newValue.length === 0) {
         return state;
     }
-
     if (isOperator(newValue)) {
         return executeOperator(clearInput(state), newValue);
     }
-
-    let dec = parseItem(state, newValue);
+    var dec = parseItem(state, newValue);
     return Object.assign({}, state, {
         input: '',
-        stack: [
-            ...state.stack,
+        stack: state.stack.concat([
             createStackItemFromDecimalValue(dec)
-        ]
+        ])
     });
 }
-
-function getUserHome(): string {
-    const processEnv = (<any>nw).processEnv;
-    const userHome = processEnv.USERPROFILE || processEnv.HOME || processEnv.USER;
+function getUserHome() {
+    var processEnv = nw.processEnv;
+    var userHome = processEnv.USERPROFILE || processEnv.HOME || processEnv.USER;
     if (!userHome) {
         throw new Error('Could not get user home directory');
     }
     return userHome;
 }
-
-function getStateSavePath(): string {
+function getStateSavePath() {
     return path.join(getUserHome(), '.rpncalc', 'state.json');
 }
-
-function saveState(state: State) {
+function saveState(state) {
     if (state.error) {
         return;
     }
-
     state = Object.assign({}, state, {
-        stack: state.stack.map((item) => {
+        stack: state.stack.map(function (item) {
             return Object.assign({}, item, {
                 value: item.value.toString()
             });
         })
     });
-
-    const data = JSON.stringify(state, null, 2);
-
+    var data = JSON.stringify(state, null, 2);
     if (typeof nw !== 'undefined') {
-        const stateSavePath = getStateSavePath();
+        var stateSavePath = getStateSavePath();
         console.log('saving state', stateSavePath, state);
         if (!nw.fs.existsSync(path.dirname(stateSavePath))) {
             nw.fs.mkdirSync(path.dirname(stateSavePath));
         }
         nw.fs.writeFile(stateSavePath, data);
-    } else if (typeof(Storage) !== 'undefined') {
+    }
+    else if (typeof (Storage) !== 'undefined') {
         console.log('saving state', state);
         localStorage.setItem('state', data);
-    } else {
+    }
+    else {
         console.error('could not find storage for state');
     }
 }
-
-function loadState(): State {
+function loadState() {
     if (typeof nw !== 'undefined') {
         try {
-            const stateSavePath = getStateSavePath();
+            var stateSavePath = getStateSavePath();
             console.log('loading state', stateSavePath);
-            const data = nw.fs.readFileSync(stateSavePath, 'utf8');
+            var data = nw.fs.readFileSync(stateSavePath, 'utf8');
             return convertDecimals(data);
-        } catch (e) {
-            return new State();
         }
-    } else if (typeof(Storage) !== 'undefined') {
-        const stateStr = localStorage.getItem('state');
+        catch (e) {
+            return new state_1["default"]();
+        }
+    }
+    else if (typeof (Storage) !== 'undefined') {
+        var stateStr = localStorage.getItem('state');
         if (stateStr) {
             return convertDecimals(stateStr);
-        } else {
-            return new State();
         }
-    } else {
-        return new State();
+        else {
+            return new state_1["default"]();
+        }
     }
-
-    function convertDecimals(data: string): State {
+    else {
+        return new state_1["default"]();
+    }
+    function convertDecimals(data) {
         try {
-            const state = JSON.parse(data);
-            state.stack.forEach((item) => {
+            var state = JSON.parse(data);
+            state.stack.forEach(function (item) {
                 if (!utils.isExpression(item.value)) {
                     item.value = new Decimal(item.value);
                 }
             });
             return state;
-        } catch (e) {
+        }
+        catch (e) {
             console.error('could not parse state: ' + data, e);
-            return new State();
+            return new state_1["default"]();
         }
     }
 }
-
-function setDigitGrouping(state: State, digitGrouping: boolean): State {
+function setDigitGrouping(state, digitGrouping) {
     return Object.assign({}, state, {
         output: Object.assign({}, state.output, {
             digitGrouping: digitGrouping
         })
     });
 }
-
-export default function reducer(state: State, action: actions.Action): State {
+function reducer(state, action) {
     if (typeof state === 'undefined') {
         return loadState();
     }
-
     state = setError(state, null);
     try {
         switch (action.type) {
             case 'EXECUTE_OPERATOR':
-                state = executeOperator(state, (<actions.ExecuteOperatorAction>action).op);
+                state = executeOperator(state, action.op);
                 saveState(state);
                 return state;
             case 'SET_INPUT_TEXT':
                 return Object.assign({}, state, {
-                    input: (<actions.SetInputTextAction>action).text
+                    input: action.text
                 });
             case 'APPEND_INPUT':
                 return Object.assign({}, state, {
-                    input: state.input + (<actions.AppendInputAction>action).text
+                    input: state.input + action.text
                 });
             case 'PUSH_STACK':
-                state = pushStack(state, (<actions.PushStackAction>action).text);
+                state = pushStack(state, action.text);
                 saveState(state);
                 return state;
             case 'SET_DIGIT_GROUPING':
-                state = setDigitGrouping(state, (<actions.SetDigitGroupingAction>action).digitGrouping);
+                state = setDigitGrouping(state, action.digitGrouping);
                 saveState(state);
                 return state;
             default:
                 console.error('unhandled action: ' + action.type);
                 return state;
         }
-    } catch (e) {
+    }
+    catch (e) {
         console.error('reduce error', e);
         return setError(state, e);
     }
 }
+exports.__esModule = true;
+exports["default"] = reducer;

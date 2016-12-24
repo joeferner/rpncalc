@@ -105,7 +105,7 @@ export const modeInfo = {
 
   angleMode: {
   }
-}
+};
 
 export const stack = {
   container: {

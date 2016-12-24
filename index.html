@@ -4,6 +4,7 @@
         <script>
             if(typeof nw !== 'undefined') {
                 nw.fs = require('fs');
+                nw.processEnv = process.env;
             }
         </script>
     </head>

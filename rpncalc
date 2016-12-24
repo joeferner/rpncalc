@@ -5,4 +5,4 @@ export NODE_ENV=production
 
 cd ${DIR}
 # nw --remote-debugging-port=9222 .
-nw .
+./node_modules/.bin/nw . &

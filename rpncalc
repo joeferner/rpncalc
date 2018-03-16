@@ -1,8 +1,0 @@
-#!/bin/bash
-
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-export NODE_ENV=production
-
-cd ${DIR}
-# nw --remote-debugging-port=9222 .
-./node_modules/.bin/nw . &

@@ -7,6 +7,7 @@ import {Key} from "readline";
 import * as fs from "fs-extra";
 import * as path from "path";
 import AppDirectory from "appdirectory";
+import {AutoComplete} from "./AutoComplete";
 
 const React = require('./InkToReactBridge').default;
 
@@ -17,17 +18,24 @@ interface RpnCliComponentProps {
 interface RpnCliComponentState {
     error?: Error;
     value?: string;
+    autoCompletes?: string[];
+    autoCompleteIndex?: number;
 }
 
 class RpnCliComponent extends Component<RpnCliComponentProps, RpnCliComponentState> {
+    private lastBackspace: number;
+
     constructor(props: RpnCliComponentProps, context: any) {
         super(props, context);
         this.handleInputSubmit = this.handleInputSubmit.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
         this.handleInputBackspace = this.handleInputBackspace.bind(this);
+        this.handleInputTab = this.handleInputTab.bind(this);
         this.state = {
             error: null,
-            value: ''
+            value: '',
+            autoCompletes: null,
+            autoCompleteIndex: -1
         };
     }
 
@@ -35,12 +43,14 @@ class RpnCliComponent extends Component<RpnCliComponentProps, RpnCliComponentSta
         this.props.rpnCalculator.setOption(RpnCalculator.OPTION_BASE, base)
             .then(() => {
                 this.setState({
-                    value: ''
+                    value: '',
+                    autoCompletes: null
                 });
             })
             .catch((error) => {
                 this.setState({
-                    error
+                    error,
+                    autoCompletes: null
                 });
             });
     }
@@ -59,20 +69,36 @@ class RpnCliComponent extends Component<RpnCliComponentProps, RpnCliComponentSta
 
         this.setState({
             value: value,
-            error: null
+            error: null,
+            autoCompletes: null
         });
     }
 
-    // private autoComplete(inputString: string, callback: AutoCompleteCallback) {
-    //     let arr = this.rpnCalculator.getAutoCompletes();
-    //     arr = arr.concat([
-    //         'hex', 'hexadecimal',
-    //         'dec', 'decimal',
-    //         'oct', 'octal',
-    //         'bin', 'binary'
-    //     ]);
-    //     callback(undefined, termKitAutoComplete(arr, inputString, true));
-    // }
+    private handleInputTab() {
+        if (!this.state.autoCompletes) {
+            const autoCompletes = this.props.rpnCalculator.getAutoCompletes().concat([
+                'hex', 'hexadecimal',
+                'dec', 'decimal',
+                'oct', 'octal',
+                'bin', 'binary'
+            ]).filter(c => c.startsWith(this.state.value));
+            if (autoCompletes.length === 0) {
+                return;
+            }
+            this.setState({
+                autoCompletes,
+                autoCompleteIndex: -1
+            });
+        } else {
+            let autoCompleteIndex = this.state.autoCompleteIndex + 1;
+            if (autoCompleteIndex >= this.state.autoCompletes.length) {
+                autoCompleteIndex = 0;
+            }
+            this.setState({
+                autoCompleteIndex: autoCompleteIndex
+            });
+        }
+    }
 
     private doImmediateOperator(input: string, op: string) {
         if (input.length > 0) {
@@ -89,20 +115,33 @@ class RpnCliComponent extends Component<RpnCliComponentProps, RpnCliComponentSta
     }
 
     private handleInputBackspace() {
-        if (this.state.value.length == 0) {
+        if (this.state.value.length == 0 && Date.now() - this.lastBackspace > 500) {
             this.props.rpnCalculator.pop()
                 .then(() => {
-                    this.setState({});
+                    this.setState({autoCompletes: null});
                 })
                 .catch((error) => {
-                    this.setState({error});
+                    this.setState({
+                        error,
+                        autoCompletes: null
+                    });
                 });
             return true;
         }
+        this.lastBackspace = Date.now();
         return false;
     }
 
     handleInputSubmit(value: string) {
+        if (this.state.autoCompletes && this.state.autoCompleteIndex >= 0) {
+            this.setState({
+                value: this.state.autoCompletes[this.state.autoCompleteIndex],
+                autoCompletes: null,
+                autoCompleteIndex: -1
+            });
+            return;
+        }
+
         switch (value) {
             case 'hex':
             case 'hexadecimal':
@@ -130,12 +169,14 @@ class RpnCliComponent extends Component<RpnCliComponentProps, RpnCliComponentSta
             .then(() => {
                 this.setState({
                     value: '',
-                    error: null
+                    error: null,
+                    autoCompletes: null
                 });
             })
             .catch((error) => {
                 this.setState({
-                    error
+                    error,
+                    autoCompletes: null
                 });
             });
     }
@@ -148,7 +189,13 @@ class RpnCliComponent extends Component<RpnCliComponentProps, RpnCliComponentSta
                    focus={true}
                    onChange={this.handleInputChange}
                    onSubmit={this.handleInputSubmit}
-                   onBackspace={this.handleInputBackspace}/>
+                   onBackspace={this.handleInputBackspace}
+                   onTab={this.handleInputTab}
+            />
+            <AutoComplete
+                autoCompletes={this.state.autoCompletes}
+                autoCompleteIndex={this.state.autoCompleteIndex}
+            />
         </span>);
     }
 }

@@ -7,6 +7,7 @@ interface InputProps {
     onSubmit: (input: string) => void;
     onChange: (input: string) => void;
     onBackspace: () => void;
+    onTab: () => void;
     focus: boolean;
 }
 
@@ -16,6 +17,8 @@ interface InputState {
 interface Key {
     name: string;
     ctrl: boolean;
+    meta: boolean;
+    shift: boolean;
     sequence: string;
 }
 
@@ -26,7 +29,7 @@ export class Input extends Component<InputProps, InputState> {
     }
 
     render() {
-        return (<span>&gt; {this.props.value}</span>);
+        return (<div>&gt; {this.props.value}</div>);
     }
 
     componentDidMount() {
@@ -43,6 +46,11 @@ export class Input extends Component<InputProps, InputState> {
         }
 
         const {value, onChange, onSubmit} = this.props;
+
+        if (key.name === 'tab') {
+            this.props.onTab();
+            return;
+        }
 
         if (key.name === 'return') {
             onSubmit(value);

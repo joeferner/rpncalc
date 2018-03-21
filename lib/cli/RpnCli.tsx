@@ -56,15 +56,17 @@ class RpnCliComponent extends Component<RpnCliComponentProps, RpnCliComponentSta
     }
 
     handleInputChange(value: string) {
-        const lastChar = value.length > 0 ? value.substr(value.length - 1) : '';
-        switch (lastChar) {
-            case '+':
-            case '-':
-            case '*':
-            case '/':
-            case '^':
-            case '%':
-                return this.doImmediateOperator(value.substr(0, value.length - 1), lastChar);
+        if (!value.startsWith("'")) {
+            const lastChar = value.length > 0 ? value.substr(value.length - 1) : '';
+            switch (lastChar) {
+                case '+':
+                case '-':
+                case '*':
+                case '/':
+                case '^':
+                case '%':
+                    return this.doImmediateOperator(value.substr(0, value.length - 1), lastChar);
+            }
         }
 
         this.setState({

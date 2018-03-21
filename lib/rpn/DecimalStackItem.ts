@@ -103,9 +103,9 @@ export class DecimalStackItem extends StackItem {
             decimal = null;
         }
 
-        whole = whole.replace(/(.)(?=(.{3})+$)/g, '$1 ');
+        whole = whole.replace(/(.)(?=(.{4})+$)/g, '$1 ');
         if (decimal) {
-            decimal = decimal.replace(/(.{3})/g, '$1 ');
+            decimal = decimal.replace(/(.{4})/g, '$1 ');
         }
 
         return prefix + whole + (decimal ? '.' + decimal : '');

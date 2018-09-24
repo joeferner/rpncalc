@@ -31,6 +31,7 @@ class RpnCliComponent extends Component<RpnCliComponentProps, RpnCliComponentSta
         this.handleInputChange = this.handleInputChange.bind(this);
         this.handleInputBackspace = this.handleInputBackspace.bind(this);
         this.handleInputTab = this.handleInputTab.bind(this);
+        this.lastBackspace = Date.now();
         this.state = {
             error: null,
             value: '',

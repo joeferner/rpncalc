@@ -2,6 +2,7 @@ import {RpnCalculator} from "../RpnCalculator";
 import {Operator} from "./Operator";
 import {StackItem} from "../StackItem";
 import {DecimalStackItem} from "../DecimalStackItem";
+import {Decimal} from "decimal.js";
 
 export abstract class UnaryOperator extends Operator {
     public async execute(rpnCalculator: RpnCalculator, input: string): Promise<void> {

@@ -1,4 +1,4 @@
-import {Parser} from 'jison';
+import {Parser} from "jison";
 import * as path from "path";
 import * as fs from "fs";
 import {RpnCalculator} from "../rpn/RpnCalculator";

@@ -2,6 +2,7 @@ import {AngleMode, RpnCalculator} from "../RpnCalculator";
 import {UnaryOperator} from "./UnaryOperator";
 import {PiOperator} from "./PiOperator";
 import {StackItem} from "../StackItem";
+import {Decimal} from "decimal.js";
 
 export abstract class AngleOutputUnaryOperator extends UnaryOperator {
     protected async executeUnary(a: StackItem, rpnCalculator: RpnCalculator): Promise<Decimal> {

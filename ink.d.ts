@@ -13,7 +13,7 @@ declare module 'ink' {
         setState(newState: TState): void;
     }
 
-    export interface Text {
+    export class Text extends Component<any, any> {
     }
 
     export function render(component: any): exitFunction;

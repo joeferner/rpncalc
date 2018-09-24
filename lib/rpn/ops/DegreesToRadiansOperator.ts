@@ -2,6 +2,7 @@ import {RpnCalculator} from "../RpnCalculator";
 import {UnaryOperator} from "./UnaryOperator";
 import {StackItem} from "../StackItem";
 import {PiOperator} from "./PiOperator";
+import {Decimal} from "decimal.js";
 
 export class DegreesToRadiansOperator extends UnaryOperator {
     public getKeywords(): string[] {

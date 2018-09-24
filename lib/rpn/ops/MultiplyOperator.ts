@@ -3,6 +3,7 @@ import {BinaryOperator} from "./BinaryOperator";
 import {StackItem} from "../StackItem";
 import {DecimalStackItem} from "../DecimalStackItem";
 import Qty from "js-quantities";
+import {Decimal} from "decimal.js";
 
 export class MultiplyOperator extends BinaryOperator {
     public getKeywords(): string[] {

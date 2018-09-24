@@ -1,5 +1,6 @@
 import {RpnCalculator} from "../RpnCalculator";
 import {AngleOutputUnaryOperator} from "./AngleOutputUnaryOperator";
+import {Decimal} from "decimal.js";
 
 export class ASinOperator extends AngleOutputUnaryOperator {
     public getKeywords(): string[] {

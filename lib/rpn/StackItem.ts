@@ -1,3 +1,4 @@
+import {Decimal} from "decimal.js";
 import {RpnCalculator} from "./RpnCalculator";
 
 export abstract class StackItem {

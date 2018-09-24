@@ -1,6 +1,7 @@
 import {RpnCalculator} from "../RpnCalculator";
 import {UnaryOperator} from "./UnaryOperator";
 import {StackItem} from "../StackItem";
+import {Decimal} from "decimal.js";
 
 export class Log2Operator extends UnaryOperator {
     public getKeywords(): string[] {

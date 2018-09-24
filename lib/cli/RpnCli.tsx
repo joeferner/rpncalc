@@ -65,6 +65,7 @@ class RpnCliComponent extends Component<RpnCliComponentProps, RpnCliComponentSta
                 case '/':
                 case '^':
                 case '%':
+                case '=':
                     return this.doImmediateOperator(value.substr(0, value.length - 1), lastChar);
             }
         }

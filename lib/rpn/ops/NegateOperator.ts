@@ -5,7 +5,7 @@ import {DecimalStackItem} from "../DecimalStackItem";
 
 export class NegateOperator extends UnaryOperator {
     public getKeywords(): string[] {
-        return ['neg', 'negate'];
+        return ['neg', 'negate', '='];
     }
 
     protected async executeUnary(a: StackItem, rpnCalculator: RpnCalculator): Promise<DecimalStackItem> {

@@ -64,7 +64,7 @@ export class DecimalStackItem extends StackItem {
             return str;
         }
         let whole, decimal;
-        let m = str.match(/([0-9]*)\.([0-9]*)/);
+        let m = str.match(/(-?[0-9]*)\.([0-9]*)/);
         if (m) {
             whole = m[1];
             decimal = m[2];

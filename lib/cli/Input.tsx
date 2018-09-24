@@ -23,8 +23,13 @@ interface Key {
 }
 
 export class Input extends Component<InputProps, InputState> {
+    newCharacters: string;
+    newCharactersTimeout: any;
+
     constructor(props: InputProps, context: any) {
         super(props, context);
+        this.newCharacters = '';
+        this.newCharactersTimeout = null;
         this.handleKeyPress = this.handleKeyPress.bind(this);
     }
 
@@ -66,7 +71,16 @@ export class Input extends Component<InputProps, InputState> {
         }
 
         if (key.name === 'space' || key.sequence === ch && /^.*$/.test(ch) && !key.ctrl) {
-            onChange(value + ch);
+            if (this.newCharactersTimeout) {
+                clearTimeout(this.newCharactersTimeout);
+            }
+            this.newCharacters += ch;
+            this.newCharactersTimeout = setTimeout(() => {
+                this.newCharactersTimeout = null;
+                const chs = this.newCharacters;
+                this.newCharacters = '';
+                onChange(this.props.value + chs);
+            }, 1);
         }
     }
 }

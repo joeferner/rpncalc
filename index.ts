@@ -1,1 +1,3 @@
-console.log("a");
+import cli from "./src/cli";
+
+cli();

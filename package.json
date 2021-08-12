@@ -4,7 +4,13 @@
   "description": "RPN Calculator",
   "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node dist/index.js",
+    "watch": "tsc --watch",
+    "build": "tsc",
+    "test": "jest",
+    "lint": "eslint --ext .ts --ext .js src tests",
+    "prepublish": "npm build",
+    "precommit": "lint-staged"
   },
   "repository": {
     "type": "git",
@@ -18,8 +24,42 @@
   ],
   "author": "Joe Ferner <joe@fernsroth.com>",
   "license": "MIT",
+  "bin": {
+    "rpncalc": "dist/index.js"
+  },
   "bugs": {
     "url": "https://github.com/joeferner/node-rpncalc/issues"
   },
-  "homepage": "https://github.com/joeferner/node-rpncalc#readme"
+  "homepage": "https://github.com/joeferner/node-rpncalc#readme",
+  "devDependencies": {
+    "@types/node": "^16.6.0",
+    "@types/yargs": "^17.0.2",
+    "eslint": "^7.32.0",
+    "husky": "^7.0.1",
+    "lint-staged": "^11.1.2",
+    "typescript": "^4.3.5",
+    "typescript-eslint-parser": "^22.0.0"
+  },
+  "dependencies": {
+    "yargs": "^17.1.0"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "prettier --single-quote=true --write",
+      "git add"
+    ]
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.tsx?$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+    },
+    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(tsx?|jsx?)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "json",
+      "jsx"
+    ]
+  }
 }

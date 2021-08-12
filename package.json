@@ -1,36 +1,25 @@
 {
   "name": "rpncalc",
-  "version": "0.0.4",
-  "description": "",
-  "main": "index.js",
+  "version": "1.0.0",
+  "description": "RPN Calculator",
+  "main": "dist/index.js",
   "scripts": {
-    "prepare": "tsc",
-    "start": "ts-node --files index.ts",
-    "watch": "tsc --watch",
-    "test": "jest"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "bin": {
-    "rpncalc": "dist/index.js"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/joeferner/node-rpncalc.git"
   },
-  "author": "",
+  "keywords": [
+    "rpn",
+    "calc",
+    "calculator",
+    "cli"
+  ],
+  "author": "Joe Ferner <joe@fernsroth.com>",
   "license": "MIT",
-  "dependencies": {
-    "appdirectory": "^0.1.0",
-    "center-align": "^1.0.1",
-    "decimal.js": "^10.0.1",
-    "fs-extra": "^7.0.0",
-    "ink": "^0.5.1",
-    "jison": "^0.4.18",
-    "js-quantities": "^1.7.2"
+  "bugs": {
+    "url": "https://github.com/joeferner/node-rpncalc/issues"
   },
-  "devDependencies": {
-    "@types/fs-extra": "^5.0.4",
-    "@types/jest": "^23.3.2",
-    "@types/js-quantities": "^1.6.2",
-    "@types/node": "^10.11.0",
-    "jest": "^23.6.0",
-    "nodemon": "^1.18.4",
-    "ts-node": "^7.0.1",
-    "typescript": "^3.0.3"
-  }
+  "homepage": "https://github.com/joeferner/node-rpncalc#readme"
 }

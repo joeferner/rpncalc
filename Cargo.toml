@@ -1,0 +1,11 @@
+[package]
+name = "rpncalc"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+approx = "0.5.1"
+clap = { version = "4.4.8", features = ["derive"] }
+exitcode = "1.1.2"
+termion = "2.0.3"
+thiserror = "1.0.50"

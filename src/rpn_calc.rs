@@ -47,6 +47,7 @@ impl RpnCalc {
         return Ok(());
     }
 
+    #[cfg(test)]
     pub fn pop_number(&mut self) -> Result<Option<NumberType>, RpnCalcError> {
         let opt_stack_item = self.stack.pop();
         return match opt_stack_item {

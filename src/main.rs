@@ -11,29 +11,36 @@ mod stack_item;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
+    // set to force interactive mode even if stack items are presented
+    #[arg(short, long)]
+    interactive: bool,
+
     stack: Vec<String>,
+}
+
+fn run(args: Args) -> Result<(), RpnCalcError> {
+    let interactive_mode = args.stack.len() == 0 || args.interactive;
+
+    let mut rpn_calc = RpnCalc::new();
+    for arg in args.stack {
+        rpn_calc.push_str(arg.as_str())?;
+    }
+
+    if interactive_mode {
+        unimplemented!("not implemented")
+    } else {
+        for stack_item in rpn_calc.stack().items() {
+            println!("{}", rpn_calc.format_stack_item(stack_item));
+        }
+    }
+
+    return Ok(());
 }
 
 fn main() {
     let args = Args::parse();
-
-    let mut rpn_calc = RpnCalc::new();
-    if args.stack.len() == 0 {
-        unimplemented!("not implemented")
-    } else {
-        if let Err(err) = run_args(&mut rpn_calc, args) {
-            eprintln!("{}", err);
-            process::exit(exitcode::DATAERR);
-        }
+    if let Err(err) = run(args) {
+        eprintln!("{}", err);
+        process::exit(exitcode::DATAERR);
     }
-}
-
-fn run_args(rpn_calc: &mut RpnCalc, args: Args) -> Result<(), RpnCalcError> {
-    for arg in args.stack {
-        rpn_calc.push_str(arg.as_str())?;
-    }
-    for stack_item in rpn_calc.stack().items() {
-        println!("{}", rpn_calc.format_stack_item(stack_item));
-    }
-    return Ok(());
 }

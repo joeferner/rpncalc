@@ -6,8 +6,6 @@ edition = "2021"
 [dependencies]
 approx = "0.5.1"
 clap = { version = "4.4.8", features = ["derive"] }
+crossterm = "0.27.0"
 exitcode = "1.1.2"
 thiserror = "1.0.50"
-
-[target.'cfg(unix)'.dependencies]
-termion = "2.0.3"

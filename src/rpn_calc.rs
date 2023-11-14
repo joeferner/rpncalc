@@ -4,6 +4,7 @@ use crate::stack::Stack;
 use crate::stack_item::{NumberType, ParseStackItemError, StackItem};
 use thiserror::Error;
 
+#[derive(Copy, Clone)]
 pub enum AngleMode {
     Radians,
     Degrees,
@@ -24,6 +25,8 @@ pub enum RpnCalcError {
     NotEnoughArguments,
     #[error("invalid argument {0}")]
     InvalidArgument(String),
+    #[error("IO error: {0}")]
+    StdIoError(#[from] std::io::Error),
 }
 
 impl RpnCalc {
@@ -67,6 +70,8 @@ impl RpnCalc {
     pub fn stack(&self) -> &Stack {
         return &self.stack;
     }
+
+    pub fn angle_mode(&self) -> AngleMode { return self.angle_mode; }
 
     fn apply_operator(&mut self, op: Operator) -> Result<(), RpnCalcError> {
         return match op {

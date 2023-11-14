@@ -2,11 +2,13 @@ use crate::rpn_calc::{RpnCalc, RpnCalcError};
 use clap::Parser;
 use exitcode;
 use std::process;
+use crate::ui::run_interactive;
 
 mod operator;
 mod rpn_calc;
 mod stack;
 mod stack_item;
+mod ui;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -27,7 +29,7 @@ fn run(args: Args) -> Result<(), RpnCalcError> {
     }
 
     if interactive_mode {
-        unimplemented!("not implemented")
+        run_interactive(rpn_calc)?;
     } else {
         for stack_item in rpn_calc.stack().items() {
             println!("{}", rpn_calc.format_stack_item(stack_item));

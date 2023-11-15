@@ -1,8 +1,21 @@
+use std::collections::HashMap;
 use std::f64::consts::PI;
-use crate::operator::{Operator, ParseOperatorError};
+use std::rc::Rc;
 use crate::stack::Stack;
-use crate::stack_item::{NumberType, ParseStackItemError, StackItem};
+use crate::stack_item::{NumberType, StackItem};
 use thiserror::Error;
+use crate::function::Function;
+use crate::functions;
+use crate::functions::add::Add;
+use crate::functions::cosine::Cosine;
+use crate::functions::divide::Divide;
+use crate::functions::multiply::Multiply;
+use crate::functions::pow::Pow;
+use crate::functions::sine::Sine;
+use crate::functions::square_root::SquareRoot;
+use crate::functions::subtract::Subtract;
+use crate::functions::tangent::Tangent;
+use crate::rpn_calc::AngleMode::Degrees;
 
 #[derive(Copy, Clone)]
 pub enum AngleMode {
@@ -10,17 +23,10 @@ pub enum AngleMode {
     Degrees,
 }
 
-pub struct RpnCalc {
-    stack: Stack,
-    angle_mode: AngleMode,
-}
-
 #[derive(Debug, Error)]
 pub enum RpnCalcError {
     #[error("parse stack item: {0}")]
-    ParseStackItem(#[from] ParseStackItemError),
-    #[error("parse operator: {0}")]
-    ParseOperator(#[from] ParseOperatorError),
+    ParseStackItem(String),
     #[error("not enough arguments")]
     NotEnoughArguments,
     #[error("invalid argument {0}")]
@@ -29,25 +35,102 @@ pub enum RpnCalcError {
     StdIoError(#[from] std::io::Error),
 }
 
+pub struct RpnCalc {
+    stack: Stack,
+    angle_mode: AngleMode,
+    functions: HashMap<String, Rc<dyn Function>>,
+}
+
 impl RpnCalc {
     pub fn new() -> Self {
+        let mut functions: HashMap<String, Rc<dyn Function>> = HashMap::new();
+        functions.insert("add".to_string(), Rc::new(Add::new()));
+        functions.insert("+".to_string(), Rc::new(Add::new()));
+
+        functions.insert("subtract".to_string(), Rc::new(Subtract::new()));
+        functions.insert("sub".to_string(), Rc::new(Subtract::new()));
+        functions.insert("-".to_string(), Rc::new(Subtract::new()));
+
+        functions.insert("multiply".to_string(), Rc::new(Multiply::new()));
+        functions.insert("mul".to_string(), Rc::new(Multiply::new()));
+        functions.insert("*".to_string(), Rc::new(Multiply::new()));
+
+        functions.insert("divide".to_string(), Rc::new(Divide::new()));
+        functions.insert("div".to_string(), Rc::new(Divide::new()));
+        functions.insert("/".to_string(), Rc::new(Divide::new()));
+
+        functions.insert("pow".to_string(), Rc::new(Pow::new()));
+        functions.insert("^".to_string(), Rc::new(Pow::new()));
+
+        functions.insert("sin".to_string(), Rc::new(Sine::new()));
+        functions.insert("sine".to_string(), Rc::new(Sine::new()));
+
+        functions.insert("cos".to_string(), Rc::new(Cosine::new()));
+        functions.insert("cosine".to_string(), Rc::new(Cosine::new()));
+
+        functions.insert("tan".to_string(), Rc::new(Tangent::new()));
+        functions.insert("tangent".to_string(), Rc::new(Tangent::new()));
+
+        functions.insert("deg".to_string(), Rc::new(functions::degrees::Degrees::new()));
+        functions.insert("degrees".to_string(), Rc::new(functions::degrees::Degrees::new()));
+
+        functions.insert("rad".to_string(), Rc::new(functions::radians::Radians::new()));
+        functions.insert("radians".to_string(), Rc::new(functions::radians::Radians::new()));
+
+        functions.insert("sqrt".to_string(), Rc::new(SquareRoot::new()));
+        functions.insert("drop".to_string(), Rc::new(functions::drop::Drop::new()));
+
         return RpnCalc {
             stack: Stack::new(),
-            angle_mode: AngleMode::Degrees,
+            angle_mode: Degrees,
+            functions,
         };
     }
 
     /// pushes a string onto the stack, first parsing it into a stack item. If the string results
     /// in a operator, the operator will be executed.
     pub fn push_str(&mut self, str: &str) -> Result<(), RpnCalcError> {
-        let stack_item = str.parse::<StackItem>()?;
+        let stack_item = self.parse_string_to_stack_item(str)?;
         match stack_item {
-            StackItem::Operator(op) => {
-                self.apply_operator(op)?;
+            StackItem::Function(func) => {
+                func.apply(self)?;
             }
             _ => self.stack.push(stack_item),
         }
         return Ok(());
+    }
+
+    pub fn push(&mut self, stack_item: StackItem) -> () {
+        self.stack.push(stack_item);
+    }
+
+    fn parse_string_to_stack_item(&self, str: &str) -> Result<StackItem, RpnCalcError> {
+        if let Ok(n) = str.parse::<f64>() {
+            return Ok(StackItem::Number(n));
+        }
+        if let Ok(func) = self.parse_string_to_function(str) {
+            return Ok(StackItem::Function(func));
+        }
+        if let Ok(s) = RpnCalc::parse_string_to_string_constant(str) {
+            return Ok(StackItem::String(s));
+        }
+        return Err(RpnCalcError::ParseStackItem(str.to_string()));
+    }
+
+    fn parse_string_to_function(&self, str: &str) -> Result<Rc<dyn Function>, RpnCalcError> {
+        let func = self.functions.get(str);
+        if let Some(func) = func {
+            return Ok(func.clone());
+        }
+        return Err(RpnCalcError::ParseStackItem(str.to_string()));
+    }
+
+    fn parse_string_to_string_constant(str: &str) -> Result<String, RpnCalcError> {
+        let str = str.to_string();
+        if str.starts_with("`") && str.ends_with("`") {
+            return Ok(str[1..str.len() - 1].to_string());
+        }
+        return Err(RpnCalcError::ParseStackItem(str));
     }
 
     #[cfg(test)]
@@ -67,102 +150,24 @@ impl RpnCalc {
         return format!("{}", stack_item);
     }
 
+    pub fn pop(&mut self) -> Result<(), RpnCalcError> {
+        if self.stack.pop().is_some() {
+            return Ok(());
+        }
+        return Err(RpnCalcError::NotEnoughArguments);
+    }
+
     pub fn stack(&self) -> &Stack {
         return &self.stack;
     }
 
     pub fn angle_mode(&self) -> AngleMode { return self.angle_mode; }
 
-    fn apply_operator(&mut self, op: Operator) -> Result<(), RpnCalcError> {
-        return match op {
-            Operator::Degrees => self.apply_operator_degrees(),
-            Operator::Radians => self.apply_operator_radians(),
-            Operator::Add => self.apply_operator_add(),
-            Operator::Subtract => self.apply_operator_subtract(),
-            Operator::Multiply => self.apply_operator_multiply(),
-            Operator::Divide => self.apply_operator_divide(),
-            Operator::Pow => self.apply_operator_pow(),
-            Operator::SquareRoot => self.apply_operator_square_root(),
-            Operator::Sine => self.apply_operator_sine(),
-            Operator::Cosine => self.apply_operator_cosine(),
-            Operator::Tangent => self.apply_operator_tangent(),
-        };
+    pub fn set_angle_mode(&mut self, angle_mode: AngleMode) -> () {
+        self.angle_mode = angle_mode;
     }
 
-    fn apply_operator_degrees(&mut self) -> Result<(), RpnCalcError> {
-        self.angle_mode = AngleMode::Degrees;
-        return Ok(());
-    }
-
-    fn apply_operator_radians(&mut self) -> Result<(), RpnCalcError> {
-        self.angle_mode = AngleMode::Radians;
-        return Ok(());
-    }
-
-    fn apply_operator_add(&mut self) -> Result<(), RpnCalcError> {
-        let args = self.get_binary_number_operator_args()?;
-        let result = args.0 + args.1;
-        self.stack.push(StackItem::Number(result));
-        return Ok(());
-    }
-
-    fn apply_operator_subtract(&mut self) -> Result<(), RpnCalcError> {
-        let args = self.get_binary_number_operator_args()?;
-        let result = args.1 - args.0;
-        self.stack.push(StackItem::Number(result));
-        return Ok(());
-    }
-
-    fn apply_operator_multiply(&mut self) -> Result<(), RpnCalcError> {
-        let args = self.get_binary_number_operator_args()?;
-        let result = args.1 * args.0;
-        self.stack.push(StackItem::Number(result));
-        return Ok(());
-    }
-
-    fn apply_operator_divide(&mut self) -> Result<(), RpnCalcError> {
-        let args = self.get_binary_number_operator_args()?;
-        let result = args.1 / args.0;
-        self.stack.push(StackItem::Number(result));
-        return Ok(());
-    }
-
-    fn apply_operator_pow(&mut self) -> Result<(), RpnCalcError> {
-        let args = self.get_binary_number_operator_args()?;
-        let result = args.1.powf(args.0);
-        self.stack.push(StackItem::Number(result));
-        return Ok(());
-    }
-
-    fn apply_operator_square_root(&mut self) -> Result<(), RpnCalcError> {
-        let arg = self.get_unary_number_operator_arg()?;
-        let result = arg.powf(0.5);
-        self.stack.push(StackItem::Number(result));
-        return Ok(());
-    }
-
-    fn apply_operator_sine(&mut self) -> Result<(), RpnCalcError> {
-        let arg = self.get_unary_number_operator_arg_radians()?;
-        let result = arg.sin();
-        self.stack.push(StackItem::Number(result));
-        return Ok(());
-    }
-
-    fn apply_operator_cosine(&mut self) -> Result<(), RpnCalcError> {
-        let arg = self.get_unary_number_operator_arg_radians()?;
-        let result = arg.cos();
-        self.stack.push(StackItem::Number(result));
-        return Ok(());
-    }
-
-    fn apply_operator_tangent(&mut self) -> Result<(), RpnCalcError> {
-        let arg = self.get_unary_number_operator_arg_radians()?;
-        let result = arg.tan();
-        self.stack.push(StackItem::Number(result));
-        return Ok(());
-    }
-
-    fn get_binary_number_operator_args(
+    pub fn get_binary_number_operator_args(
         &mut self,
     ) -> Result<(NumberType, NumberType), RpnCalcError> {
         let a = self.pop_number_stack_item()?;
@@ -178,7 +183,7 @@ impl RpnCalc {
         return Ok((a, b));
     }
 
-    fn get_unary_number_operator_arg_radians(&mut self) -> Result<NumberType, RpnCalcError> {
+    pub fn get_unary_number_operator_arg_radians(&mut self) -> Result<NumberType, RpnCalcError> {
         let a = self.get_unary_number_operator_arg()?;
         return match self.angle_mode {
             AngleMode::Radians => Ok(a),
@@ -186,7 +191,7 @@ impl RpnCalc {
         };
     }
 
-    fn get_unary_number_operator_arg(&mut self) -> Result<NumberType, RpnCalcError> {
+    pub fn get_unary_number_operator_arg(&mut self) -> Result<NumberType, RpnCalcError> {
         let a = self.pop_number_stack_item()?;
         let a = self.stack_item_to_number(a)?;
         return Ok(a);

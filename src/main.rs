@@ -4,11 +4,12 @@ use exitcode;
 use std::process;
 use crate::ui::run_interactive;
 
-mod operator;
 mod rpn_calc;
 mod stack;
 mod stack_item;
 mod ui;
+mod function;
+mod functions;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]

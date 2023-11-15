@@ -144,7 +144,9 @@ fn handle_key_event(rpn_calc: &mut RpnCalc, state: &mut InteractiveState, key: K
                 }
             }
             KeyCode::Backspace => {
-                if state.cursor_location > 0 {
+                if state.input.len() == 0 {
+                    rpn_calc.push_str("drop")?;
+                } else if state.cursor_location > 0 {
                     let loc = state.cursor_location as usize;
                     let mut new_input = state.input[..loc - 1].to_string();
                     new_input.push_str(&state.input[loc..]);

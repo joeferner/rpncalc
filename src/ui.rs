@@ -1,10 +1,11 @@
 use std::cmp::{min};
 use std::io::stdout;
-use crate::rpn_calc::{AngleMode, RpnCalc, RpnCalcError};
+use crate::rpn_calc::{AngleMode, RpnCalc};
 use crossterm::{event::{read, Event, KeyCode}, cursor, terminal::{disable_raw_mode, enable_raw_mode}, ExecutableCommand};
 use crossterm::event::{KeyEvent, KeyEventKind, KeyModifiers};
 use crossterm::style::Print;
 use crossterm::terminal::{Clear, ClearType};
+use crate::error::RpnCalcError;
 use crate::stack_item::StackItem;
 
 const DEFAULT_STACK_HEIGHT: u16 = 4;

@@ -1,7 +1,8 @@
-use crate::rpn_calc::{RpnCalc, RpnCalcError};
+use crate::rpn_calc::{RpnCalc};
 use clap::Parser;
 use exitcode;
 use std::process;
+use crate::error::RpnCalcError;
 use crate::ui::run_interactive;
 
 mod rpn_calc;
@@ -11,6 +12,7 @@ mod ui;
 mod function;
 mod functions;
 mod number;
+mod error;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]

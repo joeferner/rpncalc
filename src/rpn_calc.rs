@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 use std::rc::Rc;
+use crate::error::RpnCalcError;
 use crate::stack::Stack;
 use crate::stack_item::{StackItem};
-use thiserror::Error;
 use crate::function::Function;
 use crate::functions;
 use crate::functions::add::Add;
@@ -23,18 +23,6 @@ pub enum AngleMode {
     Degrees,
 }
 
-#[derive(Debug, Error)]
-pub enum RpnCalcError {
-    #[error("parse stack item: {0}")]
-    ParseStackItem(String),
-    #[error("not enough arguments")]
-    NotEnoughArguments,
-    #[error("invalid argument {0}")]
-    InvalidArgument(String),
-    #[error("IO error: {0}")]
-    StdIoError(#[from] std::io::Error),
-}
-
 pub struct RpnCalc {
     stack: Stack,
     angle_mode: AngleMode,
@@ -44,38 +32,49 @@ pub struct RpnCalc {
 impl RpnCalc {
     pub fn new() -> Self {
         let mut functions: HashMap<String, Rc<dyn Function>> = HashMap::new();
-        functions.insert("add".to_string(), Rc::new(Add::new()));
-        functions.insert("+".to_string(), Rc::new(Add::new()));
 
-        functions.insert("subtract".to_string(), Rc::new(Subtract::new()));
-        functions.insert("sub".to_string(), Rc::new(Subtract::new()));
-        functions.insert("-".to_string(), Rc::new(Subtract::new()));
+        let add = Rc::new(Add::new());
+        functions.insert("add".to_string(), add.clone());
+        functions.insert("+".to_string(), add.clone());
 
-        functions.insert("multiply".to_string(), Rc::new(Multiply::new()));
-        functions.insert("mul".to_string(), Rc::new(Multiply::new()));
-        functions.insert("*".to_string(), Rc::new(Multiply::new()));
+        let subtract = Rc::new(Subtract::new());
+        functions.insert("subtract".to_string(), subtract.clone());
+        functions.insert("sub".to_string(), subtract.clone());
+        functions.insert("-".to_string(), subtract.clone());
 
-        functions.insert("divide".to_string(), Rc::new(Divide::new()));
-        functions.insert("div".to_string(), Rc::new(Divide::new()));
-        functions.insert("/".to_string(), Rc::new(Divide::new()));
+        let multiply = Rc::new(Multiply::new());
+        functions.insert("multiply".to_string(), multiply.clone());
+        functions.insert("mul".to_string(), multiply.clone());
+        functions.insert("*".to_string(), multiply.clone());
 
-        functions.insert("pow".to_string(), Rc::new(Pow::new()));
-        functions.insert("^".to_string(), Rc::new(Pow::new()));
+        let divide = Rc::new(Divide::new());
+        functions.insert("divide".to_string(), divide.clone());
+        functions.insert("div".to_string(), divide.clone());
+        functions.insert("/".to_string(), divide.clone());
 
-        functions.insert("sin".to_string(), Rc::new(Sine::new()));
-        functions.insert("sine".to_string(), Rc::new(Sine::new()));
+        let pow = Rc::new(Pow::new());
+        functions.insert("pow".to_string(), pow.clone());
+        functions.insert("^".to_string(), pow.clone());
 
-        functions.insert("cos".to_string(), Rc::new(Cosine::new()));
-        functions.insert("cosine".to_string(), Rc::new(Cosine::new()));
+        let sine = Rc::new(Sine::new());
+        functions.insert("sin".to_string(), sine.clone());
+        functions.insert("sine".to_string(), sine.clone());
 
-        functions.insert("tan".to_string(), Rc::new(Tangent::new()));
-        functions.insert("tangent".to_string(), Rc::new(Tangent::new()));
+        let cosine = Rc::new(Cosine::new());
+        functions.insert("cos".to_string(), cosine.clone());
+        functions.insert("cosine".to_string(), cosine.clone());
 
-        functions.insert("deg".to_string(), Rc::new(functions::degrees::Degrees::new()));
-        functions.insert("degrees".to_string(), Rc::new(functions::degrees::Degrees::new()));
+        let tangent = Rc::new(Tangent::new());
+        functions.insert("tan".to_string(), tangent.clone());
+        functions.insert("tangent".to_string(), tangent.clone());
 
-        functions.insert("rad".to_string(), Rc::new(functions::radians::Radians::new()));
-        functions.insert("radians".to_string(), Rc::new(functions::radians::Radians::new()));
+        let degrees = Rc::new(functions::degrees::Degrees::new());
+        functions.insert("deg".to_string(), degrees.clone());
+        functions.insert("degrees".to_string(), degrees.clone());
+
+        let radians = Rc::new(functions::radians::Radians::new());
+        functions.insert("rad".to_string(), radians.clone());
+        functions.insert("radians".to_string(), radians.clone());
 
         functions.insert("sqrt".to_string(), Rc::new(SquareRoot::new()));
         functions.insert("drop".to_string(), Rc::new(functions::drop::Drop::new()));
@@ -139,7 +138,7 @@ impl RpnCalc {
         return match opt_stack_item {
             None => Ok(None),
             Some(stack_item) => {
-                let n = self.stack_item_to_number(stack_item)?;
+                let n = self.stack_item_to_number(&stack_item)?;
                 Ok(Some(n))
             }
         };
@@ -167,26 +166,61 @@ impl RpnCalc {
         self.angle_mode = angle_mode;
     }
 
-    pub fn get_binary_number_operator_args(
-        &mut self,
-    ) -> Result<(Number, Number), RpnCalcError> {
-        let a = self.pop_number_stack_item()?;
-        let b = self.pop_number_stack_item();
-        if let Err(err) = b {
-            self.stack.push(a);
+    pub fn execute_binary_number_operator<F>(&mut self, f: F) -> Result<(), RpnCalcError>
+        where F: FnOnce(&mut RpnCalc, Number, Number) -> Result<(), RpnCalcError> {
+        let a_stack_item = self.pop_number_stack_item()?;
+        let b_stack_item = match self.pop_number_stack_item() {
+            Ok(b_stack_item) => b_stack_item,
+            Err(err) => {
+                self.stack.push(a_stack_item);
+                return Err(err);
+            }
+        };
+
+        let a = match self.stack_item_to_number(&a_stack_item) {
+            Ok(a) => a,
+            Err(err) => {
+                self.stack.push(b_stack_item);
+                self.stack.push(a_stack_item);
+                return Err(err);
+            }
+        };
+
+        let b = match self.stack_item_to_number(&b_stack_item) {
+            Ok(b) => b,
+            Err(err) => {
+                self.stack.push(b_stack_item);
+                self.stack.push(a_stack_item);
+                return Err(err);
+            }
+        };
+
+        if let Err(err) = f(self, b, a) {
+            self.stack.push(b_stack_item);
+            self.stack.push(a_stack_item);
             return Err(err);
         }
-        let b = b.unwrap();
 
-        let a = self.stack_item_to_number(a)?;
-        let b = self.stack_item_to_number(b)?;
-        return Ok((a, b));
+        return Ok(());
     }
 
-    pub fn get_unary_number_operator_arg(&mut self) -> Result<Number, RpnCalcError> {
-        let a = self.pop_number_stack_item()?;
-        let a = self.stack_item_to_number(a)?;
-        return Ok(a);
+    pub fn execute_unary_number_operator<F>(&mut self, f: F) -> Result<(), RpnCalcError>
+        where F: FnOnce(&mut RpnCalc, Number) -> Result<(), RpnCalcError> {
+        let a_stack_item = self.pop_number_stack_item()?;
+        let a = match self.stack_item_to_number(&a_stack_item) {
+            Ok(a) => a,
+            Err(err) => {
+                self.stack.push(a_stack_item);
+                return Err(err);
+            }
+        };
+
+        if let Err(err) = f(self, a) {
+            self.stack.push(a_stack_item);
+            return Err(err);
+        }
+
+        return Ok(());
     }
 
     fn pop_number_stack_item(&mut self) -> Result<StackItem, RpnCalcError> {
@@ -201,9 +235,9 @@ impl RpnCalc {
         };
     }
 
-    fn stack_item_to_number(&self, stack_item: StackItem) -> Result<Number, RpnCalcError> {
+    fn stack_item_to_number(&self, stack_item: &StackItem) -> Result<Number, RpnCalcError> {
         return match stack_item {
-            StackItem::Number(a) => Ok(a),
+            StackItem::Number(a) => Ok(a.clone()),
             _ => {
                 let msg = format!("expected number found: {}", stack_item);
                 Err(RpnCalcError::InvalidArgument(msg))
@@ -223,6 +257,15 @@ mod tests {
             rpn_calc.push_str(arg).unwrap();
         }
         return rpn_calc;
+    }
+
+    fn assert_stack(rpn_calc: &RpnCalc, args: Vec<&str>) -> () {
+        assert_eq!(args.len(), rpn_calc.stack.items().len());
+        for (i, arg) in args.iter().enumerate() {
+            let found_stack_item = rpn_calc.stack.items().get(i).unwrap();
+            let expected_stack_item = rpn_calc.parse_string_to_stack_item(arg).unwrap();
+            assert_eq!(expected_stack_item, found_stack_item.clone());
+        }
     }
 
     fn run_binary_operator(arg1: &str, arg2: &str, op: &str, expected: Number) {
@@ -293,5 +336,29 @@ mod tests {
     #[test]
     fn test_tan() {
         run_unary_operator_deg("10", "tan", Number::from(0.17632698070846498));
+    }
+
+    #[test]
+    fn test_error_not_enough_args() {
+        let mut rpn_calc = run(vec!["1"]);
+        let result = rpn_calc.push_str("add");
+        assert!(matches!(result, Err(RpnCalcError::NotEnoughArguments)));
+        assert_stack(&rpn_calc, vec!["1"]);
+    }
+
+    #[test]
+    fn test_error_first_arg() {
+        let mut rpn_calc = run(vec!["`a`", "1"]);
+        let result = rpn_calc.push_str("add");
+        assert!(matches!(result, Err(RpnCalcError::InvalidArgument(_))));
+        assert_stack(&rpn_calc, vec!["`a`", "1"]);
+    }
+
+    #[test]
+    fn test_error_second_arg() {
+        let mut rpn_calc = run(vec!["1", "`a`"]);
+        let result = rpn_calc.push_str("add");
+        assert!(matches!(result, Err(RpnCalcError::InvalidArgument(_))));
+        assert_stack(&rpn_calc, vec!["1", "`a`"]);
     }
 }

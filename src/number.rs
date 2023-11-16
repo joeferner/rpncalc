@@ -1,10 +1,11 @@
 use std::f64::consts::PI;
 use std::fmt::{Display, Formatter};
-use crate::rpn_calc::{AngleMode, RpnCalcError};
+use crate::error::RpnCalcError;
+use crate::rpn_calc::{AngleMode};
 
 pub type MagnitudeType = f64;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Number {
     magnitude: MagnitudeType,
 }
@@ -61,6 +62,13 @@ impl Number {
 
     pub fn tan(&self, angle_mode: AngleMode) -> Result<Number, RpnCalcError> {
         return Ok(Number { magnitude: self.to_radians(angle_mode)?.magnitude.tan() });
+    }
+}
+
+impl PartialEq for Number {
+    fn eq(&self, other: &Self) -> bool {
+        let delta = (self.magnitude - other.magnitude).abs();
+        return delta <= f64::EPSILON;
     }
 }
 

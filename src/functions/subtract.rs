@@ -1,6 +1,7 @@
 use std::fmt::{Display, Formatter};
+use crate::error::RpnCalcError;
 use crate::function::Function;
-use crate::rpn_calc::{RpnCalc, RpnCalcError};
+use crate::rpn_calc::{RpnCalc};
 use crate::stack_item::StackItem;
 
 pub struct Subtract {}
@@ -19,9 +20,10 @@ impl Display for Subtract {
 
 impl Function for Subtract {
     fn apply(&self, rpn_calc: &mut RpnCalc) -> Result<(), RpnCalcError> {
-        let args = rpn_calc.get_binary_number_operator_args()?;
-        let result = args.1.subtract(&args.0)?;
-        rpn_calc.push(StackItem::Number(result));
-        return Ok(());
+        return rpn_calc.execute_binary_number_operator(|rpn_calc, a, b| {
+            let result = a.subtract(&b)?;
+            rpn_calc.push(StackItem::Number(result));
+            return Ok(());
+        });
     }
 }

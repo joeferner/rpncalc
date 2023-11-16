@@ -1,6 +1,7 @@
 use std::fmt::{Display, Formatter};
+use crate::error::RpnCalcError;
 use crate::function::Function;
-use crate::rpn_calc::{RpnCalc, RpnCalcError};
+use crate::rpn_calc::{RpnCalc};
 use crate::stack_item::StackItem;
 
 pub struct Cosine {}
@@ -19,9 +20,10 @@ impl Display for Cosine {
 
 impl Function for Cosine {
     fn apply(&self, rpn_calc: &mut RpnCalc) -> Result<(), RpnCalcError> {
-        let arg = rpn_calc.get_unary_number_operator_arg()?;
-        let result = arg.cos(rpn_calc.angle_mode())?;
-        rpn_calc.push(StackItem::Number(result));
-        return Ok(());
+        return rpn_calc.execute_unary_number_operator(|rpn_calc, a| {
+            let result = a.cos(rpn_calc.angle_mode())?;
+            rpn_calc.push(StackItem::Number(result));
+            return Ok(());
+        });
     }
 }

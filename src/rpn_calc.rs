@@ -1,8 +1,7 @@
 use std::collections::HashMap;
-use std::f64::consts::PI;
 use std::rc::Rc;
 use crate::stack::Stack;
-use crate::stack_item::{NumberType, StackItem};
+use crate::stack_item::{StackItem};
 use thiserror::Error;
 use crate::function::Function;
 use crate::functions;
@@ -15,6 +14,7 @@ use crate::functions::sine::Sine;
 use crate::functions::square_root::SquareRoot;
 use crate::functions::subtract::Subtract;
 use crate::functions::tangent::Tangent;
+use crate::number::Number;
 use crate::rpn_calc::AngleMode::Degrees;
 
 #[derive(Copy, Clone)]
@@ -105,7 +105,7 @@ impl RpnCalc {
     }
 
     fn parse_string_to_stack_item(&self, str: &str) -> Result<StackItem, RpnCalcError> {
-        if let Ok(n) = str.parse::<f64>() {
+        if let Ok(n) = Number::from_str(str) {
             return Ok(StackItem::Number(n));
         }
         if let Ok(func) = self.parse_string_to_function(str) {
@@ -134,7 +134,7 @@ impl RpnCalc {
     }
 
     #[cfg(test)]
-    pub fn pop_number(&mut self) -> Result<Option<NumberType>, RpnCalcError> {
+    pub fn pop_number(&mut self) -> Result<Option<Number>, RpnCalcError> {
         let opt_stack_item = self.stack.pop();
         return match opt_stack_item {
             None => Ok(None),
@@ -169,7 +169,7 @@ impl RpnCalc {
 
     pub fn get_binary_number_operator_args(
         &mut self,
-    ) -> Result<(NumberType, NumberType), RpnCalcError> {
+    ) -> Result<(Number, Number), RpnCalcError> {
         let a = self.pop_number_stack_item()?;
         let b = self.pop_number_stack_item();
         if let Err(err) = b {
@@ -183,15 +183,7 @@ impl RpnCalc {
         return Ok((a, b));
     }
 
-    pub fn get_unary_number_operator_arg_radians(&mut self) -> Result<NumberType, RpnCalcError> {
-        let a = self.get_unary_number_operator_arg()?;
-        return match self.angle_mode {
-            AngleMode::Radians => Ok(a),
-            AngleMode::Degrees => Ok(a * PI / 180.0)
-        };
-    }
-
-    pub fn get_unary_number_operator_arg(&mut self) -> Result<NumberType, RpnCalcError> {
+    pub fn get_unary_number_operator_arg(&mut self) -> Result<Number, RpnCalcError> {
         let a = self.pop_number_stack_item()?;
         let a = self.stack_item_to_number(a)?;
         return Ok(a);
@@ -209,7 +201,7 @@ impl RpnCalc {
         };
     }
 
-    fn stack_item_to_number(&self, stack_item: StackItem) -> Result<NumberType, RpnCalcError> {
+    fn stack_item_to_number(&self, stack_item: StackItem) -> Result<Number, RpnCalcError> {
         return match stack_item {
             StackItem::Number(a) => Ok(a),
             _ => {
@@ -233,73 +225,73 @@ mod tests {
         return rpn_calc;
     }
 
-    fn run_binary_operator(arg1: &str, arg2: &str, op: &str, expected: NumberType) {
+    fn run_binary_operator(arg1: &str, arg2: &str, op: &str, expected: Number) {
         let mut rpn_calc = run(vec![arg1, arg2, op]);
-        assert_relative_eq!(expected, rpn_calc.pop_number().unwrap().unwrap());
+        assert_relative_eq!(expected.magnitude(), rpn_calc.pop_number().unwrap().unwrap().magnitude());
     }
 
-    fn run_unary_operator(arg: &str, op: &str, expected: NumberType) {
+    fn run_unary_operator(arg: &str, op: &str, expected: Number) {
         let mut rpn_calc = run(vec![arg, op]);
-        assert_relative_eq!(expected, rpn_calc.pop_number().unwrap().unwrap());
+        assert_relative_eq!(expected.magnitude(), rpn_calc.pop_number().unwrap().unwrap().magnitude());
     }
 
-    fn run_unary_operator_deg(arg: &str, op: &str, expected: NumberType) {
+    fn run_unary_operator_deg(arg: &str, op: &str, expected: Number) {
         let mut rpn_calc = run(vec!["deg", arg, op]);
-        assert_relative_eq!(expected, rpn_calc.pop_number().unwrap().unwrap());
+        assert_relative_eq!(expected.magnitude(), rpn_calc.pop_number().unwrap().unwrap().magnitude());
     }
 
-    fn run_unary_operator_rad(arg: &str, op: &str, expected: NumberType) {
+    fn run_unary_operator_rad(arg: &str, op: &str, expected: Number) {
         let mut rpn_calc = run(vec!["rad", arg, op]);
-        assert_relative_eq!(expected, rpn_calc.pop_number().unwrap().unwrap());
+        assert_relative_eq!(expected.magnitude(), rpn_calc.pop_number().unwrap().unwrap().magnitude());
     }
 
     #[test]
     fn test_add() {
-        run_binary_operator("1.2", "5.6", "+", 6.8);
+        run_binary_operator("1.2", "5.6", "+", Number::from(6.8));
     }
 
     #[test]
     fn test_subtract() {
-        run_binary_operator("1.2", "0.8", "-", 0.4);
+        run_binary_operator("1.2", "0.8", "-", Number::from(0.4));
     }
 
     #[test]
     fn test_multiply() {
-        run_binary_operator("1.2", "0.8", "*", 0.96);
+        run_binary_operator("1.2", "0.8", "*", Number::from(0.96));
     }
 
     #[test]
     fn test_divide() {
-        run_binary_operator("1.2", "0.8", "/", 1.5);
+        run_binary_operator("1.2", "0.8", "/", Number::from(1.5));
     }
 
     #[test]
     fn test_pow() {
-        run_binary_operator("3.2", "2", "^", 10.24);
+        run_binary_operator("3.2", "2", "^", Number::from(10.24));
     }
 
     #[test]
     fn test_sqrt() {
-        run_unary_operator("10.24", "sqrt", 3.2);
+        run_unary_operator("10.24", "sqrt", Number::from(3.2));
     }
 
     #[test]
     fn test_sin_deg() {
-        run_unary_operator_deg("10", "sin", 0.17364817766693033);
+        run_unary_operator_deg("10", "sin", Number::from(0.17364817766693033));
     }
 
     #[test]
     fn test_sin_rad() {
-        run_unary_operator_rad("0.34", "sin", 0.3334870921408144);
+        run_unary_operator_rad("0.34", "sin", Number::from(0.3334870921408144));
     }
 
     #[test]
     fn test_cos() {
-        run_unary_operator_deg("10", "cos", 0.984807753012208);
+        run_unary_operator_deg("10", "cos", Number::from(0.984807753012208));
     }
 
     #[test]
     fn test_tan() {
-        run_unary_operator_deg("10", "tan", 0.17632698070846498);
+        run_unary_operator_deg("10", "tan", Number::from(0.17632698070846498));
     }
 }

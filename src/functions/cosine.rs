@@ -19,8 +19,8 @@ impl Display for Cosine {
 
 impl Function for Cosine {
     fn apply(&self, rpn_calc: &mut RpnCalc) -> Result<(), RpnCalcError> {
-        let arg = rpn_calc.get_unary_number_operator_arg_radians()?;
-        let result = arg.cos();
+        let arg = rpn_calc.get_unary_number_operator_arg()?;
+        let result = arg.cos(rpn_calc.angle_mode())?;
         rpn_calc.push(StackItem::Number(result));
         return Ok(());
     }

@@ -2,12 +2,11 @@ use std::fmt;
 use std::fmt::Display;
 use std::rc::Rc;
 use crate::function::Function;
-
-pub type NumberType = f64;
+use crate::number::Number;
 
 #[derive(Clone)]
 pub enum StackItem {
-    Number(NumberType),
+    Number(Number),
     String(String),
     Function(Rc<dyn Function>),
 }

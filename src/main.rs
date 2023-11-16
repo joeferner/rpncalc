@@ -10,6 +10,7 @@ mod stack_item;
 mod ui;
 mod function;
 mod functions;
+mod number;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]

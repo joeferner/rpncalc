@@ -1,5 +1,6 @@
 use std::fmt::{Display, Formatter};
 use crate::function::Function;
+use crate::number::Number;
 use crate::rpn_calc::{RpnCalc, RpnCalcError};
 use crate::stack_item::StackItem;
 
@@ -20,7 +21,7 @@ impl Display for SquareRoot {
 impl Function for SquareRoot {
     fn apply(&self, rpn_calc: &mut RpnCalc) -> Result<(), RpnCalcError> {
         let arg = rpn_calc.get_unary_number_operator_arg()?;
-        let result = arg.powf(0.5);
+        let result = arg.pow(&Number::from(0.5))?;
         rpn_calc.push(StackItem::Number(result));
         return Ok(());
     }

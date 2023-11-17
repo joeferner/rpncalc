@@ -19,6 +19,7 @@ impl Display for Drop {
 
 impl Function for Drop {
     fn apply(&self, rpn_calc: &mut RpnCalc) -> Result<(), RpnCalcError> {
-        return rpn_calc.pop();
+        rpn_calc.pop()?;
+        return Ok(());
     }
 }

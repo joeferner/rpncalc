@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::rc::Rc;
+use crate::angle_type::AngleType;
 use crate::error::RpnCalcError;
 use crate::stack::Stack;
 use crate::stack_item::{StackItem};
@@ -15,17 +16,10 @@ use crate::functions::square_root::SquareRoot;
 use crate::functions::subtract::Subtract;
 use crate::functions::tangent::Tangent;
 use crate::number::Number;
-use crate::rpn_calc::AngleMode::Degrees;
-
-#[derive(Copy, Clone)]
-pub enum AngleMode {
-    Radians,
-    Degrees,
-}
 
 pub struct RpnCalc {
     stack: Stack,
-    angle_mode: AngleMode,
+    angle_mode: AngleType,
     functions: HashMap<String, Rc<dyn Function>>,
 }
 
@@ -81,7 +75,7 @@ impl RpnCalc {
 
         return RpnCalc {
             stack: Stack::new(),
-            angle_mode: Degrees,
+            angle_mode: AngleType::Degrees,
             functions,
         };
     }
@@ -149,9 +143,9 @@ impl RpnCalc {
         return format!("{}", stack_item);
     }
 
-    pub fn pop(&mut self) -> Result<(), RpnCalcError> {
-        if self.stack.pop().is_some() {
-            return Ok(());
+    pub fn pop(&mut self) -> Result<StackItem, RpnCalcError> {
+        if let Some(stack_item) = self.stack.pop() {
+            return Ok(stack_item);
         }
         return Err(RpnCalcError::NotEnoughArguments);
     }
@@ -160,9 +154,9 @@ impl RpnCalc {
         return &self.stack;
     }
 
-    pub fn angle_mode(&self) -> AngleMode { return self.angle_mode; }
+    pub fn angle_mode(&self) -> AngleType { return self.angle_mode; }
 
-    pub fn set_angle_mode(&mut self, angle_mode: AngleMode) -> () {
+    pub fn set_angle_mode(&mut self, angle_mode: AngleType) -> () {
         self.angle_mode = angle_mode;
     }
 
@@ -250,6 +244,7 @@ impl RpnCalc {
 mod tests {
     use super::*;
     use approx::assert_relative_eq;
+    use crate::units::{Units, LengthUnits, SIPrefix};
 
     fn run(args: Vec<&str>) -> RpnCalc {
         let mut rpn_calc = RpnCalc::new();
@@ -329,6 +324,16 @@ mod tests {
     }
 
     #[test]
+    fn test_sin_units_deg() {
+        run_unary_operator_rad("10 deg", "sin", Number::from(0.17364817766693033));
+    }
+
+    #[test]
+    fn test_sin_units_rad() {
+        run_unary_operator_deg("0.34 rad", "sin", Number::from(0.3334870921408144));
+    }
+
+    #[test]
     fn test_cos() {
         run_unary_operator_deg("10", "cos", Number::from(0.984807753012208));
     }
@@ -360,5 +365,19 @@ mod tests {
         let result = rpn_calc.push_str("add");
         assert!(matches!(result, Err(RpnCalcError::InvalidArgument(_))));
         assert_stack(&rpn_calc, vec!["1", "`a`"]);
+    }
+
+    #[test]
+    fn test_add_units() {
+        let mut rpn_calc = run(vec!["1ft", "0m", "+"]);
+        assert_eq!(1, rpn_calc.stack.items().len());
+        let stack_item = rpn_calc.pop().unwrap();
+        match stack_item {
+            StackItem::Number(n) => {
+                assert_relative_eq!(0.3048, n.magnitude());
+                assert!(matches!(n.units(),Units::Length(LengthUnits::Meter(SIPrefix::None))));
+            }
+            _ => assert!(false)
+        }
     }
 }

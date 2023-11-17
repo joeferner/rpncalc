@@ -1,10 +1,11 @@
 use std::cmp::{min};
-use std::io::stdout;
-use crate::rpn_calc::{AngleMode, RpnCalc};
-use crossterm::{event::{read, Event, KeyCode}, cursor, terminal::{disable_raw_mode, enable_raw_mode}, ExecutableCommand};
+use std::io::{stdout, Write};
+use crate::rpn_calc::{RpnCalc};
+use crossterm::{event::{read, Event, KeyCode}, cursor, terminal::{disable_raw_mode, enable_raw_mode}, QueueableCommand};
 use crossterm::event::{KeyEvent, KeyEventKind, KeyModifiers};
 use crossterm::style::Print;
 use crossterm::terminal::{Clear, ClearType};
+use crate::angle_type::AngleType;
 use crate::error::RpnCalcError;
 use crate::stack_item::StackItem;
 
@@ -80,27 +81,27 @@ fn redraw(rpn_calc: &RpnCalc, state: &InteractiveState) -> Result<(), RpnCalcErr
     let top = get_top(state);
 
     // draw header line
-    stdout().execute(cursor::MoveTo(0, top))?;
-    stdout().execute(Clear(ClearType::CurrentLine))?;
+    stdout().queue(cursor::MoveTo(0, top))?;
+    stdout().queue(Clear(ClearType::CurrentLine))?;
     if let Some(message) = &state.message {
-        stdout().execute(Print(message))?;
+        stdout().queue(Print(message))?;
     } else {
         // draw mode
         let angle_mode = match rpn_calc.angle_mode() {
-            AngleMode::Degrees => "DEG",
-            AngleMode::Radians => "RAD",
+            AngleType::Degrees => "DEG",
+            AngleType::Radians => "RAD",
         };
 
         let status_line = format!("{}", angle_mode);
-        stdout().execute(Print(status_line))?;
+        stdout().queue(Print(status_line))?;
     }
 
     // draw stack
     for i in 0..state.stack_height {
         let stack_offset = (state.stack_height - i) as usize;
         let stack_index = rpn_calc.stack().items().len() as i16 - stack_offset as i16;
-        stdout().execute(cursor::MoveTo(0, top + 1 + i))?;
-        stdout().execute(Clear(ClearType::CurrentLine))?;
+        stdout().queue(cursor::MoveTo(0, top + 1 + i))?;
+        stdout().queue(Clear(ClearType::CurrentLine))?;
         let mut stack_item: Option<&StackItem> = None;
         if stack_index >= 0 {
             stack_item = rpn_calc.stack().items().get(stack_index as usize);
@@ -109,14 +110,15 @@ fn redraw(rpn_calc: &RpnCalc, state: &InteractiveState) -> Result<(), RpnCalcErr
             Some(stack_item) => format_stack_item(stack_offset, stack_item, state),
             None => format!("{}:", stack_offset)
         };
-        stdout().execute(Print(stack_item_str))?;
+        stdout().queue(Print(stack_item_str))?;
     }
 
     // draw prompt
-    stdout().execute(cursor::MoveTo(0, top + state.stack_height + 1))?;
-    stdout().execute(Clear(ClearType::CurrentLine))?;
-    stdout().execute(Print(&state.input))?;
-    stdout().execute(cursor::MoveTo(state.cursor_location, top + state.stack_height + 1))?;
+    stdout().queue(cursor::MoveTo(0, top + state.stack_height + 1))?;
+    stdout().queue(Clear(ClearType::CurrentLine))?;
+    stdout().queue(Print(&state.input))?;
+    stdout().queue(cursor::MoveTo(state.cursor_location, top + state.stack_height + 1))?;
+    stdout().flush()?;
 
     return Ok(());
 }
@@ -124,9 +126,14 @@ fn redraw(rpn_calc: &RpnCalc, state: &InteractiveState) -> Result<(), RpnCalcErr
 fn format_stack_item(display_stack_index: usize, stack_item: &StackItem, state: &InteractiveState) -> String {
     let prefix = format!("{}:", display_stack_index);
     let stack_item_str = format!("{}", stack_item);
-    let width = state.stack_width as usize - prefix.len();
+    let suffix = if let StackItem::Number(n) = stack_item {
+        format!("{}", n.units())
+    } else {
+        "".to_string()
+    };
+    let width = state.stack_width as usize - prefix.len() - suffix.len();
     let s = format!("{: >width$}", stack_item_str, width = width);
-    return format!("{}{}", prefix, s);
+    return format!("{}{}{}", prefix, s, suffix);
 }
 
 fn handle_key_event(rpn_calc: &mut RpnCalc, state: &mut InteractiveState, key: KeyEvent) -> Result<(), RpnCalcError> {

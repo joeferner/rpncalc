@@ -13,6 +13,8 @@ mod function;
 mod functions;
 mod number;
 mod error;
+mod units;
+mod angle_type;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]

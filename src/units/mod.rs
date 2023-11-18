@@ -69,10 +69,16 @@ impl Units {
             Ok(Units::Temperature(TemperatureUnits::Fahrenheit))
         } else if str == "Ra" || str == "°Ra" {
             Ok(Units::Temperature(TemperatureUnits::Rankine))
+        } else if str == "NM" {
+            Ok(Units::Length(LengthUnits::NauticalMile))
+        } else if str == "mile" {
+            Ok(Units::Length(LengthUnits::Mile))
+        } else if str == "yard" {
+            Ok(Units::Length(LengthUnits::Yard))
         } else if str == "ft" {
-            Ok(Units::Length(LengthUnits::Feet))
+            Ok(Units::Length(LengthUnits::Foot))
         } else if str == "in" {
-            Ok(Units::Length(LengthUnits::Inches))
+            Ok(Units::Length(LengthUnits::Inch))
         } else if let Some(prefix) = str.strip_suffix("m") {
             Ok(Units::Length(LengthUnits::Meter(SIPrefix::parse(prefix)?)))
         } else if let Some(prefix) = str.strip_suffix("g") {
@@ -150,7 +156,7 @@ mod tests {
 
     pub fn feet_per_min_sq() -> Units {
         return Units::Compound(
-            Box::new(Units::Length(LengthUnits::Feet)),
+            Box::new(Units::Length(LengthUnits::Foot)),
             UnitsOperator::Divide,
             Box::new(
                 Units::Compound(
@@ -214,8 +220,8 @@ mod tests {
         assert_relative_eq!(2e-27, Units::Length(LengthUnits::Meter(SIPrefix::Ronto)).convert_to_base_units(2.0));
         assert_relative_eq!(2e-30, Units::Length(LengthUnits::Meter(SIPrefix::Quecto)).convert_to_base_units(2.0));
 
-        assert_relative_eq!(0.6096, Units::Length(LengthUnits::Feet).convert_to_base_units(2.0));
-        assert_relative_eq!(0.0508, Units::Length(LengthUnits::Inches).convert_to_base_units(2.0));
+        assert_relative_eq!(0.6096, Units::Length(LengthUnits::Foot).convert_to_base_units(2.0));
+        assert_relative_eq!(0.0508, Units::Length(LengthUnits::Inch).convert_to_base_units(2.0));
 
         assert_relative_eq!(9.8, feet_per_min_sq().convert_to_base_units(115748.03149606299));
     }
@@ -224,15 +230,15 @@ mod tests {
     fn test_from_base_units_length() {
         assert_relative_eq!(2e-9, Units::Length(LengthUnits::Meter(SIPrefix::Giga)).convert_from_base_units(2.0));
         assert_relative_eq!(2000000.0, Units::Length(LengthUnits::Meter(SIPrefix::Micro)).convert_from_base_units(2.0));
-        assert_relative_eq!(6.561679790026246, Units::Length(LengthUnits::Feet).convert_from_base_units(2.0));
-        assert_relative_eq!(78.74015748031496, Units::Length(LengthUnits::Inches).convert_from_base_units(2.0));
+        assert_relative_eq!(6.561679790026246, Units::Length(LengthUnits::Foot).convert_from_base_units(2.0));
+        assert_relative_eq!(78.74015748031496, Units::Length(LengthUnits::Inch).convert_from_base_units(2.0));
         assert_relative_eq!(115748.03149606299, feet_per_min_sq().convert_from_base_units(9.8));
     }
 
     #[test]
     fn test_display() {
         assert_eq!("", format!("{}", Units::None));
-        assert_eq!("in", format!("{}", Units::Length(LengthUnits::Inches)));
+        assert_eq!("in", format!("{}", Units::Length(LengthUnits::Inch)));
         assert_eq!("km", format!("{}", Units::Length(LengthUnits::Meter(SIPrefix::Kilo))));
     }
 

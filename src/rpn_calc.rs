@@ -391,7 +391,7 @@ mod tests {
         match stack_item {
             StackItem::Number(n) => {
                 assert_relative_eq!(2.0, n.magnitude);
-                assert!(matches!(n.units,Units::Length(LengthUnits::Feet)));
+                assert!(matches!(n.units,Units::Length(LengthUnits::Foot)));
             }
             _ => assert!(false)
         }
@@ -405,7 +405,7 @@ mod tests {
         match stack_item {
             StackItem::Number(n) => {
                 assert_relative_eq!(2.0, n.magnitude);
-                assert!(matches!(n.units,Units::Length(LengthUnits::Feet)));
+                assert!(matches!(n.units,Units::Length(LengthUnits::Foot)));
             }
             _ => assert!(false)
         }

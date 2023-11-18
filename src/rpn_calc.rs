@@ -380,4 +380,32 @@ mod tests {
             _ => assert!(false)
         }
     }
+
+    #[test]
+    fn test_add_units_ft_none() {
+        let mut rpn_calc = run(vec!["1ft", "1", "+"]);
+        assert_eq!(1, rpn_calc.stack.items().len());
+        let stack_item = rpn_calc.pop().unwrap();
+        match stack_item {
+            StackItem::Number(n) => {
+                assert_relative_eq!(2.0, n.magnitude());
+                assert!(matches!(n.units(),Units::Length(LengthUnits::Feet)));
+            }
+            _ => assert!(false)
+        }
+    }
+
+    #[test]
+    fn test_add_units_none_ft() {
+        let mut rpn_calc = run(vec!["1", "1ft", "+"]);
+        assert_eq!(1, rpn_calc.stack.items().len());
+        let stack_item = rpn_calc.pop().unwrap();
+        match stack_item {
+            StackItem::Number(n) => {
+                assert_relative_eq!(2.0, n.magnitude());
+                assert!(matches!(n.units(),Units::Length(LengthUnits::Feet)));
+            }
+            _ => assert!(false)
+        }
+    }
 }

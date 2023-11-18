@@ -250,6 +250,28 @@ impl Units {
     pub fn parse(str: &str) -> Result<Units, RpnCalcError> {
         return if str.len() == 0 {
             Ok(Units::None)
+        } else if let Some(parts) = str.split_once("/") {
+            Ok(Units::Compound(
+                Box::new(Units::parse(parts.0)?),
+                UnitsOperator::Divide,
+                Box::new(Units::parse(parts.1)?),
+            ))
+        } else if let Some(parts) = str.split_once("*") {
+            Ok(Units::Compound(
+                Box::new(Units::parse(parts.0)?),
+                UnitsOperator::Multiply,
+                Box::new(Units::parse(parts.1)?),
+            ))
+        } else if let Some(parts) = str.split_once("^") {
+            if parts.1 == "2" {
+                Ok(Units::Compound(
+                    Box::new(Units::parse(parts.0)?),
+                    UnitsOperator::Multiply,
+                    Box::new(Units::parse(parts.0)?),
+                ))
+            } else {
+                Err(RpnCalcError::ParseStackItem(format!("parse units {}", str)))
+            }
         } else if str == "deg" {
             Ok(Units::Angle(AngleType::Degrees))
         } else if str == "rad" {
@@ -270,18 +292,6 @@ impl Units {
             Ok(Units::Time(TimeUnits::Second(SIPrefix::parse(prefix)?)))
         } else if let Some(prefix) = str.strip_suffix("K") {
             Ok(Units::Temperature(TemperatureUnits::Kelvin(SIPrefix::parse(prefix)?)))
-        } else if let Some(parts) = str.split_once("/") {
-            Ok(Units::Compound(
-                Box::new(Units::parse(parts.0)?),
-                UnitsOperator::Divide,
-                Box::new(Units::parse(parts.1)?),
-            ))
-        } else if let Some(parts) = str.split_once("*") {
-            Ok(Units::Compound(
-                Box::new(Units::parse(parts.0)?),
-                UnitsOperator::Multiply,
-                Box::new(Units::parse(parts.1)?),
-            ))
         } else {
             Err(RpnCalcError::ParseStackItem(format!("parse units {}", str)))
         };
@@ -388,5 +398,26 @@ mod tests {
         assert_eq!("", format!("{}", Units::None));
         assert_eq!("in", format!("{}", Units::Length(LengthUnits::Inches)));
         assert_eq!("km", format!("{}", Units::Length(LengthUnits::Meter(SIPrefix::Kilo))));
+    }
+
+    #[test]
+    fn test_operator_precedence() {
+        let u = Units::parse("m*g/s^2").unwrap();
+        assert!(matches!(u, Units::Compound(_, UnitsOperator::Divide, _)));
+        if let Units::Compound(a, _, b) = u {
+            assert!(matches!(*a, Units::Compound(_, UnitsOperator::Multiply, _)));
+            if let Units::Compound(a, _, b) = *a {
+                assert!(matches!(*a, Units::Length(LengthUnits::Meter(SIPrefix::None))));
+                assert!(matches!(*b, Units::Mass(MassUnits::Gram(SIPrefix::None))));
+            } else {
+                assert!(false);
+            }
+            if let Units::Compound(a, _, b) = *b {
+                assert!(matches!(*a, Units::Time(TimeUnits::Second(SIPrefix::None))));
+                assert!(matches!(*b, Units::Time(TimeUnits::Second(SIPrefix::None))));
+            } else {
+                assert!(false);
+            }
+        }
     }
 }

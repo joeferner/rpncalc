@@ -57,14 +57,20 @@ impl Number {
 
     pub fn add(&self, other: &Number) -> Result<Number, RpnCalcError> {
         let magnitude: f64;
-        if self.units == other.units {
+        if self.units == other.units || matches!(self.units, Units::None) || matches!(other.units, Units::None) {
             magnitude = self.magnitude + other.magnitude;
+            let units = if matches!(self.units, Units::None) {
+                other.units.clone()
+            } else {
+                self.units.clone()
+            };
+            return Ok(Number { magnitude, units });
         } else {
             let a = self.units().convert_to_base_units(self.magnitude);
             let b = other.units().convert_to_base_units(other.magnitude);
             magnitude = other.units().convert_from_base_units(a + b);
+            return Ok(Number { magnitude, units: other.units.clone() });
         }
-        return Ok(Number { magnitude, units: other.units.clone() });
     }
 
     pub fn subtract(&self, other: &Number) -> Result<Number, RpnCalcError> {

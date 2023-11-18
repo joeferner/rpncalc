@@ -1,16 +1,20 @@
 use std::f64::consts::PI;
 use std::fmt::{Display, Formatter};
-use crate::angle_type::AngleType;
-use crate::error::RpnCalcError;
-use crate::units::Units;
+
 use regex::Regex;
+
+use crate::error::RpnCalcError;
+use crate::units::{Units, UnitTrait};
+use crate::units::angle::{AngleUnits, degrees_to_radians};
 
 pub type MagnitudeType = f64;
 
+pub const MAGNITUDE_TYPE_PI: f64 = PI;
+
 #[derive(Clone, Debug)]
 pub struct Number {
-    magnitude: MagnitudeType,
-    units: Units,
+    pub magnitude: MagnitudeType,
+    pub units: Units,
 }
 
 impl Number {
@@ -39,15 +43,7 @@ impl Number {
         }
     }
 
-    pub fn units(&self) -> Units {
-        return self.units.clone();
-    }
-
-    pub fn magnitude(&self) -> MagnitudeType {
-        return self.magnitude;
-    }
-
-    pub fn to_radians(&self, angle_mode: AngleType) -> Result<Number, RpnCalcError> {
+    pub fn to_radians(&self, angle_mode: AngleUnits) -> Result<Number, RpnCalcError> {
         return match self.units {
             Units::None => Ok(to_radians(self.magnitude, angle_mode)),
             Units::Angle(angle_type) => Ok(to_radians(self.magnitude, angle_type)),
@@ -66,9 +62,9 @@ impl Number {
             };
             return Ok(Number { magnitude, units });
         } else {
-            let a = self.units().convert_to_base_units(self.magnitude);
-            let b = other.units().convert_to_base_units(other.magnitude);
-            magnitude = other.units().convert_from_base_units(a + b);
+            let a = self.units.convert_to_base_units(self.magnitude);
+            let b = other.units.convert_to_base_units(other.magnitude);
+            magnitude = other.units.convert_from_base_units(a + b);
             return Ok(Number { magnitude, units: other.units.clone() });
         }
     }
@@ -89,15 +85,15 @@ impl Number {
         return Ok(Number { magnitude: self.magnitude.powf(other.magnitude), units: Units::None });
     }
 
-    pub fn sin(&self, angle_mode: AngleType) -> Result<Number, RpnCalcError> {
+    pub fn sin(&self, angle_mode: AngleUnits) -> Result<Number, RpnCalcError> {
         return Ok(Number { magnitude: self.to_radians(angle_mode)?.magnitude.sin(), units: Units::None });
     }
 
-    pub fn cos(&self, angle_mode: AngleType) -> Result<Number, RpnCalcError> {
+    pub fn cos(&self, angle_mode: AngleUnits) -> Result<Number, RpnCalcError> {
         return Ok(Number { magnitude: self.to_radians(angle_mode)?.magnitude.cos(), units: Units::None });
     }
 
-    pub fn tan(&self, angle_mode: AngleType) -> Result<Number, RpnCalcError> {
+    pub fn tan(&self, angle_mode: AngleUnits) -> Result<Number, RpnCalcError> {
         return Ok(Number { magnitude: self.to_radians(angle_mode)?.magnitude.tan(), units: Units::None });
     }
 }
@@ -121,9 +117,9 @@ impl Display for Number {
     }
 }
 
-pub fn to_radians(magnitude: MagnitudeType, angle_type: AngleType) -> Number {
+pub fn to_radians(magnitude: MagnitudeType, angle_type: AngleUnits) -> Number {
     return match angle_type {
-        AngleType::Radians => Number { magnitude, units: Units::Angle(AngleType::Radians) },
-        AngleType::Degrees => Number { magnitude: magnitude * PI / 180.0, units: Units::Angle(AngleType::Radians) }
+        AngleUnits::Radians => Number { magnitude, units: Units::Angle(AngleUnits::Radians) },
+        AngleUnits::Degrees => Number { magnitude: degrees_to_radians(magnitude), units: Units::Angle(AngleUnits::Radians) }
     };
 }

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::rc::Rc;
-use crate::angle_type::AngleType;
+use crate::units::angle::AngleUnits;
 use crate::error::RpnCalcError;
 use crate::stack::Stack;
 use crate::stack_item::{StackItem};
@@ -19,7 +19,7 @@ use crate::number::Number;
 
 pub struct RpnCalc {
     stack: Stack,
-    angle_mode: AngleType,
+    angle_mode: AngleUnits,
     functions: HashMap<String, Rc<dyn Function>>,
 }
 
@@ -75,7 +75,7 @@ impl RpnCalc {
 
         return RpnCalc {
             stack: Stack::new(),
-            angle_mode: AngleType::Degrees,
+            angle_mode: AngleUnits::Degrees,
             functions,
         };
     }
@@ -154,9 +154,9 @@ impl RpnCalc {
         return &self.stack;
     }
 
-    pub fn angle_mode(&self) -> AngleType { return self.angle_mode; }
+    pub fn angle_mode(&self) -> AngleUnits { return self.angle_mode; }
 
-    pub fn set_angle_mode(&mut self, angle_mode: AngleType) -> () {
+    pub fn set_angle_mode(&mut self, angle_mode: AngleUnits) -> () {
         self.angle_mode = angle_mode;
     }
 
@@ -244,7 +244,9 @@ impl RpnCalc {
 mod tests {
     use super::*;
     use approx::assert_relative_eq;
-    use crate::units::{Units, LengthUnits, SIPrefix};
+    use crate::units::Units;
+    use crate::units::length::LengthUnits;
+    use crate::units::si_prefix::SIPrefix;
 
     fn run(args: Vec<&str>) -> RpnCalc {
         let mut rpn_calc = RpnCalc::new();
@@ -265,22 +267,22 @@ mod tests {
 
     fn run_binary_operator(arg1: &str, arg2: &str, op: &str, expected: Number) {
         let mut rpn_calc = run(vec![arg1, arg2, op]);
-        assert_relative_eq!(expected.magnitude(), rpn_calc.pop_number().unwrap().unwrap().magnitude());
+        assert_relative_eq!(expected.magnitude, rpn_calc.pop_number().unwrap().unwrap().magnitude);
     }
 
     fn run_unary_operator(arg: &str, op: &str, expected: Number) {
         let mut rpn_calc = run(vec![arg, op]);
-        assert_relative_eq!(expected.magnitude(), rpn_calc.pop_number().unwrap().unwrap().magnitude());
+        assert_relative_eq!(expected.magnitude, rpn_calc.pop_number().unwrap().unwrap().magnitude);
     }
 
     fn run_unary_operator_deg(arg: &str, op: &str, expected: Number) {
         let mut rpn_calc = run(vec!["deg", arg, op]);
-        assert_relative_eq!(expected.magnitude(), rpn_calc.pop_number().unwrap().unwrap().magnitude());
+        assert_relative_eq!(expected.magnitude, rpn_calc.pop_number().unwrap().unwrap().magnitude);
     }
 
     fn run_unary_operator_rad(arg: &str, op: &str, expected: Number) {
         let mut rpn_calc = run(vec!["rad", arg, op]);
-        assert_relative_eq!(expected.magnitude(), rpn_calc.pop_number().unwrap().unwrap().magnitude());
+        assert_relative_eq!(expected.magnitude, rpn_calc.pop_number().unwrap().unwrap().magnitude);
     }
 
     #[test]
@@ -374,8 +376,8 @@ mod tests {
         let stack_item = rpn_calc.pop().unwrap();
         match stack_item {
             StackItem::Number(n) => {
-                assert_relative_eq!(0.3048, n.magnitude());
-                assert!(matches!(n.units(),Units::Length(LengthUnits::Meter(SIPrefix::None))));
+                assert_relative_eq!(0.3048, n.magnitude);
+                assert!(matches!(n.units, Units::Length(LengthUnits::Meter(SIPrefix::None))));
             }
             _ => assert!(false)
         }
@@ -388,8 +390,8 @@ mod tests {
         let stack_item = rpn_calc.pop().unwrap();
         match stack_item {
             StackItem::Number(n) => {
-                assert_relative_eq!(2.0, n.magnitude());
-                assert!(matches!(n.units(),Units::Length(LengthUnits::Feet)));
+                assert_relative_eq!(2.0, n.magnitude);
+                assert!(matches!(n.units,Units::Length(LengthUnits::Feet)));
             }
             _ => assert!(false)
         }
@@ -402,8 +404,8 @@ mod tests {
         let stack_item = rpn_calc.pop().unwrap();
         match stack_item {
             StackItem::Number(n) => {
-                assert_relative_eq!(2.0, n.magnitude());
-                assert!(matches!(n.units(),Units::Length(LengthUnits::Feet)));
+                assert_relative_eq!(2.0, n.magnitude);
+                assert!(matches!(n.units,Units::Length(LengthUnits::Feet)));
             }
             _ => assert!(false)
         }

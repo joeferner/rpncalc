@@ -1,4 +1,4 @@
-use crate::rpn_calc::{RpnCalc};
+use crate::rpn_calc::RpnCalc;
 use clap::Parser;
 use exitcode;
 use std::process;
@@ -14,7 +14,6 @@ mod functions;
 mod number;
 mod error;
 mod units;
-mod angle_type;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]

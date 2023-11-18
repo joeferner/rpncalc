@@ -5,7 +5,7 @@ use crossterm::{event::{read, Event, KeyCode}, cursor, terminal::{disable_raw_mo
 use crossterm::event::{KeyEvent, KeyEventKind, KeyModifiers};
 use crossterm::style::Print;
 use crossterm::terminal::{Clear, ClearType};
-use crate::angle_type::AngleType;
+use crate::units::angle::AngleUnits;
 use crate::error::RpnCalcError;
 use crate::stack_item::StackItem;
 
@@ -88,8 +88,8 @@ fn redraw(rpn_calc: &RpnCalc, state: &InteractiveState) -> Result<(), RpnCalcErr
     } else {
         // draw mode
         let angle_mode = match rpn_calc.angle_mode() {
-            AngleType::Degrees => "DEG",
-            AngleType::Radians => "RAD",
+            AngleUnits::Degrees => "DEG",
+            AngleUnits::Radians => "RAD",
         };
 
         let status_line = format!("{}", angle_mode);
@@ -127,7 +127,7 @@ fn format_stack_item(display_stack_index: usize, stack_item: &StackItem, state: 
     let prefix = format!("{}:", display_stack_index);
     let stack_item_str = format!("{}", stack_item);
     let suffix = if let StackItem::Number(n) = stack_item {
-        format!("{}", n.units())
+        format!("{}", n.units)
     } else {
         "".to_string()
     };

@@ -1,14 +1,11 @@
 pub mod angle;
-pub mod time;
-pub mod si_prefix;
-pub mod temperature;
 pub mod length;
 pub mod mass;
 pub mod operator;
+pub mod si_prefix;
+pub mod temperature;
+pub mod time;
 
-use std::fmt::{Display, Formatter};
-use angle::AngleUnits;
-use time::TimeUnits;
 use crate::error::RpnCalcError;
 use crate::number::MagnitudeType;
 use crate::units::length::LengthUnits;
@@ -16,6 +13,9 @@ use crate::units::mass::MassUnits;
 use crate::units::operator::UnitsOperator;
 use crate::units::si_prefix::SIPrefix;
 use crate::units::temperature::TemperatureUnits;
+use angle::AngleUnits;
+use std::fmt::{Display, Formatter};
+use time::TimeUnits;
 
 pub trait UnitTrait {
     fn convert_to_base_units(&self, n: MagnitudeType) -> MagnitudeType;
@@ -77,50 +77,38 @@ impl Units {
     pub fn can_add_subtract(&self, other: &Units) -> bool {
         return match self {
             Units::None => true,
-            Units::Length(_) => {
-                match other {
-                    Units::None => true,
-                    Units::Length(_) => true,
-                    _ => false
+            Units::Length(_) => match other {
+                Units::None => true,
+                Units::Length(_) => true,
+                _ => false,
+            },
+            Units::Mass(_) => match other {
+                Units::None => true,
+                Units::Mass(_) => true,
+                _ => false,
+            },
+            Units::Time(_) => match other {
+                Units::None => true,
+                Units::Time(_) => true,
+                _ => false,
+            },
+            Units::Temperature(_) => match other {
+                Units::None => true,
+                Units::Temperature(_) => true,
+                _ => false,
+            },
+            Units::Angle(_) => match other {
+                Units::None => true,
+                Units::Angle(_) => true,
+                _ => false,
+            },
+            Units::Compound(a, op, b) => match other {
+                Units::None => true,
+                Units::Compound(other_a, other_op, other_b) => {
+                    op == other_op && a.can_add_subtract(other_a) && b.can_add_subtract(other_b)
                 }
-            }
-            Units::Mass(_) => {
-                match other {
-                    Units::None => true,
-                    Units::Mass(_) => true,
-                    _ => false
-                }
-            }
-            Units::Time(_) => {
-                match other {
-                    Units::None => true,
-                    Units::Time(_) => true,
-                    _ => false
-                }
-            }
-            Units::Temperature(_) => {
-                match other {
-                    Units::None => true,
-                    Units::Temperature(_) => true,
-                    _ => false
-                }
-            }
-            Units::Angle(_) => {
-                match other {
-                    Units::None => true,
-                    Units::Angle(_) => true,
-                    _ => false
-                }
-            }
-            Units::Compound(a, op, b) => {
-                match other {
-                    Units::None => true,
-                    Units::Compound(other_a, other_op, other_b) => {
-                        op == other_op && a.can_add_subtract(other_a) && b.can_add_subtract(other_b)
-                    }
-                    _ => false
-                }
-            }
+                _ => false,
+            },
         };
     }
 }
@@ -139,7 +127,7 @@ impl UnitTrait for Units {
                 let converted_b = b.convert_to_base_units(1.0);
                 match op {
                     UnitsOperator::Divide => converted_a / converted_b,
-                    UnitsOperator::Multiply => converted_a * converted_b
+                    UnitsOperator::Multiply => converted_a * converted_b,
                 }
             }
         };
@@ -158,7 +146,7 @@ impl UnitTrait for Units {
                 let converted_b = b.convert_from_base_units(1.0);
                 match op {
                     UnitsOperator::Divide => converted_a / converted_b,
-                    UnitsOperator::Multiply => converted_a * converted_b
+                    UnitsOperator::Multiply => converted_a * converted_b,
                 }
             }
         };
@@ -183,20 +171,18 @@ impl Display for Units {
 
 #[cfg(test)]
 mod tests {
-    use approx::assert_relative_eq;
     use super::*;
+    use approx::assert_relative_eq;
 
     pub fn feet_per_min_sq() -> Units {
         return Units::Compound(
             Box::new(Units::Length(LengthUnits::Foot)),
             UnitsOperator::Divide,
-            Box::new(
-                Units::Compound(
-                    Box::new(Units::Time(TimeUnits::Minute)),
-                    UnitsOperator::Multiply,
-                    Box::new(Units::Time(TimeUnits::Minute)),
-                )
-            ),
+            Box::new(Units::Compound(
+                Box::new(Units::Time(TimeUnits::Minute)),
+                UnitsOperator::Multiply,
+                Box::new(Units::Time(TimeUnits::Minute)),
+            )),
         );
     }
 
@@ -226,31 +212,106 @@ mod tests {
 
     #[test]
     fn test_to_base_units_length() {
-        assert_relative_eq!(2e30, Units::Length(LengthUnits::Meter(SIPrefix::Quetta)).convert_to_base_units(2.0));
-        assert_relative_eq!(2e27, Units::Length(LengthUnits::Meter(SIPrefix::Ronna)).convert_to_base_units(2.0));
-        assert_relative_eq!(2e24, Units::Length(LengthUnits::Meter(SIPrefix::Yotta)).convert_to_base_units(2.0));
-        assert_relative_eq!(2e21, Units::Length(LengthUnits::Meter(SIPrefix::Zetta)).convert_to_base_units(2.0));
-        assert_relative_eq!(2e18, Units::Length(LengthUnits::Meter(SIPrefix::Exa)).convert_to_base_units(2.0));
-        assert_relative_eq!(2e15, Units::Length(LengthUnits::Meter(SIPrefix::Peta)).convert_to_base_units(2.0));
-        assert_relative_eq!(2e12, Units::Length(LengthUnits::Meter(SIPrefix::Tera)).convert_to_base_units(2.0));
-        assert_relative_eq!(2e9, Units::Length(LengthUnits::Meter(SIPrefix::Giga)).convert_to_base_units(2.0));
-        assert_relative_eq!(2e6, Units::Length(LengthUnits::Meter(SIPrefix::Mega)).convert_to_base_units(2.0));
-        assert_relative_eq!(2000.0, Units::Length(LengthUnits::Meter(SIPrefix::Kilo)).convert_to_base_units(2.0));
-        assert_relative_eq!(200.0, Units::Length(LengthUnits::Meter(SIPrefix::Hecto)).convert_to_base_units(2.0));
-        assert_relative_eq!(20.0, Units::Length(LengthUnits::Meter(SIPrefix::Deka)).convert_to_base_units(2.0));
-        assert_relative_eq!(2.0, Units::Length(LengthUnits::Meter(SIPrefix::None)).convert_to_base_units(2.0));
-        assert_relative_eq!(0.2, Units::Length(LengthUnits::Meter(SIPrefix::Deci)).convert_to_base_units(2.0));
-        assert_relative_eq!(0.02, Units::Length(LengthUnits::Meter(SIPrefix::Centi)).convert_to_base_units(2.0));
-        assert_relative_eq!(0.002, Units::Length(LengthUnits::Meter(SIPrefix::Milli)).convert_to_base_units(2.0));
-        assert_relative_eq!(2e-6, Units::Length(LengthUnits::Meter(SIPrefix::Micro)).convert_to_base_units(2.0));
-        assert_relative_eq!(2e-9, Units::Length(LengthUnits::Meter(SIPrefix::Nano)).convert_to_base_units(2.0));
-        assert_relative_eq!(2e-12, Units::Length(LengthUnits::Meter(SIPrefix::Pico)).convert_to_base_units(2.0));
-        assert_relative_eq!(2e-15, Units::Length(LengthUnits::Meter(SIPrefix::Femto)).convert_to_base_units(2.0));
-        assert_relative_eq!(2e-18, Units::Length(LengthUnits::Meter(SIPrefix::Atto)).convert_to_base_units(2.0));
-        assert_relative_eq!(2e-21, Units::Length(LengthUnits::Meter(SIPrefix::Zepto)).convert_to_base_units(2.0));
-        assert_relative_eq!(2e-24, Units::Length(LengthUnits::Meter(SIPrefix::Yocto)).convert_to_base_units(2.0));
-        assert_relative_eq!(2e-27, Units::Length(LengthUnits::Meter(SIPrefix::Ronto)).convert_to_base_units(2.0));
-        assert_relative_eq!(2e-30, Units::Length(LengthUnits::Meter(SIPrefix::Quecto)).convert_to_base_units(2.0));
+        assert_relative_eq!(
+            2e30,
+            Units::Length(LengthUnits::Meter(SIPrefix::Quetta)).convert_to_base_units(2.0)
+        );
+        assert_relative_eq!(
+            2e27,
+            Units::Length(LengthUnits::Meter(SIPrefix::Ronna)).convert_to_base_units(2.0)
+        );
+        assert_relative_eq!(
+            2e24,
+            Units::Length(LengthUnits::Meter(SIPrefix::Yotta)).convert_to_base_units(2.0)
+        );
+        assert_relative_eq!(
+            2e21,
+            Units::Length(LengthUnits::Meter(SIPrefix::Zetta)).convert_to_base_units(2.0)
+        );
+        assert_relative_eq!(
+            2e18,
+            Units::Length(LengthUnits::Meter(SIPrefix::Exa)).convert_to_base_units(2.0)
+        );
+        assert_relative_eq!(
+            2e15,
+            Units::Length(LengthUnits::Meter(SIPrefix::Peta)).convert_to_base_units(2.0)
+        );
+        assert_relative_eq!(
+            2e12,
+            Units::Length(LengthUnits::Meter(SIPrefix::Tera)).convert_to_base_units(2.0)
+        );
+        assert_relative_eq!(
+            2e9,
+            Units::Length(LengthUnits::Meter(SIPrefix::Giga)).convert_to_base_units(2.0)
+        );
+        assert_relative_eq!(
+            2e6,
+            Units::Length(LengthUnits::Meter(SIPrefix::Mega)).convert_to_base_units(2.0)
+        );
+        assert_relative_eq!(
+            2000.0,
+            Units::Length(LengthUnits::Meter(SIPrefix::Kilo)).convert_to_base_units(2.0)
+        );
+        assert_relative_eq!(
+            200.0,
+            Units::Length(LengthUnits::Meter(SIPrefix::Hecto)).convert_to_base_units(2.0)
+        );
+        assert_relative_eq!(
+            20.0,
+            Units::Length(LengthUnits::Meter(SIPrefix::Deka)).convert_to_base_units(2.0)
+        );
+        assert_relative_eq!(
+            2.0,
+            Units::Length(LengthUnits::Meter(SIPrefix::None)).convert_to_base_units(2.0)
+        );
+        assert_relative_eq!(
+            0.2,
+            Units::Length(LengthUnits::Meter(SIPrefix::Deci)).convert_to_base_units(2.0)
+        );
+        assert_relative_eq!(
+            0.02,
+            Units::Length(LengthUnits::Meter(SIPrefix::Centi)).convert_to_base_units(2.0)
+        );
+        assert_relative_eq!(
+            0.002,
+            Units::Length(LengthUnits::Meter(SIPrefix::Milli)).convert_to_base_units(2.0)
+        );
+        assert_relative_eq!(
+            2e-6,
+            Units::Length(LengthUnits::Meter(SIPrefix::Micro)).convert_to_base_units(2.0)
+        );
+        assert_relative_eq!(
+            2e-9,
+            Units::Length(LengthUnits::Meter(SIPrefix::Nano)).convert_to_base_units(2.0)
+        );
+        assert_relative_eq!(
+            2e-12,
+            Units::Length(LengthUnits::Meter(SIPrefix::Pico)).convert_to_base_units(2.0)
+        );
+        assert_relative_eq!(
+            2e-15,
+            Units::Length(LengthUnits::Meter(SIPrefix::Femto)).convert_to_base_units(2.0)
+        );
+        assert_relative_eq!(
+            2e-18,
+            Units::Length(LengthUnits::Meter(SIPrefix::Atto)).convert_to_base_units(2.0)
+        );
+        assert_relative_eq!(
+            2e-21,
+            Units::Length(LengthUnits::Meter(SIPrefix::Zepto)).convert_to_base_units(2.0)
+        );
+        assert_relative_eq!(
+            2e-24,
+            Units::Length(LengthUnits::Meter(SIPrefix::Yocto)).convert_to_base_units(2.0)
+        );
+        assert_relative_eq!(
+            2e-27,
+            Units::Length(LengthUnits::Meter(SIPrefix::Ronto)).convert_to_base_units(2.0)
+        );
+        assert_relative_eq!(
+            2e-30,
+            Units::Length(LengthUnits::Meter(SIPrefix::Quecto)).convert_to_base_units(2.0)
+        );
 
         assert_relative_eq!(0.6096, Units::Length(LengthUnits::Foot).convert_to_base_units(2.0));
         assert_relative_eq!(0.0508, Units::Length(LengthUnits::Inch).convert_to_base_units(2.0));
@@ -260,10 +321,22 @@ mod tests {
 
     #[test]
     fn test_from_base_units_length() {
-        assert_relative_eq!(2e-9, Units::Length(LengthUnits::Meter(SIPrefix::Giga)).convert_from_base_units(2.0));
-        assert_relative_eq!(2000000.0, Units::Length(LengthUnits::Meter(SIPrefix::Micro)).convert_from_base_units(2.0));
-        assert_relative_eq!(6.561679790026246, Units::Length(LengthUnits::Foot).convert_from_base_units(2.0));
-        assert_relative_eq!(78.74015748031496, Units::Length(LengthUnits::Inch).convert_from_base_units(2.0));
+        assert_relative_eq!(
+            2e-9,
+            Units::Length(LengthUnits::Meter(SIPrefix::Giga)).convert_from_base_units(2.0)
+        );
+        assert_relative_eq!(
+            2000000.0,
+            Units::Length(LengthUnits::Meter(SIPrefix::Micro)).convert_from_base_units(2.0)
+        );
+        assert_relative_eq!(
+            6.561679790026246,
+            Units::Length(LengthUnits::Foot).convert_from_base_units(2.0)
+        );
+        assert_relative_eq!(
+            78.74015748031496,
+            Units::Length(LengthUnits::Inch).convert_from_base_units(2.0)
+        );
         assert_relative_eq!(115748.03149606299, feet_per_min_sq().convert_from_base_units(9.8));
     }
 

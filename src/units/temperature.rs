@@ -1,9 +1,9 @@
-use std::fmt::{Display, Formatter};
-use std::str::FromStr;
 use crate::error::RpnCalcError;
 use crate::number::MagnitudeType;
 use crate::units::si_prefix::SIPrefix;
 use crate::units::UnitTrait;
+use std::fmt::{Display, Formatter};
+use std::str::FromStr;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum TemperatureUnits {
@@ -46,7 +46,7 @@ impl UnitTrait for TemperatureUnits {
             TemperatureUnits::Kelvin(si) => n / si.multiplier(),
             TemperatureUnits::Celsius => n - 273.15,
             TemperatureUnits::Fahrenheit => (1.8 * n) - 459.67,
-            TemperatureUnits::Rankine => 1.8 * n
+            TemperatureUnits::Rankine => 1.8 * n,
         };
     }
 }

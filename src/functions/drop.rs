@@ -1,7 +1,7 @@
-use std::fmt::{Display, Formatter};
 use crate::error::RpnCalcError;
 use crate::function::Function;
-use crate::rpn_calc::{RpnCalc};
+use crate::rpn_calc::RpnCalc;
+use std::fmt::{Display, Formatter};
 
 pub struct Drop {}
 

@@ -1,9 +1,9 @@
-use std::fmt::{Display, Formatter};
-use std::str::FromStr;
 use crate::error::RpnCalcError;
 use crate::number::MagnitudeType;
 use crate::units::si_prefix::SIPrefix;
 use crate::units::UnitTrait;
+use std::fmt::{Display, Formatter};
+use std::str::FromStr;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum LengthUnits {
@@ -56,7 +56,7 @@ impl UnitTrait for LengthUnits {
             LengthUnits::Foot => n / 0.3048,
             LengthUnits::Yard => n / 0.9144,
             LengthUnits::Mile => n / 1609.36,
-            LengthUnits::NauticalMile => n / 1852.0
+            LengthUnits::NauticalMile => n / 1852.0,
         };
     }
 }
@@ -76,8 +76,8 @@ impl Display for LengthUnits {
 
 #[cfg(test)]
 mod tests {
-    use approx::assert_relative_eq;
     use super::*;
+    use approx::assert_relative_eq;
 
     #[test]
     fn test_convert_to_base_units() {
@@ -96,6 +96,9 @@ mod tests {
         assert_relative_eq!(13.123359580052492, LengthUnits::Foot.convert_from_base_units(4.0));
         assert_relative_eq!(4.374453193350831, LengthUnits::Yard.convert_from_base_units(4.0));
         assert_relative_eq!(0.4970920117313715, LengthUnits::Mile.convert_from_base_units(800.0));
-        assert_relative_eq!(0.4319654427645788, LengthUnits::NauticalMile.convert_from_base_units(800.0));
+        assert_relative_eq!(
+            0.4319654427645788,
+            LengthUnits::NauticalMile.convert_from_base_units(800.0)
+        );
     }
 }

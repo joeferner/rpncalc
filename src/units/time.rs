@@ -1,9 +1,9 @@
-use std::fmt::{Display, Formatter};
-use std::str::FromStr;
 use crate::error::RpnCalcError;
 use crate::number::MagnitudeType;
 use crate::units::si_prefix::SIPrefix;
 use crate::units::UnitTrait;
+use std::fmt::{Display, Formatter};
+use std::str::FromStr;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum TimeUnits {
@@ -33,7 +33,7 @@ impl UnitTrait for TimeUnits {
         return match self {
             TimeUnits::Second(si) => n * si.multiplier(),
             TimeUnits::Minute => n * 60.0,
-            TimeUnits::Hour => n * 60.0 * 60.0
+            TimeUnits::Hour => n * 60.0 * 60.0,
         };
     }
 
@@ -41,7 +41,7 @@ impl UnitTrait for TimeUnits {
         return match self {
             TimeUnits::Second(si) => n / si.multiplier(),
             TimeUnits::Minute => n / 60.0,
-            TimeUnits::Hour => n / 60.0 / 60.0
+            TimeUnits::Hour => n / 60.0 / 60.0,
         };
     }
 }
@@ -58,8 +58,8 @@ impl Display for TimeUnits {
 
 #[cfg(test)]
 mod tests {
-    use approx::assert_relative_eq;
     use super::*;
+    use approx::assert_relative_eq;
 
     #[test]
     fn test_convert_to_base_units() {
@@ -70,7 +70,10 @@ mod tests {
 
     #[test]
     fn test_convert_from_base_units() {
-        assert_relative_eq!(10000.0, TimeUnits::Second(SIPrefix::Milli).convert_from_base_units(10.0));
+        assert_relative_eq!(
+            10000.0,
+            TimeUnits::Second(SIPrefix::Milli).convert_from_base_units(10.0)
+        );
         assert_relative_eq!(0.5, TimeUnits::Minute.convert_from_base_units(30.0));
         assert_relative_eq!(0.5, TimeUnits::Hour.convert_from_base_units(1800.0));
     }

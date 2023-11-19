@@ -1,6 +1,6 @@
-use std::fmt::{Display, Formatter};
 use crate::error::RpnCalcError;
 use crate::number::MagnitudeType;
+use std::fmt::{Display, Formatter};
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum SIPrefix {

@@ -1,9 +1,4 @@
-use std::collections::HashMap;
-use std::rc::Rc;
-use crate::units::angle::AngleUnits;
 use crate::error::RpnCalcError;
-use crate::stack::Stack;
-use crate::stack_item::{StackItem};
 use crate::function::Function;
 use crate::functions;
 use crate::functions::add::Add;
@@ -16,6 +11,11 @@ use crate::functions::square_root::SquareRoot;
 use crate::functions::subtract::Subtract;
 use crate::functions::tangent::Tangent;
 use crate::number::Number;
+use crate::stack::Stack;
+use crate::stack_item::StackItem;
+use crate::units::angle::AngleUnits;
+use std::collections::HashMap;
+use std::rc::Rc;
 
 pub struct RpnCalc {
     pub stack: Stack,
@@ -151,7 +151,9 @@ impl RpnCalc {
     }
 
     pub fn execute_binary_number_operator<F>(&mut self, f: F) -> Result<(), RpnCalcError>
-        where F: FnOnce(&mut RpnCalc, Number, Number) -> Result<(), RpnCalcError> {
+    where
+        F: FnOnce(&mut RpnCalc, Number, Number) -> Result<(), RpnCalcError>,
+    {
         let a_stack_item = self.pop_number_stack_item()?;
         let b_stack_item = match self.pop_number_stack_item() {
             Ok(b_stack_item) => b_stack_item,
@@ -189,7 +191,9 @@ impl RpnCalc {
     }
 
     pub fn execute_unary_number_operator<F>(&mut self, f: F) -> Result<(), RpnCalcError>
-        where F: FnOnce(&mut RpnCalc, Number) -> Result<(), RpnCalcError> {
+    where
+        F: FnOnce(&mut RpnCalc, Number) -> Result<(), RpnCalcError>,
+    {
         let a_stack_item = self.pop_number_stack_item()?;
         let a = match self.stack_item_to_number(&a_stack_item) {
             Ok(a) => a,
@@ -233,11 +237,11 @@ impl RpnCalc {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use approx::assert_relative_eq;
-    use crate::units::Units;
     use crate::units::length::LengthUnits;
     use crate::units::si_prefix::SIPrefix;
     use crate::units::time::TimeUnits;
+    use crate::units::Units;
+    use approx::assert_relative_eq;
 
     fn run(args: Vec<&str>) -> RpnCalc {
         let mut rpn_calc = RpnCalc::new();
@@ -281,7 +285,12 @@ mod tests {
         assert_eq!(expected.len(), rpn_calc.stack.items.len(), "unexpected stack length");
         for (i, expected_stack_item_str) in expected.iter().enumerate() {
             let found = format!("{}", rpn_calc.stack.items[i]);
-            assert_eq!(expected_stack_item_str.to_string(), found, "stack item mismatch at {}", i);
+            assert_eq!(
+                expected_stack_item_str.to_string(),
+                found,
+                "stack item mismatch at {}",
+                i
+            );
         }
     }
 
@@ -360,10 +369,7 @@ mod tests {
 
     #[test]
     fn test_error_not_enough_args() {
-        let rpn_calc = assert_error(
-            vec!["1", "+"],
-            RpnCalcError::NotEnoughArguments,
-        );
+        let rpn_calc = assert_error(vec!["1", "+"], RpnCalcError::NotEnoughArguments);
         assert_stack(&rpn_calc, vec!["1"]);
     }
 
@@ -404,7 +410,16 @@ mod tests {
     fn test_add_incompatible_units() {
         assert_error(
             vec!["1ft", "1s", "+"],
-            RpnCalcError::IncompatibleUnits(Units::Length(LengthUnits::Foot), Units::Time(TimeUnits::Second(SIPrefix::None))),
+            RpnCalcError::IncompatibleUnits(
+                Units::Length(LengthUnits::Foot),
+                Units::Time(TimeUnits::Second(SIPrefix::None)),
+            ),
         );
+    }
+
+    #[test]
+    fn test_divide_by_zero() {
+        assert_error(vec!["5", "0", "/"], RpnCalcError::DivideByZero);
+        assert_error(vec!["0", "0", "/"], RpnCalcError::DivideByZero);
     }
 }

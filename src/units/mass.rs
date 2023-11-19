@@ -1,13 +1,13 @@
-use std::fmt::{Display, Formatter};
-use std::str::FromStr;
 use crate::error::RpnCalcError;
 use crate::number::MagnitudeType;
 use crate::units::si_prefix::SIPrefix;
 use crate::units::UnitTrait;
+use std::fmt::{Display, Formatter};
+use std::str::FromStr;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum MassUnits {
-    Gram(SIPrefix)
+    Gram(SIPrefix),
 }
 
 impl FromStr for MassUnits {
@@ -25,13 +25,13 @@ impl FromStr for MassUnits {
 impl UnitTrait for MassUnits {
     fn convert_to_base_units(&self, n: MagnitudeType) -> MagnitudeType {
         match self {
-            MassUnits::Gram(si) => n * si.multiplier()
+            MassUnits::Gram(si) => n * si.multiplier(),
         }
     }
 
     fn convert_from_base_units(&self, n: MagnitudeType) -> MagnitudeType {
         match self {
-            MassUnits::Gram(si) => n / si.multiplier()
+            MassUnits::Gram(si) => n / si.multiplier(),
         }
     }
 }

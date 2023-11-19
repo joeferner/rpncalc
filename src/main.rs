@@ -1,18 +1,18 @@
+use crate::error::RpnCalcError;
 use crate::rpn_calc::RpnCalc;
+use crate::ui::run_interactive;
 use clap::Parser;
 use exitcode;
 use std::process;
-use crate::error::RpnCalcError;
-use crate::ui::run_interactive;
 
+mod error;
+mod function;
+mod functions;
+mod number;
 mod rpn_calc;
 mod stack;
 mod stack_item;
 mod ui;
-mod function;
-mod functions;
-mod number;
-mod error;
 mod units;
 
 #[derive(Parser, Debug)]

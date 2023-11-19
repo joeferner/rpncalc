@@ -1,13 +1,18 @@
-use std::cmp::{min};
-use std::io::{stdout, Write};
-use crate::rpn_calc::{RpnCalc};
-use crossterm::{event::{read, Event, KeyCode}, cursor, terminal::{disable_raw_mode, enable_raw_mode}, QueueableCommand};
+use crate::error::RpnCalcError;
+use crate::rpn_calc::RpnCalc;
+use crate::stack_item::StackItem;
+use crate::units::angle::AngleUnits;
 use crossterm::event::{KeyEvent, KeyEventKind, KeyModifiers};
 use crossterm::style::Print;
 use crossterm::terminal::{Clear, ClearType};
-use crate::units::angle::AngleUnits;
-use crate::error::RpnCalcError;
-use crate::stack_item::StackItem;
+use crossterm::{
+    cursor,
+    event::{read, Event, KeyCode},
+    terminal::{disable_raw_mode, enable_raw_mode},
+    QueueableCommand,
+};
+use std::cmp::min;
+use std::io::{stdout, Write};
 
 const DEFAULT_STACK_HEIGHT: u16 = 4;
 const DEFAULT_STACK_WIDTH: u16 = 20;
@@ -108,7 +113,7 @@ fn redraw(rpn_calc: &RpnCalc, state: &InteractiveState) -> Result<(), RpnCalcErr
         }
         let stack_item_str = match stack_item {
             Some(stack_item) => format_stack_item(stack_offset, stack_item, state),
-            None => format!("{}:", stack_offset)
+            None => format!("{}:", stack_offset),
         };
         stdout().queue(Print(stack_item_str))?;
     }
@@ -172,7 +177,7 @@ fn handle_key_event(rpn_calc: &mut RpnCalc, state: &mut InteractiveState, key: K
                     state.cursor_location = state.cursor_location + 1;
                 }
             }
-            _ => state.message = Some(format!("key::{:?}\r", key))
+            _ => state.message = Some(format!("key::{:?}\r", key)),
         }
         redraw(rpn_calc, state)?;
     }

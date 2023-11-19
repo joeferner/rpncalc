@@ -1,8 +1,8 @@
+use crate::function::Function;
+use crate::number::Number;
 use std::fmt;
 use std::fmt::{Debug, Display, Formatter};
 use std::rc::Rc;
-use crate::function::Function;
-use crate::number::Number;
 
 #[derive(Clone)]
 pub enum StackItem {

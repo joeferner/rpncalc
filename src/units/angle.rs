@@ -1,8 +1,8 @@
+use crate::error::RpnCalcError;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
-use crate::error::RpnCalcError;
 
-use crate::number::{MAGNITUDE_TYPE_PI, MagnitudeType};
+use crate::number::{MagnitudeType, MAGNITUDE_TYPE_PI};
 use crate::units::UnitTrait;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -29,14 +29,14 @@ impl UnitTrait for AngleUnits {
     fn convert_to_base_units(&self, n: MagnitudeType) -> MagnitudeType {
         match self {
             AngleUnits::Radians => n,
-            AngleUnits::Degrees => degrees_to_radians(n)
+            AngleUnits::Degrees => degrees_to_radians(n),
         }
     }
 
     fn convert_from_base_units(&self, n: MagnitudeType) -> MagnitudeType {
         match self {
             AngleUnits::Radians => n,
-            AngleUnits::Degrees => radians_to_degrees(n)
+            AngleUnits::Degrees => radians_to_degrees(n),
         }
     }
 }
@@ -45,7 +45,7 @@ impl Display for AngleUnits {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             AngleUnits::Radians => write!(f, "rad"),
-            AngleUnits::Degrees => write!(f, "deg")
+            AngleUnits::Degrees => write!(f, "deg"),
         }
     }
 }
@@ -60,8 +60,8 @@ pub fn radians_to_degrees(rad: MagnitudeType) -> MagnitudeType {
 
 #[cfg(test)]
 mod tests {
-    use approx::assert_relative_eq;
     use super::*;
+    use approx::assert_relative_eq;
 
     #[test]
     fn test_convert_to_base_units() {

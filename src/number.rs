@@ -62,6 +62,10 @@ impl Number {
             };
             return Ok(Number { magnitude, units });
         } else {
+            if !self.units.can_add_subtract(&other.units) {
+                return Err(RpnCalcError::IncompatibleUnits(self.units.clone(), other.units.clone()));
+            }
+
             let a = self.units.convert_to_base_units(self.magnitude);
             let b = other.units.convert_to_base_units(other.magnitude);
             magnitude = other.units.convert_from_base_units(a + b);
@@ -70,7 +74,8 @@ impl Number {
     }
 
     pub fn subtract(&self, other: &Number) -> Result<Number, RpnCalcError> {
-        return Ok(Number { magnitude: self.magnitude - other.magnitude, units: Units::None });
+        let other = other.negate()?;
+        return self.add(&other);
     }
 
     pub fn multiply(&self, other: &Number) -> Result<Number, RpnCalcError> {
@@ -96,6 +101,10 @@ impl Number {
     pub fn tan(&self, angle_mode: AngleUnits) -> Result<Number, RpnCalcError> {
         return Ok(Number { magnitude: self.to_radians(angle_mode)?.magnitude.tan(), units: Units::None });
     }
+
+    pub fn negate(&self) -> Result<Number, RpnCalcError> {
+        return Ok(Number { magnitude: -self.magnitude, units: self.units.clone() });
+    }
 }
 
 impl PartialEq for Number {
@@ -113,7 +122,7 @@ impl From<f64> for Number {
 
 impl Display for Number {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.magnitude)
+        write!(f, "{} {}", self.magnitude, self.units)
     }
 }
 

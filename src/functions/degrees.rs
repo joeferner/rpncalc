@@ -20,7 +20,7 @@ impl Display for Degrees {
 
 impl Function for Degrees {
     fn apply(&self, rpn_calc: &mut RpnCalc) -> Result<(), RpnCalcError> {
-        rpn_calc.set_angle_mode(AngleUnits::Degrees);
+        rpn_calc.angle_mode = AngleUnits::Degrees;
         return Ok(());
     }
 }

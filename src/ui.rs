@@ -87,7 +87,7 @@ fn redraw(rpn_calc: &RpnCalc, state: &InteractiveState) -> Result<(), RpnCalcErr
         stdout().queue(Print(message))?;
     } else {
         // draw mode
-        let angle_mode = match rpn_calc.angle_mode() {
+        let angle_mode = match rpn_calc.angle_mode {
             AngleUnits::Degrees => "DEG",
             AngleUnits::Radians => "RAD",
         };
@@ -99,12 +99,12 @@ fn redraw(rpn_calc: &RpnCalc, state: &InteractiveState) -> Result<(), RpnCalcErr
     // draw stack
     for i in 0..state.stack_height {
         let stack_offset = (state.stack_height - i) as usize;
-        let stack_index = rpn_calc.stack().items().len() as i16 - stack_offset as i16;
+        let stack_index = rpn_calc.stack.items.len() as i16 - stack_offset as i16;
         stdout().queue(cursor::MoveTo(0, top + 1 + i))?;
         stdout().queue(Clear(ClearType::CurrentLine))?;
         let mut stack_item: Option<&StackItem> = None;
         if stack_index >= 0 {
-            stack_item = rpn_calc.stack().items().get(stack_index as usize);
+            stack_item = rpn_calc.stack.items.get(stack_index as usize);
         }
         let stack_item_str = match stack_item {
             Some(stack_item) => format_stack_item(stack_offset, stack_item, state),

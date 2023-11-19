@@ -20,7 +20,7 @@ impl Display for Radians {
 
 impl Function for Radians {
     fn apply(&self, rpn_calc: &mut RpnCalc) -> Result<(), RpnCalcError> {
-        rpn_calc.set_angle_mode(AngleUnits::Radians);
+        rpn_calc.angle_mode = AngleUnits::Radians;
         return Ok(());
     }
 }

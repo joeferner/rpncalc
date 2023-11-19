@@ -1,7 +1,7 @@
 use crate::stack_item::StackItem;
 
 pub struct Stack {
-    items: Vec<StackItem>,
+    pub items: Vec<StackItem>,
 }
 
 impl Stack {
@@ -15,9 +15,5 @@ impl Stack {
 
     pub fn pop(&mut self) -> Option<StackItem> {
         return self.items.pop();
-    }
-
-    pub fn items(&self) -> &Vec<StackItem> {
-        return &self.items;
     }
 }

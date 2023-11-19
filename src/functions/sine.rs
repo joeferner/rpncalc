@@ -21,7 +21,7 @@ impl Display for Sine {
 impl Function for Sine {
     fn apply(&self, rpn_calc: &mut RpnCalc) -> Result<(), RpnCalcError> {
         return rpn_calc.execute_unary_number_operator(|rpn_calc, a| {
-            let result = a.sin(rpn_calc.angle_mode())?;
+            let result = a.sin(rpn_calc.angle_mode)?;
             rpn_calc.push(StackItem::Number(result));
             return Ok(());
         });

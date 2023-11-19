@@ -36,7 +36,7 @@ fn run(args: Args) -> Result<(), RpnCalcError> {
     if interactive_mode {
         run_interactive(rpn_calc)?;
     } else {
-        for stack_item in rpn_calc.stack().items() {
+        for stack_item in &rpn_calc.stack.items {
             println!("{}", rpn_calc.format_stack_item(stack_item));
         }
     }

@@ -18,8 +18,8 @@ use crate::functions::tangent::Tangent;
 use crate::number::Number;
 
 pub struct RpnCalc {
-    stack: Stack,
-    angle_mode: AngleUnits,
+    pub stack: Stack,
+    pub angle_mode: AngleUnits,
     functions: HashMap<String, Rc<dyn Function>>,
 }
 
@@ -150,16 +150,6 @@ impl RpnCalc {
         return Err(RpnCalcError::NotEnoughArguments);
     }
 
-    pub fn stack(&self) -> &Stack {
-        return &self.stack;
-    }
-
-    pub fn angle_mode(&self) -> AngleUnits { return self.angle_mode; }
-
-    pub fn set_angle_mode(&mut self, angle_mode: AngleUnits) -> () {
-        self.angle_mode = angle_mode;
-    }
-
     pub fn execute_binary_number_operator<F>(&mut self, f: F) -> Result<(), RpnCalcError>
         where F: FnOnce(&mut RpnCalc, Number, Number) -> Result<(), RpnCalcError> {
         let a_stack_item = self.pop_number_stack_item()?;
@@ -222,7 +212,7 @@ impl RpnCalc {
         return match stack_item {
             StackItem::Number(a) => Ok(StackItem::Number(a)),
             _ => {
-                let msg = format!("expected number found: {}", stack_item);
+                let msg = format!("expected number but found \"{}\"", stack_item);
                 self.stack.push(stack_item);
                 Err(RpnCalcError::InvalidArgument(msg))
             }
@@ -233,7 +223,7 @@ impl RpnCalc {
         return match stack_item {
             StackItem::Number(a) => Ok(a.clone()),
             _ => {
-                let msg = format!("expected number found: {}", stack_item);
+                let msg = format!("expected number but found \"{}\"", stack_item);
                 Err(RpnCalcError::InvalidArgument(msg))
             }
         };
@@ -247,6 +237,7 @@ mod tests {
     use crate::units::Units;
     use crate::units::length::LengthUnits;
     use crate::units::si_prefix::SIPrefix;
+    use crate::units::time::TimeUnits;
 
     fn run(args: Vec<&str>) -> RpnCalc {
         let mut rpn_calc = RpnCalc::new();
@@ -257,9 +248,9 @@ mod tests {
     }
 
     fn assert_stack(rpn_calc: &RpnCalc, args: Vec<&str>) -> () {
-        assert_eq!(args.len(), rpn_calc.stack.items().len());
+        assert_eq!(args.len(), rpn_calc.stack.items.len());
         for (i, arg) in args.iter().enumerate() {
-            let found_stack_item = rpn_calc.stack.items().get(i).unwrap();
+            let found_stack_item = rpn_calc.stack.items.get(i).unwrap();
             let expected_stack_item = rpn_calc.parse_string_to_stack_item(arg).unwrap();
             assert_eq!(expected_stack_item, found_stack_item.clone());
         }
@@ -283,6 +274,28 @@ mod tests {
     fn run_unary_operator_rad(arg: &str, op: &str, expected: Number) {
         let mut rpn_calc = run(vec!["rad", arg, op]);
         assert_relative_eq!(expected.magnitude, rpn_calc.pop_number().unwrap().unwrap().magnitude);
+    }
+
+    fn assert_run(args: Vec<&str>, expected: Vec<&str>) {
+        let rpn_calc = run(args);
+        assert_eq!(expected.len(), rpn_calc.stack.items.len(), "unexpected stack length");
+        for (i, expected_stack_item_str) in expected.iter().enumerate() {
+            let found = format!("{}", rpn_calc.stack.items[i]);
+            assert_eq!(expected_stack_item_str.to_string(), found, "stack item mismatch at {}", i);
+        }
+    }
+
+    fn assert_error(args: Vec<&str>, expected_err: RpnCalcError) -> RpnCalc {
+        let mut rpn_calc = RpnCalc::new();
+        for arg in args.iter().take(args.len() - 1) {
+            rpn_calc.push_str(arg).unwrap();
+        }
+        if let Err(err) = rpn_calc.push_str(args[args.len() - 1]) {
+            assert_eq!(err, expected_err, "error mismatch");
+        } else {
+            assert!(false, "expected error");
+        }
+        return rpn_calc;
     }
 
     #[test]
@@ -347,67 +360,51 @@ mod tests {
 
     #[test]
     fn test_error_not_enough_args() {
-        let mut rpn_calc = run(vec!["1"]);
-        let result = rpn_calc.push_str("add");
-        assert!(matches!(result, Err(RpnCalcError::NotEnoughArguments)));
+        let rpn_calc = assert_error(
+            vec!["1", "+"],
+            RpnCalcError::NotEnoughArguments,
+        );
         assert_stack(&rpn_calc, vec!["1"]);
     }
 
     #[test]
     fn test_error_first_arg() {
-        let mut rpn_calc = run(vec!["`a`", "1"]);
-        let result = rpn_calc.push_str("add");
-        assert!(matches!(result, Err(RpnCalcError::InvalidArgument(_))));
+        let rpn_calc = assert_error(
+            vec!["`a`", "1", "+"],
+            RpnCalcError::InvalidArgument("expected number but found \"`a`\"".to_string()),
+        );
         assert_stack(&rpn_calc, vec!["`a`", "1"]);
     }
 
     #[test]
     fn test_error_second_arg() {
-        let mut rpn_calc = run(vec!["1", "`a`"]);
-        let result = rpn_calc.push_str("add");
-        assert!(matches!(result, Err(RpnCalcError::InvalidArgument(_))));
+        let rpn_calc = assert_error(
+            vec!["1", "`a`", "+"],
+            RpnCalcError::InvalidArgument("expected number but found \"`a`\"".to_string()),
+        );
         assert_stack(&rpn_calc, vec!["1", "`a`"]);
     }
 
     #[test]
     fn test_add_units() {
-        let mut rpn_calc = run(vec!["1ft", "0m", "+"]);
-        assert_eq!(1, rpn_calc.stack.items().len());
-        let stack_item = rpn_calc.pop().unwrap();
-        match stack_item {
-            StackItem::Number(n) => {
-                assert_relative_eq!(0.3048, n.magnitude);
-                assert!(matches!(n.units, Units::Length(LengthUnits::Meter(SIPrefix::None))));
-            }
-            _ => assert!(false)
-        }
+        assert_run(vec!["1ft", "0m", "+"], vec!["0.3048 m"]);
     }
 
     #[test]
     fn test_add_units_ft_none() {
-        let mut rpn_calc = run(vec!["1ft", "1", "+"]);
-        assert_eq!(1, rpn_calc.stack.items().len());
-        let stack_item = rpn_calc.pop().unwrap();
-        match stack_item {
-            StackItem::Number(n) => {
-                assert_relative_eq!(2.0, n.magnitude);
-                assert!(matches!(n.units,Units::Length(LengthUnits::Foot)));
-            }
-            _ => assert!(false)
-        }
+        assert_run(vec!["1ft", "1", "+"], vec!["2 ft"]);
     }
 
     #[test]
     fn test_add_units_none_ft() {
-        let mut rpn_calc = run(vec!["1", "1ft", "+"]);
-        assert_eq!(1, rpn_calc.stack.items().len());
-        let stack_item = rpn_calc.pop().unwrap();
-        match stack_item {
-            StackItem::Number(n) => {
-                assert_relative_eq!(2.0, n.magnitude);
-                assert!(matches!(n.units,Units::Length(LengthUnits::Foot)));
-            }
-            _ => assert!(false)
-        }
+        assert_run(vec!["1", "1ft", "+"], vec!["2 ft"]);
+    }
+
+    #[test]
+    fn test_add_incompatible_units() {
+        assert_error(
+            vec!["1ft", "1s", "+"],
+            RpnCalcError::IncompatibleUnits(Units::Length(LengthUnits::Foot), Units::Time(TimeUnits::Second(SIPrefix::None))),
+        );
     }
 }

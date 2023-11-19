@@ -91,6 +91,56 @@ impl Units {
             Err(RpnCalcError::ParseStackItem(format!("parse units {}", str)))
         };
     }
+
+    pub fn can_add_subtract(&self, other: &Units) -> bool {
+        return match self {
+            Units::None => true,
+            Units::Length(_) => {
+                match other {
+                    Units::None => true,
+                    Units::Length(_) => true,
+                    _ => false
+                }
+            }
+            Units::Mass(_) => {
+                match other {
+                    Units::None => true,
+                    Units::Mass(_) => true,
+                    _ => false
+                }
+            }
+            Units::Time(_) => {
+                match other {
+                    Units::None => true,
+                    Units::Time(_) => true,
+                    _ => false
+                }
+            }
+            Units::Temperature(_) => {
+                match other {
+                    Units::None => true,
+                    Units::Temperature(_) => true,
+                    _ => false
+                }
+            }
+            Units::Angle(_) => {
+                match other {
+                    Units::None => true,
+                    Units::Angle(_) => true,
+                    _ => false
+                }
+            }
+            Units::Compound(a, op, b) => {
+                match other {
+                    Units::None => true,
+                    Units::Compound(other_a, other_op, other_b) => {
+                        op == other_op && a.can_add_subtract(other_a) && b.can_add_subtract(other_b)
+                    }
+                    _ => false
+                }
+            }
+        };
+    }
 }
 
 impl UnitTrait for Units {

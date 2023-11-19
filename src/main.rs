@@ -2,8 +2,8 @@ use crate::error::RpnCalcError;
 use crate::rpn_calc::RpnCalc;
 use crate::ui::run_interactive;
 use clap::Parser;
-use exitcode;
 use std::process;
+use color_eyre::eyre;
 
 mod error;
 mod function;
@@ -44,10 +44,13 @@ fn run(args: Args) -> Result<(), RpnCalcError> {
     return Ok(());
 }
 
-fn main() {
+fn main() -> eyre::Result<()> {
+    color_eyre::install()?;
+
     let args = Args::parse();
     if let Err(err) = run(args) {
         eprintln!("{}", err);
         process::exit(exitcode::DATAERR);
     }
+    return Ok(());
 }

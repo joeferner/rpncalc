@@ -14,7 +14,7 @@ use crossterm::{
 use std::cmp::min;
 use std::io::{stdout, Write};
 
-const DEFAULT_STACK_HEIGHT: u16 = 4;
+const DEFAULT_STACK_HEIGHT: u16 = 8;
 const DEFAULT_STACK_WIDTH: u16 = 20;
 
 struct InteractiveState {
@@ -119,10 +119,11 @@ fn redraw(rpn_calc: &RpnCalc, state: &InteractiveState) -> Result<(), RpnCalcErr
     }
 
     // draw prompt
+    let prompt = format!(">{}", state.input);
     stdout().queue(cursor::MoveTo(0, top + state.stack_height + 1))?;
     stdout().queue(Clear(ClearType::CurrentLine))?;
-    stdout().queue(Print(&state.input))?;
-    stdout().queue(cursor::MoveTo(state.cursor_location, top + state.stack_height + 1))?;
+    stdout().queue(Print(prompt))?;
+    stdout().queue(cursor::MoveTo(state.cursor_location + 1, top + state.stack_height + 1))?;
     stdout().flush()?;
 
     return Ok(());
@@ -131,14 +132,9 @@ fn redraw(rpn_calc: &RpnCalc, state: &InteractiveState) -> Result<(), RpnCalcErr
 fn format_stack_item(display_stack_index: usize, stack_item: &StackItem, state: &InteractiveState) -> String {
     let prefix = format!("{}:", display_stack_index);
     let stack_item_str = format!("{}", stack_item);
-    let suffix = if let StackItem::Number(n) = stack_item {
-        format!("{}", n.units)
-    } else {
-        "".to_string()
-    };
-    let width = state.stack_width as usize - prefix.len() - suffix.len();
+    let width = state.stack_width as usize - prefix.len();
     let s = format!("{: >width$}", stack_item_str, width = width);
-    return format!("{}{}{}", prefix, s, suffix);
+    return format!("{}{}", prefix, s);
 }
 
 fn handle_key_event(rpn_calc: &mut RpnCalc, state: &mut InteractiveState, key: KeyEvent) -> Result<(), RpnCalcError> {
@@ -158,7 +154,9 @@ fn handle_key_event(rpn_calc: &mut RpnCalc, state: &mut InteractiveState, key: K
             }
             KeyCode::Backspace => {
                 if state.input.len() == 0 {
-                    rpn_calc.push_str("drop")?;
+                    if rpn_calc.stack.items.len() > 0 {
+                        rpn_calc.push_str("drop")?;
+                    }
                 } else if state.cursor_location > 0 {
                     let loc = state.cursor_location as usize;
                     let mut new_input = state.input[..loc - 1].to_string();

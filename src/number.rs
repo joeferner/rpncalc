@@ -155,7 +155,11 @@ impl From<f64> for Number {
 
 impl Display for Number {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} {}", self.magnitude, self.units)
+        let mut units_str = format!("{}", self.units);
+        if units_str.len() > 0 {
+            units_str = format!(" {}", units_str);
+        }
+        write!(f, "{}{}", self.magnitude, units_str)
     }
 }
 

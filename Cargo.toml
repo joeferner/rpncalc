@@ -1,11 +1,22 @@
 [package]
 name = "rpncalc"
-version = "0.1.0"
 edition = "2021"
+version = "0.1.0"
+rust-version = "1.73.0"
+authors = ["Joe Ferner <joe@fernsroth.com>"]
+description = "A command line RPN calculator."
+documentation = "https://github.com/joeferner/rpncalc/blob/master/README.md"
+homepage = "https://github.com/joeferner/rpncalc"
+repository = "https://github.com/joeferner/rpncalc"
+keywords = ["rpncalc", "calculator", "rpn"]
+readme = "README.md"
+license-file = "LICENSE"
+exclude = ["/.github/*", "/Makefile.toml", "/clippy.toml", "/rustfmt.toml"]
 
 [dependencies]
 approx = "0.5.1"
 clap = { version = "4.4.8", features = ["derive"] }
+color-eyre = "0.6.2"
 crossterm = "0.27.0"
 exitcode = "1.1.2"
 regex = "1.10.2"

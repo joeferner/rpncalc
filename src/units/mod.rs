@@ -11,7 +11,6 @@ use crate::number::MagnitudeType;
 use crate::units::length::LengthUnits;
 use crate::units::mass::MassUnits;
 use crate::units::operator::UnitsOperator;
-use crate::units::si_prefix::SIPrefix;
 use crate::units::temperature::TemperatureUnits;
 use angle::AngleUnits;
 use std::fmt::{Display, Formatter};

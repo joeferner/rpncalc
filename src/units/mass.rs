@@ -1,4 +1,6 @@
 use std::fmt::{Display, Formatter};
+use std::str::FromStr;
+use crate::error::RpnCalcError;
 use crate::number::MagnitudeType;
 use crate::units::si_prefix::SIPrefix;
 use crate::units::UnitTrait;
@@ -6,6 +8,18 @@ use crate::units::UnitTrait;
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum MassUnits {
     Gram(SIPrefix)
+}
+
+impl FromStr for MassUnits {
+    type Err = RpnCalcError;
+
+    fn from_str(str: &str) -> Result<Self, Self::Err> {
+        if let Some(prefix) = str.strip_suffix("g") {
+            Ok(MassUnits::Gram(SIPrefix::parse(prefix)?))
+        } else {
+            Err(RpnCalcError::ParseStackItem("failed to parse".to_string()))
+        }
+    }
 }
 
 impl UnitTrait for MassUnits {

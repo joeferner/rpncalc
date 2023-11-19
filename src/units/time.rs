@@ -1,4 +1,6 @@
 use std::fmt::{Display, Formatter};
+use std::str::FromStr;
+use crate::error::RpnCalcError;
 use crate::number::MagnitudeType;
 use crate::units::si_prefix::SIPrefix;
 use crate::units::UnitTrait;
@@ -8,6 +10,22 @@ pub enum TimeUnits {
     Second(SIPrefix),
     Minute,
     Hour,
+}
+
+impl FromStr for TimeUnits {
+    type Err = RpnCalcError;
+
+    fn from_str(str: &str) -> Result<Self, Self::Err> {
+        if str == "min" {
+            Ok(TimeUnits::Minute)
+        } else if str == "hour" {
+            Ok(TimeUnits::Hour)
+        } else if let Some(prefix) = str.strip_suffix("s") {
+            Ok(TimeUnits::Second(SIPrefix::parse(prefix)?))
+        } else {
+            Err(RpnCalcError::ParseStackItem("failed to parse".to_string()))
+        }
+    }
 }
 
 impl UnitTrait for TimeUnits {

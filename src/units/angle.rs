@@ -1,4 +1,6 @@
 use std::fmt::{Display, Formatter};
+use std::str::FromStr;
+use crate::error::RpnCalcError;
 
 use crate::number::{MAGNITUDE_TYPE_PI, MagnitudeType};
 use crate::units::UnitTrait;
@@ -7,6 +9,20 @@ use crate::units::UnitTrait;
 pub enum AngleUnits {
     Radians,
     Degrees,
+}
+
+impl FromStr for AngleUnits {
+    type Err = RpnCalcError;
+
+    fn from_str(str: &str) -> Result<Self, Self::Err> {
+        if str == "deg" {
+            Ok(AngleUnits::Degrees)
+        } else if str == "rad" {
+            Ok(AngleUnits::Radians)
+        } else {
+            Err(RpnCalcError::ParseStackItem("failed to parse".to_string()))
+        }
+    }
 }
 
 impl UnitTrait for AngleUnits {

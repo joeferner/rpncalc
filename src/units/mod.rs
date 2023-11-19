@@ -59,36 +59,18 @@ impl Units {
             } else {
                 Err(RpnCalcError::ParseStackItem(format!("parse units {}", str)))
             }
-        } else if str == "deg" {
-            Ok(Units::Angle(AngleUnits::Degrees))
-        } else if str == "rad" {
-            Ok(Units::Angle(AngleUnits::Radians))
-        } else if str == "C" || str == "°C" {
-            Ok(Units::Temperature(TemperatureUnits::Celsius))
-        } else if str == "F" || str == "°F" {
-            Ok(Units::Temperature(TemperatureUnits::Fahrenheit))
-        } else if str == "Ra" || str == "°Ra" {
-            Ok(Units::Temperature(TemperatureUnits::Rankine))
-        } else if str == "NM" {
-            Ok(Units::Length(LengthUnits::NauticalMile))
-        } else if str == "mile" {
-            Ok(Units::Length(LengthUnits::Mile))
-        } else if str == "yard" {
-            Ok(Units::Length(LengthUnits::Yard))
-        } else if str == "ft" {
-            Ok(Units::Length(LengthUnits::Foot))
-        } else if str == "in" {
-            Ok(Units::Length(LengthUnits::Inch))
-        } else if let Some(prefix) = str.strip_suffix("m") {
-            Ok(Units::Length(LengthUnits::Meter(SIPrefix::parse(prefix)?)))
-        } else if let Some(prefix) = str.strip_suffix("g") {
-            Ok(Units::Mass(MassUnits::Gram(SIPrefix::parse(prefix)?)))
-        } else if let Some(prefix) = str.strip_suffix("s") {
-            Ok(Units::Time(TimeUnits::Second(SIPrefix::parse(prefix)?)))
-        } else if let Some(prefix) = str.strip_suffix("K") {
-            Ok(Units::Temperature(TemperatureUnits::Kelvin(SIPrefix::parse(prefix)?)))
+        } else if let Ok(angle) = str.parse::<AngleUnits>() {
+            Ok(Units::Angle(angle))
+        } else if let Ok(temp) = str.parse::<TemperatureUnits>() {
+            Ok(Units::Temperature(temp))
+        } else if let Ok(l) = str.parse::<LengthUnits>() {
+            Ok(Units::Length(l))
+        } else if let Ok(m) = str.parse::<MassUnits>() {
+            Ok(Units::Mass(m))
+        } else if let Ok(t) = str.parse::<TimeUnits>() {
+            Ok(Units::Time(t))
         } else {
-            Err(RpnCalcError::ParseStackItem(format!("parse units {}", str)))
+            Err(RpnCalcError::ParseStackItem(format!("parse units \"{}\"", str)))
         };
     }
 

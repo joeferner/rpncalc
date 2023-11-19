@@ -1,4 +1,6 @@
 use std::fmt::{Display, Formatter};
+use std::str::FromStr;
+use crate::error::RpnCalcError;
 use crate::number::MagnitudeType;
 use crate::units::si_prefix::SIPrefix;
 use crate::units::UnitTrait;
@@ -9,6 +11,24 @@ pub enum TemperatureUnits {
     Celsius,
     Fahrenheit,
     Rankine,
+}
+
+impl FromStr for TemperatureUnits {
+    type Err = RpnCalcError;
+
+    fn from_str(str: &str) -> Result<Self, Self::Err> {
+        if let Some(prefix) = str.strip_suffix("K") {
+            Ok(TemperatureUnits::Kelvin(SIPrefix::parse(prefix)?))
+        } else if str == "C" || str == "°C" {
+            Ok(TemperatureUnits::Celsius)
+        } else if str == "F" || str == "°F" {
+            Ok(TemperatureUnits::Fahrenheit)
+        } else if str == "Ra" || str == "°Ra" {
+            Ok(TemperatureUnits::Rankine)
+        } else {
+            Err(RpnCalcError::ParseStackItem("failed to parse".to_string()))
+        }
+    }
 }
 
 impl UnitTrait for TemperatureUnits {

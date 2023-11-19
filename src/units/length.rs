@@ -1,4 +1,6 @@
 use std::fmt::{Display, Formatter};
+use std::str::FromStr;
+use crate::error::RpnCalcError;
 use crate::number::MagnitudeType;
 use crate::units::si_prefix::SIPrefix;
 use crate::units::UnitTrait;
@@ -10,7 +12,29 @@ pub enum LengthUnits {
     Foot,
     Yard,
     Mile,
-    NauticalMile
+    NauticalMile,
+}
+
+impl FromStr for LengthUnits {
+    type Err = RpnCalcError;
+
+    fn from_str(str: &str) -> Result<Self, Self::Err> {
+        if str == "NM" {
+            Ok(LengthUnits::NauticalMile)
+        } else if str == "mile" {
+            Ok(LengthUnits::Mile)
+        } else if str == "yard" {
+            Ok(LengthUnits::Yard)
+        } else if str == "ft" {
+            Ok(LengthUnits::Foot)
+        } else if str == "in" {
+            Ok(LengthUnits::Inch)
+        } else if let Some(prefix) = str.strip_suffix("m") {
+            Ok(LengthUnits::Meter(SIPrefix::parse(prefix)?))
+        } else {
+            Err(RpnCalcError::ParseStackItem("failed to parse".to_string()))
+        }
+    }
 }
 
 impl UnitTrait for LengthUnits {
@@ -45,7 +69,7 @@ impl Display for LengthUnits {
             LengthUnits::Foot => write!(f, "ft"),
             LengthUnits::Yard => write!(f, "yard"),
             LengthUnits::Mile => write!(f, "mile"),
-            LengthUnits::NauticalMile =>  write!(f, "NM"),
+            LengthUnits::NauticalMile => write!(f, "NM"),
         }
     }
 }

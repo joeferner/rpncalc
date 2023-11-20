@@ -17,7 +17,7 @@ description = "Lint all source files."
 env = { CARGO_MAKE_RUST_DEFAULT_TOOLCHAIN = "stable" } # See: https://github.com/sagiegurari/cargo-make/discussions/767
 install_crate = { rustup_component_name = "clippy" }
 command = "cargo"
-args = ["clippy", "--", "-A", "clippy::needless_return", "-A", "clippy::unused_unit"]
+args = ["clippy", "--", "-A", "clippy::needless_return", "-A", "clippy::unused_unit", "--deny", "warnings"]
 
 [tasks.lint-watch]
 description = "Monitor and lint all source files continuously anytime one of them changes."
@@ -63,3 +63,7 @@ install_crate = "cargo-llvm-cov"
 command = "cargo"
 args = ["llvm-cov", "--lcov", "--output-path", "lcov.info"]
 dependencies = ["build"]
+
+[tasks.pre-commit]
+description = "Run pre-commit tasks."
+dependencies = ["format", "lint", "test"]

@@ -52,7 +52,7 @@ impl Number {
             2 => "0b".to_string(),
             8 => "0".to_string(),
             16 => "0x".to_string(),
-            _ => format!("{}#", base)
+            _ => format!("{}#", base),
         };
 
         let mut whole_number = n.floor() as MagnitudeTypeInteger;
@@ -76,10 +76,10 @@ impl Number {
         if decimal_number > MagnitudeType::EPSILON {
             decimal_number_str.push('.');
             while decimal_number > MagnitudeType::EPSILON || decimal_number_str.len() > width {
-                decimal_number = decimal_number * base as MagnitudeType;
+                decimal_number *= base as MagnitudeType;
                 let digit = decimal_number.floor();
                 decimal_number_str.push(Number::digit_to_char(digit as u8));
-                decimal_number = decimal_number - digit;
+                decimal_number -= digit;
             }
         }
 
@@ -255,6 +255,9 @@ mod tests {
 
     #[test]
     fn test_display_radix() {
-        assert_eq!("4#0.3213", Number::from_str("0.90234375").unwrap().to_string_format(1000, 4));
+        assert_eq!(
+            "4#0.3213",
+            Number::from_str("0.90234375").unwrap().to_string_format(1000, 4)
+        );
     }
 }

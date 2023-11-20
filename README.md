@@ -28,4 +28,5 @@ cargo make format           # Formats (rewrites) every applicable file in the pr
 cargo make format-ci        # Formats (report only) every applicable file in the project
 cargo make lint             # Lints (report only) every applicable file in the project
 cargo make lint-watch       # Lints (report only) every applicable file in the project and re-lints whenever files change
+cargo make pre-commit       # Runs pre-commit tasks
 ```

@@ -1,4 +1,5 @@
-## rpncalc
+
+## rpncalc [![master](https://github.com/joeferner/rpncalc/actions/workflows/master.yml/badge.svg)](https://github.com/joeferner/rpncalc/actions/workflows/master.yml) [![codecov](https://codecov.io/gh/joeferner/rpncalc/branch/master/graph/badge.svg?token=SFH1NL79H4)](https://codecov.io/gh/joeferner/rpncalc)
 
 rpncalc is a command line RPN calculator.
 

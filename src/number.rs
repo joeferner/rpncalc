@@ -4,7 +4,7 @@ use std::fmt::{Display, Formatter};
 use regex::Regex;
 
 use crate::error::RpnCalcError;
-use crate::units::angle::{degrees_to_radians, AngleUnits};
+use crate::units::{degrees_to_radians, AngleUnits};
 use crate::units::{UnitTrait, Units};
 
 pub type MagnitudeType = f64;

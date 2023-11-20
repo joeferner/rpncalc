@@ -1,19 +1,19 @@
 use crate::error::RpnCalcError;
 use crate::function::Function;
 use crate::functions;
-use crate::functions::add::Add;
-use crate::functions::cosine::Cosine;
-use crate::functions::divide::Divide;
-use crate::functions::multiply::Multiply;
-use crate::functions::pow::Pow;
-use crate::functions::sine::Sine;
-use crate::functions::square_root::SquareRoot;
-use crate::functions::subtract::Subtract;
-use crate::functions::tangent::Tangent;
+use crate::functions::Add;
+use crate::functions::Cos;
+use crate::functions::Divide;
+use crate::functions::Multiply;
+use crate::functions::Pow;
+use crate::functions::Sin;
+use crate::functions::SquareRoot;
+use crate::functions::Subtract;
+use crate::functions::Tan;
 use crate::number::Number;
 use crate::stack::Stack;
 use crate::stack_item::StackItem;
-use crate::units::angle::AngleUnits;
+use crate::units::AngleUnits;
 use std::collections::HashMap;
 use std::rc::Rc;
 
@@ -32,17 +32,14 @@ impl RpnCalc {
         functions.insert("+".to_string(), add.clone());
 
         let subtract = Rc::new(Subtract::new());
-        functions.insert("subtract".to_string(), subtract.clone());
         functions.insert("sub".to_string(), subtract.clone());
         functions.insert("-".to_string(), subtract.clone());
 
         let multiply = Rc::new(Multiply::new());
-        functions.insert("multiply".to_string(), multiply.clone());
         functions.insert("mul".to_string(), multiply.clone());
         functions.insert("*".to_string(), multiply.clone());
 
         let divide = Rc::new(Divide::new());
-        functions.insert("divide".to_string(), divide.clone());
         functions.insert("div".to_string(), divide.clone());
         functions.insert("/".to_string(), divide.clone());
 
@@ -50,28 +47,15 @@ impl RpnCalc {
         functions.insert("pow".to_string(), pow.clone());
         functions.insert("^".to_string(), pow.clone());
 
-        let sine = Rc::new(Sine::new());
-        functions.insert("sin".to_string(), sine.clone());
-        functions.insert("sine".to_string(), sine.clone());
+        functions.insert("sin".to_string(), Rc::new(Sin::new()));
+        functions.insert("cos".to_string(), Rc::new(Cos::new()));
+        functions.insert("tan".to_string(), Rc::new(Tan::new()));
 
-        let cosine = Rc::new(Cosine::new());
-        functions.insert("cos".to_string(), cosine.clone());
-        functions.insert("cosine".to_string(), cosine.clone());
-
-        let tangent = Rc::new(Tangent::new());
-        functions.insert("tan".to_string(), tangent.clone());
-        functions.insert("tangent".to_string(), tangent.clone());
-
-        let degrees = Rc::new(functions::degrees::Degrees::new());
-        functions.insert("deg".to_string(), degrees.clone());
-        functions.insert("degrees".to_string(), degrees.clone());
-
-        let radians = Rc::new(functions::radians::Radians::new());
-        functions.insert("rad".to_string(), radians.clone());
-        functions.insert("radians".to_string(), radians.clone());
+        functions.insert("deg".to_string(), Rc::new(functions::Degrees::new()));
+        functions.insert("rad".to_string(), Rc::new(functions::Radians::new()));
 
         functions.insert("sqrt".to_string(), Rc::new(SquareRoot::new()));
-        functions.insert("drop".to_string(), Rc::new(functions::drop::Drop::new()));
+        functions.insert("drop".to_string(), Rc::new(functions::Drop::new()));
 
         return RpnCalc {
             stack: Stack::new(),
@@ -237,9 +221,9 @@ impl RpnCalc {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::units::length::LengthUnits;
-    use crate::units::si_prefix::SIPrefix;
-    use crate::units::time::TimeUnits;
+    use crate::units::LengthUnits;
+    use crate::units::SIPrefix;
+    use crate::units::TimeUnits;
     use crate::units::Units;
     use approx::assert_relative_eq;
 

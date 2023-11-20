@@ -1,20 +1,22 @@
-pub mod angle;
-pub mod length;
-pub mod mass;
-pub mod operator;
-pub mod si_prefix;
-pub mod temperature;
-pub mod time;
+mod angle;
+mod length;
+mod mass;
+mod operator;
+mod si_prefix;
+mod temperature;
+mod time;
+
+pub use self::angle::{degrees_to_radians, radians_to_degrees, AngleUnits};
+pub use self::length::LengthUnits;
+pub use self::mass::MassUnits;
+pub use self::operator::UnitsOperator;
+pub use self::si_prefix::SIPrefix;
+pub use self::temperature::TemperatureUnits;
+pub use self::time::TimeUnits;
 
 use crate::error::RpnCalcError;
 use crate::number::MagnitudeType;
-use crate::units::length::LengthUnits;
-use crate::units::mass::MassUnits;
-use crate::units::operator::UnitsOperator;
-use crate::units::temperature::TemperatureUnits;
-use angle::AngleUnits;
 use std::fmt::{Display, Formatter};
-use time::TimeUnits;
 
 pub trait UnitTrait {
     fn convert_to_base_units(&self, n: MagnitudeType) -> MagnitudeType;

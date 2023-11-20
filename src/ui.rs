@@ -1,7 +1,7 @@
 use crate::error::RpnCalcError;
 use crate::rpn_calc::RpnCalc;
 use crate::stack_item::StackItem;
-use crate::units::angle::AngleUnits;
+use crate::units::AngleUnits;
 use crossterm::event::{KeyEvent, KeyEventKind, KeyModifiers};
 use crossterm::style::Print;
 use crossterm::terminal::{Clear, ClearType};

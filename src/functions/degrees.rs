@@ -1,7 +1,7 @@
 use crate::error::RpnCalcError;
 use crate::function::Function;
 use crate::rpn_calc::RpnCalc;
-use crate::units::angle::AngleUnits;
+use crate::units::AngleUnits;
 use std::fmt::{Display, Formatter};
 
 pub struct Degrees {}

@@ -120,7 +120,7 @@ impl RpnCalc {
 
     fn parse_string_to_string_constant(str: &str) -> Result<String, RpnCalcError> {
         let str = str.to_string();
-        if str.starts_with("`") && str.ends_with("`") {
+        if str.starts_with('`') && str.ends_with('`') {
             return Ok(str[1..str.len() - 1].to_string());
         }
         return Err(RpnCalcError::ParseStackItem(str));

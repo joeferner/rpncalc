@@ -34,21 +34,21 @@ pub enum Units {
 
 impl Units {
     pub fn parse(str: &str) -> Result<Units, RpnCalcError> {
-        return if str.len() == 0 {
+        return if str.is_empty() {
             Ok(Units::None)
-        } else if let Some(parts) = str.split_once("/") {
+        } else if let Some(parts) = str.split_once('/') {
             Ok(Units::Compound(
                 Box::new(Units::parse(parts.0)?),
                 UnitsOperator::Divide,
                 Box::new(Units::parse(parts.1)?),
             ))
-        } else if let Some(parts) = str.split_once("*") {
+        } else if let Some(parts) = str.split_once('*') {
             Ok(Units::Compound(
                 Box::new(Units::parse(parts.0)?),
                 UnitsOperator::Multiply,
                 Box::new(Units::parse(parts.1)?),
             ))
-        } else if let Some(parts) = str.split_once("^") {
+        } else if let Some(parts) = str.split_once('^') {
             if parts.1 == "2" {
                 Ok(Units::Compound(
                     Box::new(Units::parse(parts.0)?),
@@ -76,31 +76,11 @@ impl Units {
     pub fn can_add_subtract(&self, other: &Units) -> bool {
         return match self {
             Units::None => true,
-            Units::Length(_) => match other {
-                Units::None => true,
-                Units::Length(_) => true,
-                _ => false,
-            },
-            Units::Mass(_) => match other {
-                Units::None => true,
-                Units::Mass(_) => true,
-                _ => false,
-            },
-            Units::Time(_) => match other {
-                Units::None => true,
-                Units::Time(_) => true,
-                _ => false,
-            },
-            Units::Temperature(_) => match other {
-                Units::None => true,
-                Units::Temperature(_) => true,
-                _ => false,
-            },
-            Units::Angle(_) => match other {
-                Units::None => true,
-                Units::Angle(_) => true,
-                _ => false,
-            },
+            Units::Length(_) => matches!(other, Units::None | Units::Length(_)),
+            Units::Mass(_) => matches!(other, Units::None | Units::Mass(_)),
+            Units::Time(_) => matches!(other, Units::None | Units::Time(_)),
+            Units::Temperature(_) => matches!(other, Units::None | Units::Temperature(_)),
+            Units::Angle(_) => matches!(other, Units::None | Units::Angle(_)),
             Units::Compound(a, op, b) => match other {
                 Units::None => true,
                 Units::Compound(other_a, other_op, other_b) => {
@@ -171,6 +151,7 @@ impl Display for Units {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::units::si_prefix::SIPrefix;
     use approx::assert_relative_eq;
 
     pub fn feet_per_min_sq() -> Units {

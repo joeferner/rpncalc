@@ -26,10 +26,7 @@ impl PartialEq for RpnCalcError {
                 RpnCalcError::ParseStackItem(other_str) => str == other_str,
                 _ => false,
             },
-            RpnCalcError::NotEnoughArguments => match other {
-                RpnCalcError::NotEnoughArguments => true,
-                _ => false,
-            },
+            RpnCalcError::NotEnoughArguments => matches!(other, RpnCalcError::NotEnoughArguments),
             RpnCalcError::InvalidArgument(str) => match other {
                 RpnCalcError::InvalidArgument(other_str) => str == other_str,
                 _ => false,
@@ -48,10 +45,7 @@ impl PartialEq for RpnCalcError {
                 }
                 _ => false,
             },
-            RpnCalcError::DivideByZero => match other {
-                RpnCalcError::DivideByZero => true,
-                _ => false,
-            },
+            RpnCalcError::DivideByZero => matches!(other, RpnCalcError::DivideByZero),
         };
     }
 }

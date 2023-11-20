@@ -2,8 +2,8 @@ use crate::error::RpnCalcError;
 use crate::rpn_calc::RpnCalc;
 use crate::ui::run_interactive;
 use clap::Parser;
-use std::process;
 use color_eyre::eyre;
+use std::process;
 
 mod error;
 mod function;
@@ -26,7 +26,7 @@ struct Args {
 }
 
 fn run(args: Args) -> Result<(), RpnCalcError> {
-    let interactive_mode = args.stack.len() == 0 || args.interactive;
+    let interactive_mode = args.stack.is_empty() || args.interactive;
 
     let mut rpn_calc = RpnCalc::new();
     for arg in args.stack {

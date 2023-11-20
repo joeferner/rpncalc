@@ -17,7 +17,7 @@ impl FromStr for TemperatureUnits {
     type Err = RpnCalcError;
 
     fn from_str(str: &str) -> Result<Self, Self::Err> {
-        if let Some(prefix) = str.strip_suffix("K") {
+        if let Some(prefix) = str.strip_suffix('K') {
             Ok(TemperatureUnits::Kelvin(SIPrefix::parse(prefix)?))
         } else if str == "C" || str == "°C" {
             Ok(TemperatureUnits::Celsius)

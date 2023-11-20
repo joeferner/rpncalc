@@ -14,7 +14,7 @@ impl FromStr for MassUnits {
     type Err = RpnCalcError;
 
     fn from_str(str: &str) -> Result<Self, Self::Err> {
-        if let Some(prefix) = str.strip_suffix("g") {
+        if let Some(prefix) = str.strip_suffix('g') {
             Ok(MassUnits::Gram(SIPrefix::parse(prefix)?))
         } else {
             Err(RpnCalcError::ParseStackItem("failed to parse".to_string()))

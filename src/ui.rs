@@ -97,7 +97,7 @@ fn redraw(rpn_calc: &RpnCalc, state: &InteractiveState) -> Result<(), RpnCalcErr
             AngleUnits::Radians => "RAD",
         };
 
-        let status_line = format!("{}", angle_mode);
+        let status_line = angle_mode.to_string();
         stdout().queue(Print(status_line))?;
     }
 
@@ -153,8 +153,8 @@ fn handle_key_event(rpn_calc: &mut RpnCalc, state: &mut InteractiveState, key: K
                 }
             }
             KeyCode::Backspace => {
-                if state.input.len() == 0 {
-                    if rpn_calc.stack.items.len() > 0 {
+                if state.input.is_empty() {
+                    if !rpn_calc.stack.items.is_empty() {
                         rpn_calc.push_str("drop")?;
                     }
                 } else if state.cursor_location > 0 {
@@ -162,17 +162,17 @@ fn handle_key_event(rpn_calc: &mut RpnCalc, state: &mut InteractiveState, key: K
                     let mut new_input = state.input[..loc - 1].to_string();
                     new_input.push_str(&state.input[loc..]);
                     state.input = new_input;
-                    state.cursor_location = state.cursor_location - 1;
+                    state.cursor_location -= 1;
                 }
             }
             KeyCode::Left => {
                 if state.cursor_location > 0 {
-                    state.cursor_location = state.cursor_location - 1;
+                    state.cursor_location -= 1;
                 }
             }
             KeyCode::Right => {
                 if state.cursor_location < state.input.len() as u16 {
-                    state.cursor_location = state.cursor_location + 1;
+                    state.cursor_location += 1;
                 }
             }
             _ => state.message = Some(format!("key::{:?}\r", key)),

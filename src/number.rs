@@ -25,7 +25,7 @@ impl Number {
             let magnitude_str = rs_results[1].trim();
             let units_str = rs_results[2].trim();
 
-            if magnitude_str.len() == 0 {
+            if magnitude_str.is_empty() {
                 return Err(RpnCalcError::ParseStackItem(format!("could not parse {}", str)));
             }
 
@@ -156,7 +156,7 @@ impl From<f64> for Number {
 impl Display for Number {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let mut units_str = format!("{}", self.units);
-        if units_str.len() > 0 {
+        if !units_str.is_empty() {
             units_str = format!(" {}", units_str);
         }
         write!(f, "{}{}", self.magnitude, units_str)

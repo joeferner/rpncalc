@@ -58,7 +58,7 @@ pub enum SIPrefix {
 
 impl SIPrefix {
     pub fn parse(str: &str) -> Result<SIPrefix, RpnCalcError> {
-        return if str.len() == 0 {
+        return if str.is_empty() {
             Ok(SIPrefix::None)
         } else if str == "d" {
             Ok(SIPrefix::Deci)

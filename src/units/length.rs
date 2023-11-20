@@ -29,7 +29,7 @@ impl FromStr for LengthUnits {
             Ok(LengthUnits::Foot)
         } else if str == "in" {
             Ok(LengthUnits::Inch)
-        } else if let Some(prefix) = str.strip_suffix("m") {
+        } else if let Some(prefix) = str.strip_suffix('m') {
             Ok(LengthUnits::Meter(SIPrefix::parse(prefix)?))
         } else {
             Err(RpnCalcError::ParseStackItem("failed to parse".to_string()))

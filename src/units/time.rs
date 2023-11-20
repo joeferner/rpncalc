@@ -20,7 +20,7 @@ impl FromStr for TimeUnits {
             Ok(TimeUnits::Minute)
         } else if str == "hour" {
             Ok(TimeUnits::Hour)
-        } else if let Some(prefix) = str.strip_suffix("s") {
+        } else if let Some(prefix) = str.strip_suffix('s') {
             Ok(TimeUnits::Second(SIPrefix::parse(prefix)?))
         } else {
             Err(RpnCalcError::ParseStackItem("failed to parse".to_string()))

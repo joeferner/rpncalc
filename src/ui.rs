@@ -25,6 +25,7 @@ struct InteractiveState {
     message: Option<String>,
     input: String,
     cursor_location: u16,
+    base: u16,
 }
 
 pub fn run_interactive(rpn_calc: RpnCalc) -> Result<(), RpnCalcError> {
@@ -36,6 +37,7 @@ pub fn run_interactive(rpn_calc: RpnCalc) -> Result<(), RpnCalcError> {
         message: None,
         input: "".to_string(),
         cursor_location: 0,
+        base: 10,
     };
 
     enable_raw_mode()?;
@@ -131,8 +133,8 @@ fn redraw(rpn_calc: &RpnCalc, state: &InteractiveState) -> Result<(), RpnCalcErr
 
 fn format_stack_item(display_stack_index: usize, stack_item: &StackItem, state: &InteractiveState) -> String {
     let prefix = format!("{}:", display_stack_index);
-    let stack_item_str = format!("{}", stack_item);
     let width = state.stack_width as usize - prefix.len();
+    let stack_item_str = stack_item.to_string_format(width, state.base);
     let s = format!("{: >width$}", stack_item_str, width = width);
     return format!("{}{}", prefix, s);
 }
@@ -145,7 +147,16 @@ fn handle_key_event(rpn_calc: &mut RpnCalc, state: &mut InteractiveState, key: K
                 state.cursor_location = state.input.len() as u16
             }
             KeyCode::Enter => {
-                if let Err(err) = rpn_calc.push_str(state.input.as_str()) {
+                let str = state.input.trim();
+                if str == "bin" {
+                    state.base = 2;
+                } else if str == "oct" {
+                    state.base = 8;
+                } else if str == "dec" {
+                    state.base = 10;
+                } else if str == "hex" {
+                    state.base = 16;
+                } else if let Err(err) = rpn_calc.push_str(str) {
                     state.message = Some(format!("{}", err));
                 } else {
                     state.cursor_location = 0;

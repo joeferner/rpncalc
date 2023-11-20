@@ -11,6 +11,15 @@ pub enum StackItem {
     Function(Rc<dyn Function>),
 }
 
+impl StackItem {
+    pub fn to_string_format(&self, width: usize, base: u16) -> String {
+        return match self {
+            StackItem::Number(n) => n.to_string_format(width, base),
+            _ => format!("{}", self)
+        };
+    }
+}
+
 impl PartialEq for StackItem {
     fn eq(&self, other: &Self) -> bool {
         return match self {

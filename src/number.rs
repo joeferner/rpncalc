@@ -8,6 +8,7 @@ use crate::units::{degrees_to_radians, AngleUnits};
 use crate::units::{UnitTrait, Units};
 
 pub type MagnitudeType = f64;
+pub type MagnitudeTypeInteger = i64;
 
 pub const MAGNITUDE_TYPE_PI: f64 = PI;
 
@@ -18,6 +19,73 @@ pub struct Number {
 }
 
 impl Number {
+    pub const MAX_DISPLAY_BASE: u8 = 26 + 10; // letters in alphabet + digits
+
+    pub fn to_string_format(&self, width: usize, base: u16) -> String {
+        let mut units_str = format!("{}", self.units);
+        if !units_str.is_empty() {
+            units_str = format!(" {}", units_str);
+        }
+        let number_width = width - units_str.len();
+        let magnitude_str = Self::magnitude_to_string(self.magnitude, number_width, base);
+        return format!("{}{}", magnitude_str, units_str);
+    }
+
+    fn digit_to_char(u: u8) -> char {
+        if u < 10 {
+            return (u + b'0') as char;
+        } else if u < Number::MAX_DISPLAY_BASE {
+            return (u - 10 + b'a') as char;
+        } else {
+            unreachable!("number out of range");
+        }
+    }
+
+    fn magnitude_to_string(n: MagnitudeType, width: usize, base: u16) -> String {
+        let base = base as i64;
+        if base == 10 {
+            return format!("{}", n);
+        }
+        let sign_str = if n >= 0.0 { "" } else { "-" };
+        let n = n.abs();
+        let base_str = match base {
+            2 => "0b".to_string(),
+            8 => "0".to_string(),
+            16 => "0x".to_string(),
+            _ => format!("{}#", base)
+        };
+
+        let mut whole_number = n.floor() as MagnitudeTypeInteger;
+        let mut decimal_number = n - whole_number as MagnitudeType;
+
+        // whole number part
+        let mut whole_number_str = "".to_string();
+        if whole_number == 0 {
+            whole_number_str.push('0');
+        } else {
+            while whole_number > 0 {
+                let digit = whole_number % base;
+                whole_number_str.push(Number::digit_to_char(digit as u8));
+                whole_number = (whole_number - digit) / base;
+            }
+            whole_number_str = whole_number_str.chars().rev().collect::<String>();
+        }
+
+        // decimal part
+        let mut decimal_number_str = "".to_string();
+        if decimal_number > MagnitudeType::EPSILON {
+            decimal_number_str.push('.');
+            while decimal_number > MagnitudeType::EPSILON || decimal_number_str.len() > width {
+                decimal_number = decimal_number * base as MagnitudeType;
+                let digit = decimal_number.floor();
+                decimal_number_str.push(Number::digit_to_char(digit as u8));
+                decimal_number = decimal_number - digit;
+            }
+        }
+
+        return format!("{}{}{}{}", sign_str, base_str, whole_number_str, decimal_number_str);
+    }
+
     pub fn from_str(str: &str) -> Result<Number, RpnCalcError> {
         let re = Regex::new(r"^(-?\d*\.?\d*)(.*)$").unwrap();
         let rs_results = re.captures(str);
@@ -174,4 +242,19 @@ pub fn to_radians(magnitude: MagnitudeType, angle_type: AngleUnits) -> Number {
             units: Units::Angle(AngleUnits::Radians),
         },
     };
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_display_hex() {
+        assert_eq!("0xf1b", Number::from_str("3867").unwrap().to_string_format(1000, 16));
+    }
+
+    #[test]
+    fn test_display_radix() {
+        assert_eq!("4#0.3213", Number::from_str("0.90234375").unwrap().to_string_format(1000, 4));
+    }
 }

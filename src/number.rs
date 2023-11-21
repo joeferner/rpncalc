@@ -41,6 +41,18 @@ impl Number {
         }
     }
 
+    fn char_to_digit(ch: char) -> Result<u8, RpnCalcError> {
+        if ch.is_ascii_digit() {
+            return Ok(ch as u8 - b'0');
+        } else if ch.is_ascii_lowercase() {
+            return Ok(ch as u8 - b'a' + 10);
+        } else if ch.is_ascii_uppercase() {
+            return Ok(ch as u8 - b'A' + 10);
+        } else {
+            return Err(RpnCalcError::GenericError(format!("invalid digit character {}", ch)));
+        }
+    }
+
     fn magnitude_to_string(n: MagnitudeType, width: usize, base: u16) -> String {
         let base = base as i64;
         if base == 10 {
@@ -50,7 +62,7 @@ impl Number {
         let n = n.abs();
         let base_str = match base {
             2 => "0b".to_string(),
-            8 => "0".to_string(),
+            8 => "0o".to_string(),
             16 => "0x".to_string(),
             _ => format!("{}#", base),
         };
@@ -87,8 +99,54 @@ impl Number {
     }
 
     pub fn from_str(str: &str) -> Result<Number, RpnCalcError> {
-        let re = Regex::new(r"^(-?\d*\.?\d*)(.*)$").unwrap();
-        let rs_results = re.captures(str);
+        let mut my_str = str.to_string();
+
+        let negative;
+        if my_str.starts_with('-') {
+            negative = true;
+            my_str = my_str[1..].to_string();
+        } else {
+            negative = false;
+        }
+
+        let mut base = 10;
+        let mut regex = r"^(\d*\.?\d*)(.*)$";
+        if my_str.starts_with("0b") {
+            base = 2;
+            regex = r"^([01]*\.?[01]*)(.*)$";
+            my_str = my_str[2..].to_string();
+        } else if my_str.starts_with("0o") {
+            base = 8;
+            regex = r"^([0-8]*\.?[0-8]*)(.*)$";
+            my_str = my_str[2..].to_string();
+        } else if my_str.starts_with("0x") {
+            base = 16;
+            regex = r"^([0-9a-fA-F]*\.?[0-9a-fA-F]*)(.*)$";
+            my_str = my_str[2..].to_string();
+        } else {
+            let re = Regex::new(r"^([0-9]+)#(.*)$").unwrap();
+            let rs_results = re.captures(my_str.as_str());
+            if let Some(rs_results) = rs_results {
+                let base_str = rs_results[1].trim();
+                let number_str = rs_results[2].trim();
+
+                base = base_str
+                    .parse::<u8>()
+                    .map_err(|_err| RpnCalcError::ParseStackItem(format!("could not parse {}: invalid base", str)))?;
+                if base == 0 || base > Number::MAX_DISPLAY_BASE {
+                    return Err(RpnCalcError::ParseStackItem(format!(
+                        "could not parse {}: invalid base, must be between {} and {}",
+                        str,
+                        1,
+                        Number::MAX_DISPLAY_BASE
+                    )));
+                }
+                regex = r"^([0-9a-zA-Z]*\.?[0-9a-zA-Z]*)(.*)$";
+                my_str = number_str.to_string();
+            }
+        }
+        let re = Regex::new(regex).unwrap();
+        let rs_results = re.captures(my_str.as_str());
         if let Some(rs_results) = rs_results {
             let magnitude_str = rs_results[1].trim();
             let units_str = rs_results[2].trim();
@@ -99,18 +157,62 @@ impl Number {
 
             let units = Units::parse(units_str)?;
 
-            let magnitude = match magnitude_str.parse::<f64>() {
-                Ok(m) => m,
-                Err(_err) => {
-                    return Err(RpnCalcError::ParseStackItem(format!(
-                        "could not parse {} to magnitude",
-                        magnitude_str
-                    )));
-                }
-            };
+            let mut magnitude = Number::parse_magnitude_str(magnitude_str, base).map_err(|err| {
+                RpnCalcError::ParseStackItem(format!("could not parse {} to magnitude: {}", str, err))
+            })?;
+            if negative {
+                magnitude *= -1.0;
+            }
             return Ok(Number { magnitude, units });
         } else {
             return Err(RpnCalcError::ParseStackItem(format!("could not parse {}", str)));
+        }
+    }
+
+    fn parse_magnitude_str(str: &str, base: u8) -> Result<MagnitudeType, RpnCalcError> {
+        if base == 10 {
+            return str
+                .parse::<f64>()
+                .map_err(|err| RpnCalcError::GenericError(format!("{}", err)));
+        } else {
+            let whole_part;
+            let decimal_number;
+            if let Some((a, b)) = str.split_once('.') {
+                whole_part = a;
+                decimal_number = b;
+            } else {
+                whole_part = str;
+                decimal_number = "";
+            }
+
+            let mut result: MagnitudeType = 0.0;
+            let mut multiplier: MagnitudeType = 1.0;
+            for ch in whole_part.chars().rev() {
+                let digit = Number::char_to_digit(ch)?;
+                if digit >= base {
+                    return Err(RpnCalcError::GenericError(format!(
+                        "expected digit less than {} but found {}",
+                        base, digit
+                    )));
+                }
+                result += digit as MagnitudeType * multiplier;
+                multiplier *= base as MagnitudeType;
+            }
+
+            multiplier = 1.0 / base as MagnitudeType;
+            for ch in decimal_number.chars() {
+                let digit = Number::char_to_digit(ch)?;
+                if digit >= base {
+                    return Err(RpnCalcError::GenericError(format!(
+                        "expected digit less than {} but found {}",
+                        base, digit
+                    )));
+                }
+                result += digit as MagnitudeType * multiplier;
+                multiplier /= base as MagnitudeType;
+            }
+
+            return Ok(result);
         }
     }
 
@@ -247,10 +349,54 @@ pub fn to_radians(magnitude: MagnitudeType, angle_type: AngleUnits) -> Number {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use approx::assert_relative_eq;
+
+    #[test]
+    fn test_display_binary() {
+        assert_eq!(
+            "0b111100011011.1011",
+            Number::from_str("3867.6875").unwrap().to_string_format(1000, 2)
+        );
+        assert_eq!(
+            "-0b111100011011.1011",
+            Number::from_str("-3867.6875").unwrap().to_string_format(1000, 2)
+        );
+    }
+
+    #[test]
+    fn test_parse_binary() {
+        assert_eq!(3867.6875, Number::from_str("0b111100011011.1011").unwrap().magnitude);
+        assert_eq!(-3867.6875, Number::from_str("-0b111100011011.1011").unwrap().magnitude);
+    }
+
+    #[test]
+    fn test_display_octal() {
+        assert_eq!("0o7433", Number::from_str("3867").unwrap().to_string_format(1000, 8));
+        assert_eq!("-0o7433", Number::from_str("-3867").unwrap().to_string_format(1000, 8));
+    }
+
+    #[test]
+    fn test_parse_octal() {
+        assert_eq!(3867.0, Number::from_str("0o7433").unwrap().magnitude);
+        assert_eq!(-3867.0, Number::from_str("-0o7433").unwrap().magnitude);
+    }
 
     #[test]
     fn test_display_hex() {
-        assert_eq!("0xf1b", Number::from_str("3867").unwrap().to_string_format(1000, 16));
+        assert_eq!(
+            "0xf1a.b",
+            Number::from_str("3866.6875").unwrap().to_string_format(1000, 16)
+        );
+        assert_eq!(
+            "-0xf1a.b",
+            Number::from_str("-3866.6875").unwrap().to_string_format(1000, 16)
+        );
+    }
+
+    #[test]
+    fn test_parse_hex() {
+        assert_eq!(3866.6875, Number::from_str("0xf1a.b").unwrap().magnitude);
+        assert_eq!(-3866.6875, Number::from_str("-0xf1a.b").unwrap().magnitude);
     }
 
     #[test]
@@ -259,5 +405,15 @@ mod tests {
             "4#0.3213",
             Number::from_str("0.90234375").unwrap().to_string_format(1000, 4)
         );
+        assert_eq!(
+            "-4#0.3213",
+            Number::from_str("-0.90234375").unwrap().to_string_format(1000, 4)
+        );
+    }
+
+    #[test]
+    fn test_parse_radix() {
+        assert_relative_eq!(0.90234375, Number::from_str("4#0.3213").unwrap().magnitude);
+        assert_relative_eq!(-0.90234375, Number::from_str("-4#0.3213").unwrap().magnitude);
     }
 }

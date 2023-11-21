@@ -3,6 +3,8 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum RpnCalcError {
+    #[error("{0}")]
+    GenericError(String),
     #[error("parse stack item: {0}")]
     ParseStackItem(String),
     #[error("not enough arguments")]
@@ -22,6 +24,10 @@ pub enum RpnCalcError {
 impl PartialEq for RpnCalcError {
     fn eq(&self, other: &Self) -> bool {
         return match self {
+            RpnCalcError::GenericError(str) => match other {
+                RpnCalcError::GenericError(other_str) => str == other_str,
+                _ => false,
+            },
             RpnCalcError::ParseStackItem(str) => match other {
                 RpnCalcError::ParseStackItem(other_str) => str == other_str,
                 _ => false,

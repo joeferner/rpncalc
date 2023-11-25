@@ -23,4 +23,11 @@ impl Function for Degrees {
         rpn_calc.angle_mode = AngleUnits::Degrees;
         return Ok(());
     }
+
+    fn get_help(&self) -> String {
+        return "Sets the current angle mode to degrees. Functions taking angles will assume the \
+            given angle is in degrees. Functions returning angles will return the angle in \
+            degrees."
+            .to_string();
+    }
 }

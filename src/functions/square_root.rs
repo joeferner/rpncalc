@@ -27,4 +27,8 @@ impl Function for SquareRoot {
             return Ok(());
         });
     }
+
+    fn get_help(&self) -> String {
+        return "Take the square root of the top item on the stack".to_string();
+    }
 }

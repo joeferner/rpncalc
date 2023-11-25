@@ -26,4 +26,8 @@ impl Function for Sin {
             return Ok(());
         });
     }
+
+    fn get_help(&self) -> String {
+        return "Calculates the sine of the top item on the stack using the current angle mode".to_string();
+    }
 }

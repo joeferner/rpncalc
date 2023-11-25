@@ -26,4 +26,8 @@ impl Function for Pow {
             return Ok(());
         });
     }
+
+    fn get_help(&self) -> String {
+        return "Raise the second item on the stack to the first item on the stack.".to_string();
+    }
 }

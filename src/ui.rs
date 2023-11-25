@@ -1,13 +1,15 @@
 use crate::error::RpnCalcError;
 use crate::rpn_calc::RpnCalc;
 use crate::stack_item::StackItem;
+use crate::ui_less::Less;
 use crate::units::AngleUnits;
 use crossterm::event::{KeyEvent, KeyEventKind, KeyModifiers};
 use crossterm::style::Print;
-use crossterm::terminal::{Clear, ClearType};
+use crossterm::terminal::{Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen};
 use crossterm::{
     cursor,
     event::{read, Event, KeyCode},
+    execute,
     terminal::{disable_raw_mode, enable_raw_mode},
     QueueableCommand,
 };
@@ -26,6 +28,22 @@ struct InteractiveState {
     input: String,
     cursor_location: u16,
     base: u16,
+    help: Option<Less>,
+}
+
+impl InteractiveState {
+    pub fn clear_input(&mut self) -> () {
+        self.cursor_location = 0;
+        self.input = "".to_string();
+    }
+
+    pub fn get_top(&self) -> u16 {
+        // header (1)
+        // stack (stack height)
+        // prompt (1)
+        // buffer (1) - to prevent enter key from causing a new line
+        return (self.console_height as i16 - 1 - self.stack_height as i16 - 1 - 1).max(4) as u16;
+    }
 }
 
 pub fn run_interactive(rpn_calc: RpnCalc) -> Result<(), RpnCalcError> {
@@ -38,6 +56,7 @@ pub fn run_interactive(rpn_calc: RpnCalc) -> Result<(), RpnCalcError> {
         input: "".to_string(),
         cursor_location: 0,
         base: 10,
+        help: None,
     };
 
     enable_raw_mode()?;
@@ -55,14 +74,29 @@ fn run_loop(mut rpn_calc: RpnCalc, mut state: InteractiveState) -> Result<(), Rp
                 if key.modifiers == KeyModifiers::CONTROL && key.code == KeyCode::Char('c') {
                     break;
                 }
-                handle_key_event(&mut rpn_calc, &mut state, key)?;
+                if let Some(help) = state.help.as_mut() {
+                    if matches!(help.key_event(key)?, HandleKeyEventResult::Exit) {
+                        execute!(stdout(), LeaveAlternateScreen)?;
+                        state.help = None;
+                        redraw(&rpn_calc, &state)?;
+                    }
+                } else if matches!(
+                    handle_key_event(&mut rpn_calc, &mut state, key)?,
+                    HandleKeyEventResult::Exit
+                ) {
+                    break;
+                }
             }
             Event::Resize(width, height) => {
                 state.console_width = width;
                 state.console_height = height;
                 state.stack_width = min(width, DEFAULT_STACK_WIDTH);
                 state.stack_height = min(height - 2, DEFAULT_STACK_HEIGHT);
-                redraw(&rpn_calc, &state)?;
+                if let Some(help) = state.help.as_mut() {
+                    help.resize(width, height)?;
+                } else {
+                    redraw(&rpn_calc, &state)?;
+                }
             }
             other => {
                 println!("Event::{:?}\r", other);
@@ -72,20 +106,16 @@ fn run_loop(mut rpn_calc: RpnCalc, mut state: InteractiveState) -> Result<(), Rp
     return Ok(());
 }
 
-fn get_top(state: &InteractiveState) -> u16 {
-    // header (1)
-    // stack (stack height)
-    // prompt (1)
-    // buffer (1) - to prevent enter key from causing a new line
-    return state.console_height - 1 - state.stack_height - 1 - 1;
-}
-
 fn redraw(rpn_calc: &RpnCalc, state: &InteractiveState) -> Result<(), RpnCalcError> {
     if state.console_width == 0 && state.console_height == 0 {
         return Ok(());
     }
 
-    let top = get_top(state);
+    if let Some(help) = &state.help {
+        return help.redraw();
+    }
+
+    let top = state.get_top();
 
     // draw header line
     stdout().queue(cursor::MoveTo(0, top))?;
@@ -99,7 +129,17 @@ fn redraw(rpn_calc: &RpnCalc, state: &InteractiveState) -> Result<(), RpnCalcErr
             AngleUnits::Radians => "RAD",
         };
 
-        let status_line = angle_mode.to_string();
+        // draw base
+        let base_str = match state.base {
+            2 => "BIN".to_string(),
+            8 => "OCT".to_string(),
+            10 => "DEC".to_string(),
+            16 => "HEX".to_string(),
+            _ => format!("BASE{}", state.base),
+        };
+
+        let status_line = format!("{} {}", angle_mode, base_str);
+
         stdout().queue(Print(status_line))?;
     }
 
@@ -139,7 +179,16 @@ fn format_stack_item(display_stack_index: usize, stack_item: &StackItem, state: 
     return format!("{}{}", prefix, s);
 }
 
-fn handle_key_event(rpn_calc: &mut RpnCalc, state: &mut InteractiveState, key: KeyEvent) -> Result<(), RpnCalcError> {
+pub enum HandleKeyEventResult {
+    Exit,
+    Continue,
+}
+
+fn handle_key_event(
+    rpn_calc: &mut RpnCalc,
+    state: &mut InteractiveState,
+    key: KeyEvent,
+) -> Result<HandleKeyEventResult, RpnCalcError> {
     if key.kind == KeyEventKind::Press {
         match key.code {
             KeyCode::Char(ch) => {
@@ -148,7 +197,17 @@ fn handle_key_event(rpn_calc: &mut RpnCalc, state: &mut InteractiveState, key: K
             }
             KeyCode::Enter => {
                 let str = state.input.trim();
-                if str == "bin" {
+                if str == "exit" || str == "quit" {
+                    return Ok(HandleKeyEventResult::Exit);
+                } else if str == "help" {
+                    execute!(stdout(), EnterAlternateScreen)?;
+                    state.clear_input();
+                    state.help = Some(Less::new(
+                        state.console_width,
+                        state.console_height,
+                        create_help_string(rpn_calc),
+                    ));
+                } else if str == "bin" {
                     state.base = 2;
                 } else if str == "oct" {
                     state.base = 8;
@@ -159,8 +218,7 @@ fn handle_key_event(rpn_calc: &mut RpnCalc, state: &mut InteractiveState, key: K
                 } else if let Err(err) = rpn_calc.push_str(str) {
                     state.message = Some(format!("{}", err));
                 } else {
-                    state.cursor_location = 0;
-                    state.input = "".to_string();
+                    state.clear_input();
                 }
             }
             KeyCode::Backspace => {
@@ -190,5 +248,26 @@ fn handle_key_event(rpn_calc: &mut RpnCalc, state: &mut InteractiveState, key: K
         }
         redraw(rpn_calc, state)?;
     }
-    return Ok(());
+    return Ok(HandleKeyEventResult::Continue);
+}
+
+fn create_help_string(rpn_calc: &RpnCalc) -> String {
+    let mut result = "".to_string();
+
+    // function list
+    result.push_str("Functions\n");
+    result.push_str("=========\n");
+    let mut longest_function_name = 0;
+    for key in rpn_calc.functions.keys() {
+        longest_function_name = longest_function_name.max(key.len());
+    }
+    let mut function_keys: Vec<_> = rpn_calc.functions.keys().collect();
+    function_keys.sort();
+    for key in function_keys {
+        let fn_help = rpn_calc.functions.get(key).unwrap().get_help();
+        let key_str = format!("{: >width$}", key, width = longest_function_name);
+        result.push_str(format!(" {} {}\n", key_str, fn_help).as_str());
+    }
+
+    return result;
 }

@@ -26,4 +26,8 @@ impl Function for Tan {
             return Ok(());
         });
     }
+
+    fn get_help(&self) -> String {
+        return "Calculates the tangent of the top item on the stack using the current angle mode".to_string();
+    }
 }

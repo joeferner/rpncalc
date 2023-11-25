@@ -26,4 +26,8 @@ impl Function for Add {
             return Ok(());
         });
     }
+
+    fn get_help(&self) -> String {
+        return "Add the top two items on the stack".to_string();
+    }
 }

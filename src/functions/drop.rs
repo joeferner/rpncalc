@@ -22,4 +22,8 @@ impl Function for Drop {
         rpn_calc.pop()?;
         return Ok(());
     }
+
+    fn get_help(&self) -> String {
+        return "Drop the top item on the stack.".to_string();
+    }
 }

@@ -26,4 +26,8 @@ impl Function for Divide {
             return Ok(());
         });
     }
+
+    fn get_help(&self) -> String {
+        return "Divides the top two items on the stack".to_string();
+    }
 }

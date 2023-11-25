@@ -20,7 +20,7 @@ use std::rc::Rc;
 pub struct RpnCalc {
     pub stack: Stack,
     pub angle_mode: AngleUnits,
-    functions: HashMap<String, Rc<dyn Function>>,
+    pub functions: HashMap<String, Rc<dyn Function>>,
 }
 
 impl RpnCalc {

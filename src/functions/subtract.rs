@@ -26,4 +26,8 @@ impl Function for Subtract {
             return Ok(());
         });
     }
+
+    fn get_help(&self) -> String {
+        return "Subtract the top two items on the stack".to_string();
+    }
 }

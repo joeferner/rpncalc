@@ -23,4 +23,11 @@ impl Function for Radians {
         rpn_calc.angle_mode = AngleUnits::Radians;
         return Ok(());
     }
+
+    fn get_help(&self) -> String {
+        return "Sets the current angle mode to radians. Functions taking angles will assume the \
+            given angle is in radians. Functions returning angles will return the angle in \
+            radians."
+            .to_string();
+    }
 }

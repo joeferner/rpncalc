@@ -1,5 +1,6 @@
 use crate::error::RpnCalcError;
-use crate::function::Function;
+use crate::functions::function::Function;
+use crate::functions::Category;
 use crate::number::Number;
 use crate::rpn_calc::RpnCalc;
 use crate::stack_item::StackItem;
@@ -30,5 +31,9 @@ impl Function for SquareRoot {
 
     fn get_help(&self) -> String {
         return "Take the square root of the top item on the stack".to_string();
+    }
+
+    fn get_category(&self) -> Category {
+        return Category::Arithmetic;
     }
 }

@@ -1,5 +1,6 @@
 use crate::error::RpnCalcError;
-use crate::function::Function;
+use crate::functions::function::Function;
+use crate::functions::Category;
 use crate::rpn_calc::RpnCalc;
 use crate::stack_item::StackItem;
 use std::fmt::{Display, Formatter};
@@ -29,5 +30,8 @@ impl Function for Sin {
 
     fn get_help(&self) -> String {
         return "Calculates the sine of the top item on the stack using the current angle mode".to_string();
+    }
+    fn get_category(&self) -> Category {
+        return Category::Trig;
     }
 }

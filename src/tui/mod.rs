@@ -2,6 +2,7 @@ mod less;
 mod nroff;
 
 use crate::error::RpnCalcError;
+use crate::functions::Category;
 use crate::rpn_calc::RpnCalc;
 use crate::stack_item::StackItem;
 use crate::tui::less::Less;
@@ -259,9 +260,17 @@ fn handle_key_event(
 
 fn create_help_string(rpn_calc: &RpnCalc) -> String {
     let mut result = "".to_string();
+    result.push_str(create_function_help_string(rpn_calc, Category::Arithmetic, "ARITHMETIC").as_str());
+    result.push_str(create_function_help_string(rpn_calc, Category::Base, "BASE").as_str());
+    result.push_str(create_function_help_string(rpn_calc, Category::Stack, "STACK").as_str());
+    result.push_str(create_function_help_string(rpn_calc, Category::Trig, "TRIG").as_str());
+    return result;
+}
 
-    // function list
-    result.push_str(".SH FUNCTIONS\n");
+fn create_function_help_string(rpn_calc: &RpnCalc, category: Category, category_str: &str) -> String {
+    let mut result = "".to_string();
+
+    result.push_str(format!(".SH {} FUNCTIONS\n", category_str).as_str());
     let mut seen_keys: HashSet<String> = HashSet::new();
     let mut function_keys: Vec<_> = rpn_calc.functions.keys().collect();
     function_keys.sort();
@@ -272,6 +281,9 @@ fn create_help_string(rpn_calc: &RpnCalc) -> String {
         }
         seen_keys.insert(key.clone());
         let f = rpn_calc.functions.get(key).unwrap();
+        if f.get_category() != category {
+            continue;
+        }
         let mut key_str = key.to_string();
 
         // find function aliases
@@ -292,6 +304,7 @@ fn create_help_string(rpn_calc: &RpnCalc) -> String {
         result.push_str(format!("{}\n", fn_help).as_str());
     }
     result.push_str(".RE\n");
+    result.push('\n');
 
     return result;
 }

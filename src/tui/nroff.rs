@@ -19,6 +19,8 @@ pub fn nroff_format(text: &str, width: usize) -> String {
             indent = 5;
         } else if line.starts_with(".RE") {
             indent = 0.max(indent - 5);
+        } else if line.is_empty() {
+            results.push('\n');
         } else {
             for part in split_line(line, (width - indent).max(20)) {
                 results.push_str(format!("{}{}", " ".repeat(indent), part).as_str());

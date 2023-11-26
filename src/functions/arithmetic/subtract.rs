@@ -1,33 +1,37 @@
 use crate::error::RpnCalcError;
-use crate::function::Function;
+use crate::functions::function::Function;
+use crate::functions::Category;
 use crate::rpn_calc::RpnCalc;
 use crate::stack_item::StackItem;
 use std::fmt::{Display, Formatter};
 
-pub struct Add {}
+pub struct Subtract {}
 
-impl Add {
+impl Subtract {
     pub fn new() -> Self {
-        return Add {};
+        return Subtract {};
     }
 }
 
-impl Display for Add {
+impl Display for Subtract {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "add")
+        write!(f, "sub")
     }
 }
 
-impl Function for Add {
+impl Function for Subtract {
     fn apply(&self, rpn_calc: &mut RpnCalc) -> Result<(), RpnCalcError> {
         return rpn_calc.execute_binary_number_operator(|rpn_calc, a, b| {
-            let result = a.add(&b)?;
+            let result = a.subtract(&b)?;
             rpn_calc.push(StackItem::Number(result));
             return Ok(());
         });
     }
 
     fn get_help(&self) -> String {
-        return "Add the top two items on the stack".to_string();
+        return "Subtract the top two items on the stack".to_string();
+    }
+    fn get_category(&self) -> Category {
+        return Category::Arithmetic;
     }
 }

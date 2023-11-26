@@ -1,4 +1,4 @@
-use crate::function::Function;
+use crate::functions::Function;
 use crate::number::Number;
 use std::fmt;
 use std::fmt::{Debug, Display, Formatter};

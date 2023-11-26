@@ -6,7 +6,6 @@ use color_eyre::eyre;
 use std::process;
 
 mod error;
-mod function;
 mod functions;
 mod number;
 mod rpn_calc;

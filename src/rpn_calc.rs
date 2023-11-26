@@ -1,15 +1,6 @@
 use crate::error::RpnCalcError;
-use crate::function::Function;
 use crate::functions;
-use crate::functions::Add;
-use crate::functions::Cos;
-use crate::functions::Divide;
-use crate::functions::Multiply;
-use crate::functions::Pow;
-use crate::functions::Sin;
-use crate::functions::SquareRoot;
-use crate::functions::Subtract;
-use crate::functions::Tan;
+use crate::functions::Function;
 use crate::number::Number;
 use crate::stack::Stack;
 use crate::stack_item::StackItem;
@@ -28,40 +19,44 @@ impl RpnCalc {
     pub fn new() -> Self {
         let mut functions: HashMap<String, Rc<dyn Function>> = HashMap::new();
 
-        let add = Rc::new(Add::new());
+        // arithmetic
+        let add = Rc::new(functions::arithmetic::Add::new());
         functions.insert("add".to_string(), add.clone());
         functions.insert("+".to_string(), add.clone());
 
-        let subtract = Rc::new(Subtract::new());
+        let subtract = Rc::new(functions::arithmetic::Subtract::new());
         functions.insert("sub".to_string(), subtract.clone());
         functions.insert("-".to_string(), subtract.clone());
 
-        let multiply = Rc::new(Multiply::new());
+        let multiply = Rc::new(functions::arithmetic::Multiply::new());
         functions.insert("mul".to_string(), multiply.clone());
         functions.insert("*".to_string(), multiply.clone());
 
-        let divide = Rc::new(Divide::new());
+        let divide = Rc::new(functions::arithmetic::Divide::new());
         functions.insert("div".to_string(), divide.clone());
         functions.insert("/".to_string(), divide.clone());
 
-        let pow = Rc::new(Pow::new());
+        let pow = Rc::new(functions::arithmetic::Pow::new());
         functions.insert("pow".to_string(), pow.clone());
         functions.insert("^".to_string(), pow.clone());
 
-        functions.insert("sin".to_string(), Rc::new(Sin::new()));
-        functions.insert("cos".to_string(), Rc::new(Cos::new()));
-        functions.insert("tan".to_string(), Rc::new(Tan::new()));
+        functions.insert("sqrt".to_string(), Rc::new(functions::arithmetic::SquareRoot::new()));
 
-        functions.insert("deg".to_string(), Rc::new(functions::Degrees::new()));
-        functions.insert("rad".to_string(), Rc::new(functions::Radians::new()));
-
-        functions.insert("sqrt".to_string(), Rc::new(SquareRoot::new()));
-        functions.insert("drop".to_string(), Rc::new(functions::Drop::new()));
-
+        // base
         functions.insert("bin".to_string(), Rc::new(functions::base::Binary::new()));
         functions.insert("oct".to_string(), Rc::new(functions::base::Octal::new()));
         functions.insert("dec".to_string(), Rc::new(functions::base::Decimal::new()));
         functions.insert("hex".to_string(), Rc::new(functions::base::Hexidecimal::new()));
+
+        // stack
+        functions.insert("drop".to_string(), Rc::new(functions::stack::Drop::new()));
+
+        // trig
+        functions.insert("sin".to_string(), Rc::new(functions::trig::Sin::new()));
+        functions.insert("cos".to_string(), Rc::new(functions::trig::Cos::new()));
+        functions.insert("tan".to_string(), Rc::new(functions::trig::Tan::new()));
+        functions.insert("deg".to_string(), Rc::new(functions::trig::Degrees::new()));
+        functions.insert("rad".to_string(), Rc::new(functions::trig::Radians::new()));
 
         return RpnCalc {
             stack: Stack::new(),

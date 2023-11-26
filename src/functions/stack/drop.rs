@@ -1,5 +1,6 @@
 use crate::error::RpnCalcError;
-use crate::function::Function;
+use crate::functions::function::Function;
+use crate::functions::Category;
 use crate::rpn_calc::RpnCalc;
 use std::fmt::{Display, Formatter};
 
@@ -28,5 +29,9 @@ impl Function for Drop {
 
     fn get_help(&self) -> String {
         return "Drop the top item on the stack.".to_string();
+    }
+
+    fn get_category(&self) -> Category {
+        return Category::Stack;
     }
 }

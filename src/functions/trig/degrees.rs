@@ -1,5 +1,6 @@
 use crate::error::RpnCalcError;
-use crate::function::Function;
+use crate::functions::function::Function;
+use crate::functions::Category;
 use crate::rpn_calc::RpnCalc;
 use crate::units::AngleUnits;
 use std::fmt::{Display, Formatter};
@@ -29,5 +30,8 @@ impl Function for Degrees {
             given angle is in degrees. Functions returning angles will return the angle in \
             degrees."
             .to_string();
+    }
+    fn get_category(&self) -> Category {
+        return Category::Trig;
     }
 }

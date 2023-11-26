@@ -55,7 +55,7 @@ impl Less {
     }
 
     pub fn scroll_absolute(&mut self, pos: usize) -> Result<(), RpnCalcError> {
-        let new_pos = (pos as i32).min(self.lines.len() as i32 - self.height as i32) as usize;
+        let new_pos = (pos as i32).min(self.lines.len() as i32 - self.height as i32).max(0) as usize;
         if self.scroll_pos != new_pos {
             self.scroll_pos = new_pos;
             self.redraw()?;
@@ -72,8 +72,10 @@ impl Less {
     }
 
     pub fn redraw(&self) -> Result<(), RpnCalcError> {
-        for i in 0..self.height - 1 {
-            let line_index = self.scroll_pos + i as usize;
+        let height = self.height.max(1) - 1;
+        for i in 0..height {
+            let i_usize = i as usize;
+            let line_index = self.scroll_pos + i_usize;
             stdout().queue(cursor::MoveTo(0, i))?;
             stdout().queue(Clear(ClearType::CurrentLine))?;
             if line_index < self.lines.len() {

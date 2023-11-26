@@ -1,5 +1,5 @@
 use crate::error::RpnCalcError;
-use crate::ui::HandleKeyEventResult;
+use crate::tui::HandleKeyEventResult;
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind};
 use crossterm::style::Print;
 use crossterm::terminal::{Clear, ClearType};

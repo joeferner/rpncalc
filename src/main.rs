@@ -1,6 +1,6 @@
 use crate::error::RpnCalcError;
 use crate::rpn_calc::RpnCalc;
-use crate::ui::run_interactive;
+use crate::tui::run_tui;
 use clap::Parser;
 use color_eyre::eyre;
 use std::process;
@@ -12,8 +12,7 @@ mod number;
 mod rpn_calc;
 mod stack;
 mod stack_item;
-mod ui;
-mod ui_less;
+mod tui;
 mod units;
 
 #[derive(Parser, Debug)]
@@ -35,7 +34,7 @@ fn run(args: Args) -> Result<(), RpnCalcError> {
     }
 
     if interactive_mode {
-        run_interactive(rpn_calc)?;
+        run_tui(rpn_calc)?;
     } else {
         for stack_item in &rpn_calc.stack.items {
             println!("{}", rpn_calc.format_stack_item(stack_item));

@@ -1,7 +1,9 @@
+mod less;
+
 use crate::error::RpnCalcError;
 use crate::rpn_calc::RpnCalc;
 use crate::stack_item::StackItem;
-use crate::ui_less::Less;
+use crate::tui::less::Less;
 use crate::units::AngleUnits;
 use crossterm::event::{KeyEvent, KeyEventKind, KeyModifiers};
 use crossterm::style::Print;
@@ -46,7 +48,7 @@ impl InteractiveState {
     }
 }
 
-pub fn run_interactive(rpn_calc: RpnCalc) -> Result<(), RpnCalcError> {
+pub fn run_tui(rpn_calc: RpnCalc) -> Result<(), RpnCalcError> {
     let state = InteractiveState {
         console_width: 0,
         console_height: 0,
@@ -199,7 +201,7 @@ fn handle_key_event(
                 let str = state.input.trim();
                 if str == "exit" || str == "quit" {
                     return Ok(HandleKeyEventResult::Exit);
-                } else if str == "help" {
+                } else if str == "help" || str == "?" {
                     execute!(stdout(), EnterAlternateScreen)?;
                     state.clear_input();
                     state.help = Some(Less::new(

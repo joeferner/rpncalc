@@ -1,4 +1,5 @@
 mod add;
+pub mod base;
 mod cos;
 mod degrees;
 mod divide;

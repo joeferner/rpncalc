@@ -32,7 +32,6 @@ struct InteractiveState {
     message: Option<String>,
     input: String,
     cursor_location: u16,
-    base: u16,
     help: Option<Less>,
 }
 
@@ -61,7 +60,6 @@ pub fn run_tui(rpn_calc: RpnCalc) -> Result<(), RpnCalcError> {
         message: None,
         input: "".to_string(),
         cursor_location: 0,
-        base: 10,
         help: None,
     };
 
@@ -139,12 +137,12 @@ fn redraw(rpn_calc: &RpnCalc, state: &InteractiveState) -> Result<(), RpnCalcErr
         };
 
         // draw base
-        let base_str = match state.base {
+        let base_str = match rpn_calc.base {
             2 => "BIN".to_string(),
             8 => "OCT".to_string(),
             10 => "DEC".to_string(),
             16 => "HEX".to_string(),
-            _ => format!("BASE{}", state.base),
+            _ => format!("BASE{}", rpn_calc.base),
         };
 
         let status_line = format!("{} {}", angle_mode, base_str);
@@ -163,7 +161,7 @@ fn redraw(rpn_calc: &RpnCalc, state: &InteractiveState) -> Result<(), RpnCalcErr
             stack_item = rpn_calc.stack.items.get(stack_index as usize);
         }
         let stack_item_str = match stack_item {
-            Some(stack_item) => format_stack_item(stack_offset, stack_item, state),
+            Some(stack_item) => format_stack_item(stack_offset, stack_item, rpn_calc, state),
             None => format!("{}:", stack_offset),
         };
         stdout().queue(Print(stack_item_str))?;
@@ -180,10 +178,15 @@ fn redraw(rpn_calc: &RpnCalc, state: &InteractiveState) -> Result<(), RpnCalcErr
     return Ok(());
 }
 
-fn format_stack_item(display_stack_index: usize, stack_item: &StackItem, state: &InteractiveState) -> String {
+fn format_stack_item(
+    display_stack_index: usize,
+    stack_item: &StackItem,
+    rpn_calc: &RpnCalc,
+    state: &InteractiveState,
+) -> String {
     let prefix = format!("{}:", display_stack_index);
     let width = state.stack_width as usize - prefix.len();
-    let stack_item_str = stack_item.to_string_format(width, state.base);
+    let stack_item_str = stack_item.to_string_format(width, rpn_calc.base);
     let s = format!("{: >width$}", stack_item_str, width = width);
     return format!("{}{}", prefix, s);
 }
@@ -218,18 +221,6 @@ fn handle_key_event(
                         state.console_height,
                         create_help_string(rpn_calc),
                     ));
-                } else if str == "bin" {
-                    state.base = 2;
-                    state.clear_input();
-                } else if str == "oct" {
-                    state.base = 8;
-                    state.clear_input();
-                } else if str == "dec" {
-                    state.base = 10;
-                    state.clear_input();
-                } else if str == "hex" {
-                    state.base = 16;
-                    state.clear_input();
                 } else if let Err(err) = rpn_calc.push_str(str) {
                     state.message = Some(format!("{}", err));
                 } else {

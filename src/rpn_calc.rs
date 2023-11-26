@@ -20,6 +20,7 @@ use std::rc::Rc;
 pub struct RpnCalc {
     pub stack: Stack,
     pub angle_mode: AngleUnits,
+    pub base: u16,
     pub functions: HashMap<String, Rc<dyn Function>>,
 }
 
@@ -57,9 +58,15 @@ impl RpnCalc {
         functions.insert("sqrt".to_string(), Rc::new(SquareRoot::new()));
         functions.insert("drop".to_string(), Rc::new(functions::Drop::new()));
 
+        functions.insert("bin".to_string(), Rc::new(functions::base::Binary::new()));
+        functions.insert("oct".to_string(), Rc::new(functions::base::Octal::new()));
+        functions.insert("dec".to_string(), Rc::new(functions::base::Decimal::new()));
+        functions.insert("hex".to_string(), Rc::new(functions::base::Hexidecimal::new()));
+
         return RpnCalc {
             stack: Stack::new(),
             angle_mode: AngleUnits::Degrees,
+            base: 10,
             functions,
         };
     }

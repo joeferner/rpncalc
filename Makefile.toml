@@ -66,4 +66,4 @@ dependencies = ["build"]
 
 [tasks.pre-commit]
 description = "Run pre-commit tasks."
-dependencies = ["format", "lint", "test"]
+dependencies = ["format-ci", "lint", "test"]

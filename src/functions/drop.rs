@@ -19,6 +19,9 @@ impl Display for Drop {
 
 impl Function for Drop {
     fn apply(&self, rpn_calc: &mut RpnCalc) -> Result<(), RpnCalcError> {
+        if rpn_calc.stack.items.is_empty() {
+            return Err(RpnCalcError::NotEnoughArguments);
+        }
         rpn_calc.pop()?;
         return Ok(());
     }

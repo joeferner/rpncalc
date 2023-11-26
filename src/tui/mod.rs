@@ -1,4 +1,5 @@
 mod less;
+mod nroff;
 
 use crate::error::RpnCalcError;
 use crate::rpn_calc::RpnCalc;
@@ -7,7 +8,7 @@ use crate::tui::less::Less;
 use crate::units::AngleUnits;
 use crossterm::event::{KeyEvent, KeyEventKind, KeyModifiers};
 use crossterm::style::Print;
-use crossterm::terminal::{Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen};
+use crossterm::terminal::{size, Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen};
 use crossterm::{
     cursor,
     event::{read, Event, KeyCode},
@@ -16,7 +17,9 @@ use crossterm::{
     QueueableCommand,
 };
 use std::cmp::min;
+use std::collections::HashSet;
 use std::io::{stdout, Write};
+use std::rc::Rc;
 
 const DEFAULT_STACK_HEIGHT: u16 = 8;
 const DEFAULT_STACK_WIDTH: u16 = 20;
@@ -49,9 +52,10 @@ impl InteractiveState {
 }
 
 pub fn run_tui(rpn_calc: RpnCalc) -> Result<(), RpnCalcError> {
+    let (width, height) = size()?;
     let state = InteractiveState {
-        console_width: 0,
-        console_height: 0,
+        console_width: width,
+        console_height: height,
         stack_height: DEFAULT_STACK_HEIGHT,
         stack_width: DEFAULT_STACK_WIDTH,
         message: None,
@@ -61,6 +65,10 @@ pub fn run_tui(rpn_calc: RpnCalc) -> Result<(), RpnCalcError> {
         help: None,
     };
 
+    for _ in 0..state.stack_height + 2 {
+        println!();
+    }
+
     enable_raw_mode()?;
     run_loop(rpn_calc, state)?;
     disable_raw_mode()?;
@@ -68,6 +76,7 @@ pub fn run_tui(rpn_calc: RpnCalc) -> Result<(), RpnCalcError> {
 }
 
 fn run_loop(mut rpn_calc: RpnCalc, mut state: InteractiveState) -> Result<(), RpnCalcError> {
+    redraw(&rpn_calc, &state)?;
     loop {
         let event = read()?;
 
@@ -100,9 +109,7 @@ fn run_loop(mut rpn_calc: RpnCalc, mut state: InteractiveState) -> Result<(), Rp
                     redraw(&rpn_calc, &state)?;
                 }
             }
-            other => {
-                println!("Event::{:?}\r", other);
-            }
+            _ => {}
         }
     }
     return Ok(());
@@ -192,6 +199,8 @@ fn handle_key_event(
     key: KeyEvent,
 ) -> Result<HandleKeyEventResult, RpnCalcError> {
     if key.kind == KeyEventKind::Press {
+        state.message = None;
+
         match key.code {
             KeyCode::Char(ch) => {
                 state.input.push(ch);
@@ -211,12 +220,16 @@ fn handle_key_event(
                     ));
                 } else if str == "bin" {
                     state.base = 2;
+                    state.clear_input();
                 } else if str == "oct" {
                     state.base = 8;
+                    state.clear_input();
                 } else if str == "dec" {
                     state.base = 10;
+                    state.clear_input();
                 } else if str == "hex" {
                     state.base = 16;
+                    state.clear_input();
                 } else if let Err(err) = rpn_calc.push_str(str) {
                     state.message = Some(format!("{}", err));
                 } else {
@@ -246,7 +259,7 @@ fn handle_key_event(
                     state.cursor_location += 1;
                 }
             }
-            _ => state.message = Some(format!("key::{:?}\r", key)),
+            _ => {}
         }
         redraw(rpn_calc, state)?;
     }
@@ -257,19 +270,37 @@ fn create_help_string(rpn_calc: &RpnCalc) -> String {
     let mut result = "".to_string();
 
     // function list
-    result.push_str("Functions\n");
-    result.push_str("=========\n");
-    let mut longest_function_name = 0;
-    for key in rpn_calc.functions.keys() {
-        longest_function_name = longest_function_name.max(key.len());
-    }
+    result.push_str(".SH FUNCTIONS\n");
+    let mut seen_keys: HashSet<String> = HashSet::new();
     let mut function_keys: Vec<_> = rpn_calc.functions.keys().collect();
     function_keys.sort();
+    let find_equal_function_keys = function_keys.clone();
     for key in function_keys {
-        let fn_help = rpn_calc.functions.get(key).unwrap().get_help();
-        let key_str = format!("{: >width$}", key, width = longest_function_name);
-        result.push_str(format!(" {} {}\n", key_str, fn_help).as_str());
+        if seen_keys.contains(key) {
+            continue;
+        }
+        seen_keys.insert(key.clone());
+        let f = rpn_calc.functions.get(key).unwrap();
+        let mut key_str = key.to_string();
+
+        // find function aliases
+        for other_key in &find_equal_function_keys {
+            if seen_keys.contains(other_key.to_string().as_str()) {
+                continue;
+            }
+            let other_key = other_key.to_string();
+            let other_f = rpn_calc.functions.get(&other_key).unwrap();
+            if Rc::ptr_eq(f, other_f) {
+                key_str.push_str(format!(" or {}", other_key).as_str());
+                seen_keys.insert(other_key.to_string());
+            }
+        }
+
+        let fn_help = f.get_help();
+        result.push_str(format!(".IP \"{}\"\n", key_str).as_str());
+        result.push_str(format!("{}\n", fn_help).as_str());
     }
+    result.push_str(".RE\n");
 
     return result;
 }

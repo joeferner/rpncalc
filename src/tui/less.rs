@@ -1,4 +1,5 @@
 use crate::error::RpnCalcError;
+use crate::tui::nroff::nroff_format;
 use crate::tui::HandleKeyEventResult;
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind};
 use crossterm::style::Print;
@@ -16,7 +17,7 @@ pub struct Less {
 
 impl Less {
     pub fn new(width: u16, height: u16, original_text: String) -> Self {
-        let lines = text_to_lines(&original_text, width as usize);
+        let lines = format_text(&original_text, width as usize);
         return Less {
             width,
             height,
@@ -65,7 +66,7 @@ impl Less {
     pub fn resize(&mut self, width: u16, height: u16) -> Result<(), RpnCalcError> {
         self.width = width;
         self.height = height;
-        self.lines = text_to_lines(&self.original_text, self.width as usize);
+        self.lines = format_text(&self.original_text, self.width as usize);
         self.scroll_relative(0)?;
         return self.redraw();
     }
@@ -90,55 +91,6 @@ impl Less {
     }
 }
 
-fn text_to_lines(text: &str, width: usize) -> Vec<String> {
-    return text.split('\n').flat_map(|s| split_line(s, width)).collect();
-}
-
-fn split_line(line: &str, width: usize) -> Vec<String> {
-    let mut line = line.to_string();
-    let mut results: Vec<String> = Vec::new();
-    while line.len() > width {
-        let first_part = line.get(0..width).unwrap();
-        let last_part = line.get(width..).unwrap();
-
-        if let Some(space_parts) = first_part.rsplit_once(' ') {
-            results.push(space_parts.0.to_string());
-            line = format!("{}{}", space_parts.1, last_part);
-        } else {
-            results.push(first_part.to_string());
-            line = last_part.to_string();
-        }
-    }
-    if !line.is_empty() {
-        results.push(line);
-    }
-    return results;
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_split_no_split() {
-        assert_eq!(vec!["0123456789"], split_line("0123456789", 10));
-    }
-
-    #[test]
-    fn test_split_line_last_space() {
-        assert_eq!(vec!["0123 0123", "0123"], split_line("0123 0123 0123", 10));
-    }
-
-    #[test]
-    fn test_split_line_no_good_split() {
-        assert_eq!(vec!["0123456789", "0"], split_line("01234567890", 10));
-    }
-
-    #[test]
-    fn test_split_line_multiple_splits() {
-        assert_eq!(
-            vec!["0123456789", "0", "012345678", "012345678"],
-            split_line("01234567890 012345678 012345678", 10)
-        );
-    }
+fn format_text(text: &str, width: usize) -> Vec<String> {
+    return nroff_format(text, width).split('\n').map(|s| s.to_string()).collect();
 }

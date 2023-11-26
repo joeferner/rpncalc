@@ -35,3 +35,14 @@ impl Function for Cos {
         return Category::Trig;
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::number::Number;
+    use crate::rpn_calc::tests::run_unary_operator_deg;
+
+    #[test]
+    fn test_cos() {
+        run_unary_operator_deg("10", "cos", Number::from(0.984807753012208));
+    }
+}

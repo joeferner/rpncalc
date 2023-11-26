@@ -207,8 +207,21 @@ fn handle_key_event(
 
         match key.code {
             KeyCode::Char(ch) => {
-                state.input.push(ch);
-                state.cursor_location = state.input.len() as u16
+                if state.input.is_empty()
+                    && (ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '^' || ch == '_')
+                {
+                    let f = rpn_calc.functions.get(format!("{}", ch).as_str());
+                    if let Some(f) = f {
+                        if let Err(err) = f.clone().apply(rpn_calc) {
+                            state.message = Some(format!("{}", err));
+                        };
+                        redraw(rpn_calc, state)?;
+                        return Ok(HandleKeyEventResult::Continue);
+                    }
+                } else {
+                    state.input.push(ch);
+                    state.cursor_location = state.input.len() as u16
+                }
             }
             KeyCode::Enter => {
                 let str = state.input.trim();
@@ -260,6 +273,15 @@ fn handle_key_event(
 
 fn create_help_string(rpn_calc: &RpnCalc) -> String {
     let mut result = "".to_string();
+
+    result.push_str(".SH BASICS\n");
+    result.push_str(
+        "To enter a negative number, you can either enter the positive number \
+        and negate it or enter a space followed by the negative number.\n",
+    );
+    result.push_str(".RE\n");
+    result.push('\n');
+
     result.push_str(create_function_help_string(rpn_calc, Category::Arithmetic, "ARITHMETIC").as_str());
     result.push_str(create_function_help_string(rpn_calc, Category::Base, "BASE").as_str());
     result.push_str(create_function_help_string(rpn_calc, Category::Stack, "STACK").as_str());

@@ -35,3 +35,29 @@ impl Function for Sin {
         return Category::Trig;
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::number::Number;
+    use crate::rpn_calc::tests::{run_unary_operator_deg, run_unary_operator_rad};
+
+    #[test]
+    fn test_sin_deg() {
+        run_unary_operator_deg("10", "sin", Number::from(0.17364817766693033));
+    }
+
+    #[test]
+    fn test_sin_rad() {
+        run_unary_operator_rad("0.34", "sin", Number::from(0.3334870921408144));
+    }
+
+    #[test]
+    fn test_sin_units_deg() {
+        run_unary_operator_rad("10 deg", "sin", Number::from(0.17364817766693033));
+    }
+
+    #[test]
+    fn test_sin_units_rad() {
+        run_unary_operator_deg("0.34 rad", "sin", Number::from(0.3334870921408144));
+    }
+}

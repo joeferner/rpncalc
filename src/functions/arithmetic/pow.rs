@@ -35,3 +35,14 @@ impl Function for Pow {
         return Category::Arithmetic;
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::number::Number;
+    use crate::rpn_calc::tests::run_binary_operator;
+
+    #[test]
+    fn test_pow() {
+        run_binary_operator("3.2", "2", "^", Number::from(10.24));
+    }
+}

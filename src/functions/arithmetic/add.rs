@@ -36,3 +36,14 @@ impl Function for Add {
         return Category::Arithmetic;
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::number::Number;
+    use crate::rpn_calc::tests::run_binary_operator;
+
+    #[test]
+    fn test_add() {
+        run_binary_operator("1.2", "5.6", "+", Number::from(6.8));
+    }
+}

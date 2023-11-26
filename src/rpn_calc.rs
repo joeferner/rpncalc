@@ -40,6 +40,10 @@ impl RpnCalc {
         functions.insert("pow".to_string(), pow.clone());
         functions.insert("^".to_string(), pow.clone());
 
+        let negate = Rc::new(functions::arithmetic::Negate::new());
+        functions.insert("neg".to_string(), negate.clone());
+        functions.insert("_".to_string(), negate.clone());
+
         functions.insert("sqrt".to_string(), Rc::new(functions::arithmetic::SquareRoot::new()));
 
         // base
@@ -50,6 +54,7 @@ impl RpnCalc {
 
         // stack
         functions.insert("drop".to_string(), Rc::new(functions::stack::Drop::new()));
+        functions.insert("dup".to_string(), Rc::new(functions::stack::Duplicate::new()));
 
         // trig
         functions.insert("sin".to_string(), Rc::new(functions::trig::Sin::new()));
@@ -221,7 +226,7 @@ impl RpnCalc {
 }
 
 #[cfg(test)]
-mod tests {
+pub mod tests {
     use super::*;
     use crate::units::LengthUnits;
     use crate::units::SIPrefix;
@@ -229,7 +234,7 @@ mod tests {
     use crate::units::Units;
     use approx::assert_relative_eq;
 
-    fn run(args: Vec<&str>) -> RpnCalc {
+    pub fn run(args: Vec<&str>) -> RpnCalc {
         let mut rpn_calc = RpnCalc::new();
         for arg in args {
             rpn_calc.push_str(arg).unwrap();
@@ -237,7 +242,7 @@ mod tests {
         return rpn_calc;
     }
 
-    fn assert_stack(rpn_calc: &RpnCalc, args: Vec<&str>) -> () {
+    pub fn assert_stack(rpn_calc: &RpnCalc, args: Vec<&str>) -> () {
         assert_eq!(args.len(), rpn_calc.stack.items.len());
         for (i, arg) in args.iter().enumerate() {
             let found_stack_item = rpn_calc.stack.items.get(i).unwrap();
@@ -246,22 +251,22 @@ mod tests {
         }
     }
 
-    fn run_binary_operator(arg1: &str, arg2: &str, op: &str, expected: Number) {
+    pub fn run_binary_operator(arg1: &str, arg2: &str, op: &str, expected: Number) {
         let mut rpn_calc = run(vec![arg1, arg2, op]);
         assert_relative_eq!(expected.magnitude, rpn_calc.pop_number().unwrap().unwrap().magnitude);
     }
 
-    fn run_unary_operator(arg: &str, op: &str, expected: Number) {
+    pub fn run_unary_operator(arg: &str, op: &str, expected: Number) {
         let mut rpn_calc = run(vec![arg, op]);
         assert_relative_eq!(expected.magnitude, rpn_calc.pop_number().unwrap().unwrap().magnitude);
     }
 
-    fn run_unary_operator_deg(arg: &str, op: &str, expected: Number) {
+    pub fn run_unary_operator_deg(arg: &str, op: &str, expected: Number) {
         let mut rpn_calc = run(vec!["deg", arg, op]);
         assert_relative_eq!(expected.magnitude, rpn_calc.pop_number().unwrap().unwrap().magnitude);
     }
 
-    fn run_unary_operator_rad(arg: &str, op: &str, expected: Number) {
+    pub fn run_unary_operator_rad(arg: &str, op: &str, expected: Number) {
         let mut rpn_calc = run(vec!["rad", arg, op]);
         assert_relative_eq!(expected.magnitude, rpn_calc.pop_number().unwrap().unwrap().magnitude);
     }
@@ -291,66 +296,6 @@ mod tests {
             assert!(false, "expected error");
         }
         return rpn_calc;
-    }
-
-    #[test]
-    fn test_add() {
-        run_binary_operator("1.2", "5.6", "+", Number::from(6.8));
-    }
-
-    #[test]
-    fn test_subtract() {
-        run_binary_operator("1.2", "0.8", "-", Number::from(0.4));
-    }
-
-    #[test]
-    fn test_multiply() {
-        run_binary_operator("1.2", "0.8", "*", Number::from(0.96));
-    }
-
-    #[test]
-    fn test_divide() {
-        run_binary_operator("1.2", "0.8", "/", Number::from(1.5));
-    }
-
-    #[test]
-    fn test_pow() {
-        run_binary_operator("3.2", "2", "^", Number::from(10.24));
-    }
-
-    #[test]
-    fn test_sqrt() {
-        run_unary_operator("10.24", "sqrt", Number::from(3.2));
-    }
-
-    #[test]
-    fn test_sin_deg() {
-        run_unary_operator_deg("10", "sin", Number::from(0.17364817766693033));
-    }
-
-    #[test]
-    fn test_sin_rad() {
-        run_unary_operator_rad("0.34", "sin", Number::from(0.3334870921408144));
-    }
-
-    #[test]
-    fn test_sin_units_deg() {
-        run_unary_operator_rad("10 deg", "sin", Number::from(0.17364817766693033));
-    }
-
-    #[test]
-    fn test_sin_units_rad() {
-        run_unary_operator_deg("0.34 rad", "sin", Number::from(0.3334870921408144));
-    }
-
-    #[test]
-    fn test_cos() {
-        run_unary_operator_deg("10", "cos", Number::from(0.984807753012208));
-    }
-
-    #[test]
-    fn test_tan() {
-        run_unary_operator_deg("10", "tan", Number::from(0.17632698070846498));
     }
 
     #[test]

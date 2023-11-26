@@ -35,3 +35,14 @@ impl Function for Subtract {
         return Category::Arithmetic;
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::number::Number;
+    use crate::rpn_calc::tests::run_binary_operator;
+
+    #[test]
+    fn test_subtract() {
+        run_binary_operator("1.2", "0.8", "-", Number::from(0.4));
+    }
+}

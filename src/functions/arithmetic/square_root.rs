@@ -37,3 +37,14 @@ impl Function for SquareRoot {
         return Category::Arithmetic;
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::number::Number;
+    use crate::rpn_calc::tests::run_unary_operator;
+
+    #[test]
+    fn test_sqrt() {
+        run_unary_operator("10.24", "sqrt", Number::from(3.2));
+    }
+}

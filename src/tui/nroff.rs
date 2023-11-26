@@ -18,7 +18,7 @@ pub fn nroff_format(text: &str, width: usize) -> String {
             }
             indent = 5;
         } else if line.starts_with(".RE") {
-            indent = 0.max(indent - 5);
+            indent = 0.max(indent as i32 - 5) as usize;
         } else if line.is_empty() {
             results.push('\n');
         } else {

@@ -35,3 +35,14 @@ impl Function for Tan {
         return Category::Trig;
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::number::Number;
+    use crate::rpn_calc::tests::run_unary_operator_deg;
+
+    #[test]
+    fn test_tan() {
+        run_unary_operator_deg("10", "tan", Number::from(0.17632698070846498));
+    }
+}

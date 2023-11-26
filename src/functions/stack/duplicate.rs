@@ -4,31 +4,32 @@ use crate::functions::Category;
 use crate::rpn_calc::RpnCalc;
 use std::fmt::{Display, Formatter};
 
-pub struct Drop {}
+pub struct Duplicate {}
 
-impl Drop {
+impl Duplicate {
     pub fn new() -> Self {
-        return Drop {};
+        return Duplicate {};
     }
 }
 
-impl Display for Drop {
+impl Display for Duplicate {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "drop")
+        write!(f, "dup")
     }
 }
 
-impl Function for Drop {
+impl Function for Duplicate {
     fn apply(&self, rpn_calc: &mut RpnCalc) -> Result<(), RpnCalcError> {
-        if rpn_calc.stack.items.is_empty() {
+        if let Some(si) = rpn_calc.stack.items.last() {
+            rpn_calc.push(si.clone());
+        } else {
             return Err(RpnCalcError::NotEnoughArguments);
         }
-        rpn_calc.pop()?;
         return Ok(());
     }
 
     fn get_help(&self) -> String {
-        return "Drop the top item on the stack.".to_string();
+        return "Duplicate the top item on the stack.".to_string();
     }
 
     fn get_category(&self) -> Category {
@@ -41,8 +42,8 @@ mod tests {
     use crate::rpn_calc::tests::{assert_stack, run};
 
     #[test]
-    fn test_drop() {
-        let rpn_calc = run(vec!["10", "drop"]);
-        assert_stack(&rpn_calc, vec![]);
+    fn test_duplicate() {
+        let rpn_calc = run(vec!["1", "10", "dup"]);
+        assert_stack(&rpn_calc, vec!["1", "10", "10"]);
     }
 }

@@ -110,20 +110,21 @@ impl Number {
         }
 
         let mut base = 10;
-        let mut regex = r"^(\d*\.?\d*)(.*)$";
+        let mut regex = r"^(\d*\.?\d*)([eE][-+]?[0-9]+)?(.*)$";
         if my_str.starts_with("0b") {
             base = 2;
-            regex = r"^([01]*\.?[01]*)(.*)$";
+            regex = r"^([01]*\.?[01]*)([eE][-+]?[0-9]+)?(.*)$";
             my_str = my_str[2..].to_string();
         } else if my_str.starts_with("0o") {
             base = 8;
-            regex = r"^([0-8]*\.?[0-8]*)(.*)$";
+            regex = r"^([0-8]*\.?[0-8]*)([eE][-+]?[0-9]+)?(.*)$";
             my_str = my_str[2..].to_string();
         } else if my_str.starts_with("0x") {
             base = 16;
-            regex = r"^([0-9a-fA-F]*\.?[0-9a-fA-F]*)(.*)$";
+            regex = r"^([0-9a-fA-F]*\.?[0-9a-fA-F]*)([eE][-+]?[0-9]+)?(.*)$";
             my_str = my_str[2..].to_string();
         } else {
+            // arbitrary base
             let re = Regex::new(r"^([0-9]+)#(.*)$").unwrap();
             let rs_results = re.captures(my_str.as_str());
             if let Some(rs_results) = rs_results {
@@ -141,7 +142,7 @@ impl Number {
                         Number::MAX_DISPLAY_BASE
                     )));
                 }
-                regex = r"^([0-9a-zA-Z]*\.?[0-9a-zA-Z]*)(.*)$";
+                regex = r"^([0-9a-zA-Z]*\.?[0-9a-zA-Z]*)([eE][-+]?[0-9]+)?(.*)$";
                 my_str = number_str.to_string();
             }
         }
@@ -149,7 +150,8 @@ impl Number {
         let rs_results = re.captures(my_str.as_str());
         if let Some(rs_results) = rs_results {
             let magnitude_str = rs_results[1].trim();
-            let units_str = rs_results[2].trim();
+            let sci_power = rs_results.get(2);
+            let units_str = rs_results[3].trim();
 
             if magnitude_str.is_empty() {
                 return Err(RpnCalcError::ParseStackItem(format!("could not parse {}", str)));
@@ -162,6 +164,19 @@ impl Number {
             })?;
             if negative {
                 magnitude *= -1.0;
+            }
+            if let Some(sci_power) = sci_power {
+                if base >= 0xe {
+                    return Err(RpnCalcError::ParseStackItem(format!(
+                        "unexpected scientific notation for : {}",
+                        str
+                    )));
+                }
+                let sci_power = sci_power.as_str().to_string();
+                let sci_power = sci_power[1..].parse::<i32>().map_err(|err| {
+                    RpnCalcError::ParseStackItem(format!("could not parse {} to scientific notation: {}", str, err))
+                })?;
+                magnitude *= (base as f64).powf(sci_power as f64);
             }
             return Ok(Number { magnitude, units });
         } else {
@@ -367,6 +382,7 @@ mod tests {
     fn test_parse_binary() {
         assert_eq!(3867.6875, Number::from_str("0b111100011011.1011").unwrap().magnitude);
         assert_eq!(-3867.6875, Number::from_str("-0b111100011011.1011").unwrap().magnitude);
+        assert_eq!(3867.6875, Number::from_str("0b1.111000110111011e11").unwrap().magnitude);
     }
 
     #[test]
@@ -379,6 +395,7 @@ mod tests {
     fn test_parse_octal() {
         assert_eq!(3867.0, Number::from_str("0o7433").unwrap().magnitude);
         assert_eq!(-3867.0, Number::from_str("-0o7433").unwrap().magnitude);
+        assert_eq!(3867.0, Number::from_str("0o7.433e3").unwrap().magnitude);
     }
 
     #[test]
@@ -395,8 +412,8 @@ mod tests {
 
     #[test]
     fn test_parse_hex() {
-        assert_eq!(3866.6875, Number::from_str("0xf1a.b").unwrap().magnitude);
-        assert_eq!(-3866.6875, Number::from_str("-0xf1a.b").unwrap().magnitude);
+        assert_eq!(3866.7421875, Number::from_str("0xf1a.be").unwrap().magnitude);
+        assert_eq!(-3866.7421875, Number::from_str("-0xf1a.be").unwrap().magnitude);
     }
 
     #[test]
@@ -415,5 +432,14 @@ mod tests {
     fn test_parse_radix() {
         assert_relative_eq!(0.90234375, Number::from_str("4#0.3213").unwrap().magnitude);
         assert_relative_eq!(-0.90234375, Number::from_str("-4#0.3213").unwrap().magnitude);
+    }
+
+    #[test]
+    fn test_parse_decimal() {
+        assert_eq!(3867.6875, Number::from_str("3867.6875").unwrap().magnitude);
+        assert_eq!(-3867.6875, Number::from_str("-3867.6875").unwrap().magnitude);
+        assert_eq!(3867.6875, Number::from_str("3.8676875e3").unwrap().magnitude);
+        assert_eq!(-3867.6875, Number::from_str("-3.8676875e3").unwrap().magnitude);
+        assert_eq!(0.0038676875, Number::from_str("3.8676875e-3").unwrap().magnitude);
     }
 }

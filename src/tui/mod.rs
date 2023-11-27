@@ -277,7 +277,12 @@ pub fn create_help_string(rpn_calc: &RpnCalc) -> String {
     result.push_str(".SH BASICS\n");
     result.push_str(
         "To enter a negative number, you can either enter the positive number \
-        and negate it or enter a space followed by the negative number.\n",
+        and negate it (neg or _) or enter a space followed by the negative number.\n",
+    );
+    result.push('\n');
+    result.push_str(
+        "To enter scientific notation number, enter the number followed by \"e\" then the \
+        power (e.g. 1.23e4).\n",
     );
     result.push_str(".RE\n");
     result.push('\n');

@@ -34,7 +34,10 @@ rpncalc "5 ft" "0 m" +
 
 
 ## BASICS
-To enter a negative number, you can either enter the positive number and negate it or enter a space followed by the negative number.
+To enter a negative number, you can either enter the positive number and negate it (neg or _) or enter a space followed by the negative number.
+
+
+To enter scientific notation number, enter the number followed by "e" then the power (e.g. 1.23e4).
 
 
 ## ARITHMETIC FUNCTIONS

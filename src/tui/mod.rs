@@ -1,5 +1,5 @@
 mod less;
-mod nroff;
+pub mod nroff;
 
 use crate::error::RpnCalcError;
 use crate::functions::Category;
@@ -271,7 +271,7 @@ fn handle_key_event(
     return Ok(HandleKeyEventResult::Continue);
 }
 
-fn create_help_string(rpn_calc: &RpnCalc) -> String {
+pub fn create_help_string(rpn_calc: &RpnCalc) -> String {
     let mut result = "".to_string();
 
     result.push_str(".SH BASICS\n");

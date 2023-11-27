@@ -30,26 +30,26 @@ pub fn nroff_format(text: &str, width: usize) -> String {
     return results;
 }
 
+fn parse_command(cmd: &str, line: &str) -> String {
+    if !line.starts_with(cmd) {
+        panic!("expected line to start with {} but found {}", cmd, line);
+    }
+    let line = line.get(cmd.len()..).unwrap().trim();
+    return if line.starts_with('\"') && line.ends_with('\"') {
+        line.get(1..line.len() - 1).unwrap().to_string()
+    } else {
+        line.to_string()
+    };
+}
+
 fn format_subhead(line: &str) -> Vec<String> {
-    if !line.starts_with(".SH") {
-        panic!();
-    }
-    let mut line = line.get(".SH".len()..).unwrap().trim();
-    if line.starts_with('\"') && line.ends_with('\"') {
-        line = line.get(1..line.len() - 1).unwrap();
-    }
+    let line = parse_command(".SH", line);
     let result = format!("{}{}{}\n", BOLD_START, line, BOLD_END);
     return vec![result];
 }
 
 fn format_indent_paragraph(line: &str) -> Vec<String> {
-    if !line.starts_with(".IP") {
-        panic!();
-    }
-    let mut line = line.get(".IP".len()..).unwrap().trim();
-    if line.starts_with('\"') && line.ends_with('\"') {
-        line = line.get(1..line.len() - 1).unwrap();
-    }
+    let line = parse_command(".IP", line);
     let result = format!("{}\n", line);
     return vec![result];
 }
@@ -73,6 +73,34 @@ fn split_line(line: &str, width: usize) -> Vec<String> {
         results.push(format!("{}\n", line));
     }
     return results;
+}
+
+pub fn nroff_to_markdown(text: &str) -> String {
+    let mut results = "".to_string();
+    for line in text.split('\n') {
+        if line.starts_with(".SH") {
+            results.push_str(format_subhead_markdown(line).as_str());
+        } else if line.starts_with(".IP") {
+            results.push_str(format_indent_paragraph_markdown(line).as_str());
+        } else if line.starts_with(".RE") {
+            // nop
+        } else if line.is_empty() {
+            results.push('\n');
+        } else {
+            results.push_str(format!("{}\n\n", line).as_str());
+        }
+    }
+    return results;
+}
+
+fn format_subhead_markdown(line: &str) -> String {
+    let line = parse_command(".SH", line);
+    return format!("## {}\n", line);
+}
+
+fn format_indent_paragraph_markdown(line: &str) -> String {
+    let line = parse_command(".IP", line);
+    return format!("#### {}\n", line);
 }
 
 #[cfg(test)]

@@ -64,6 +64,16 @@ command = "cargo"
 args = ["llvm-cov", "--lcov", "--output-path", "lcov.info"]
 dependencies = ["build"]
 
+[tasks.generate-readme]
+description = "Updates README.md"
+script = "cargo run -- --help-readme > README.md"
+dependencies = ["build"]
+
+[tasks.git-add-readme]
+description = "Add README.md to git"
+script = "git add README.md"
+dependencies = ["generate-readme"]
+
 [tasks.pre-commit]
 description = "Run pre-commit tasks."
-dependencies = ["format-ci", "lint", "test"]
+dependencies = ["format-ci", "lint", "test", "git-add-readme"]

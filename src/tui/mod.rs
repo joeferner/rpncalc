@@ -30,6 +30,8 @@ struct InteractiveState {
     console_height: u16,
     stack_height: u16,
     stack_width: u16,
+    total_height: u16,
+    top: u16,
     message: Option<String>,
     input: String,
     cursor_location: u16,
@@ -41,32 +43,30 @@ impl InteractiveState {
         self.cursor_location = 0;
         self.input = "".to_string();
     }
-
-    pub fn get_top(&self) -> u16 {
-        // header (1)
-        // stack (stack height)
-        // prompt (1)
-        // buffer (1) - to prevent enter key from causing a new line
-        return (self.console_height as i16 - 1 - self.stack_height as i16 - 1 - 1).max(4) as u16;
-    }
 }
 
 pub fn run_tui(rpn_calc: RpnCalc) -> Result<(), RpnCalcError> {
     let (width, height) = size()?;
+    let stack_height = DEFAULT_STACK_HEIGHT;
+    // 1 for prompt, 1 for status line, 1 for auto complete
+    let total_height = stack_height + 3;
+    for _ in 0..total_height {
+        println!();
+    }
+    let (_, cursor_y) = cursor::position()?;
+
     let state = InteractiveState {
         console_width: width,
         console_height: height,
-        stack_height: DEFAULT_STACK_HEIGHT,
+        stack_height,
         stack_width: DEFAULT_STACK_WIDTH,
+        total_height,
+        top: cursor_y - total_height,
         message: None,
         input: "".to_string(),
         cursor_location: 0,
         help: None,
     };
-
-    for _ in 0..state.stack_height + 2 {
-        println!();
-    }
 
     enable_raw_mode()?;
     run_loop(rpn_calc, state)?;
@@ -94,6 +94,9 @@ fn run_loop(mut rpn_calc: RpnCalc, mut state: InteractiveState) -> Result<(), Rp
                     handle_key_event(&mut rpn_calc, &mut state, key)?,
                     HandleKeyEventResult::Exit
                 ) {
+                    stdout().queue(cursor::MoveTo(0, state.top + state.total_height))?;
+                    stdout().queue(Clear(ClearType::CurrentLine))?;
+                    stdout().flush()?;
                     break;
                 }
             }
@@ -123,7 +126,7 @@ fn redraw(rpn_calc: &RpnCalc, state: &InteractiveState) -> Result<(), RpnCalcErr
         return help.redraw();
     }
 
-    let top = state.get_top();
+    let top = state.top;
 
     // draw header line
     stdout().queue(cursor::MoveTo(0, top))?;

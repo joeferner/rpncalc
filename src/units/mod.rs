@@ -1,4 +1,6 @@
 mod angle;
+mod bit;
+mod byte;
 mod length;
 mod mass;
 mod operator;
@@ -6,7 +8,9 @@ mod si_prefix;
 mod temperature;
 mod time;
 
-pub use self::angle::{degrees_to_radians, radians_to_degrees, AngleUnits};
+pub use self::angle::{degrees_to_radians, AngleUnits};
+pub use self::bit::BitUnits;
+pub use self::byte::ByteUnits;
 pub use self::length::LengthUnits;
 pub use self::mass::MassUnits;
 pub use self::operator::UnitsOperator;
@@ -31,6 +35,8 @@ pub enum Units {
     Time(TimeUnits),
     Temperature(TemperatureUnits),
     Angle(AngleUnits),
+    Byte(ByteUnits),
+    Bit(BitUnits),
     Compound(Box<Units>, UnitsOperator, Box<Units>),
 }
 
@@ -39,23 +45,41 @@ impl Units {
         return if str.is_empty() {
             Ok(Units::None)
         } else if let Some(parts) = str.split_once('/') {
-            Ok(Units::Compound(
-                Box::new(Units::parse(parts.0)?),
-                UnitsOperator::Divide,
-                Box::new(Units::parse(parts.1)?),
-            ))
+            let a = Units::parse(parts.0)?;
+            if matches!(a, Units::None) {
+                return Err(RpnCalcError::ParseStackItem(format!("missing unit numerator {}", str)));
+            }
+            let b = Units::parse(parts.1)?;
+            if matches!(b, Units::None) {
+                return Err(RpnCalcError::ParseStackItem(format!(
+                    "missing unit denominator {}",
+                    str
+                )));
+            }
+            Ok(Units::Compound(Box::new(a), UnitsOperator::Divide, Box::new(b)))
         } else if let Some(parts) = str.split_once('*') {
-            Ok(Units::Compound(
-                Box::new(Units::parse(parts.0)?),
-                UnitsOperator::Multiply,
-                Box::new(Units::parse(parts.1)?),
-            ))
+            let a = Units::parse(parts.0)?;
+            if matches!(a, Units::None) {
+                return Err(RpnCalcError::ParseStackItem(format!("missing unit left {}", str)));
+            }
+            let b = Units::parse(parts.1)?;
+            if matches!(b, Units::None) {
+                return Err(RpnCalcError::ParseStackItem(format!("missing unit right {}", str)));
+            }
+            Ok(Units::Compound(Box::new(a), UnitsOperator::Multiply, Box::new(b)))
         } else if let Some(parts) = str.split_once('^') {
+            let a = Units::parse(parts.0)?;
+            if matches!(a, Units::None) {
+                return Err(RpnCalcError::ParseStackItem(format!(
+                    "missing unit base number {}",
+                    str
+                )));
+            }
             if parts.1 == "2" {
                 Ok(Units::Compound(
-                    Box::new(Units::parse(parts.0)?),
+                    Box::new(a.clone()),
                     UnitsOperator::Multiply,
-                    Box::new(Units::parse(parts.0)?),
+                    Box::new(a),
                 ))
             } else {
                 Err(RpnCalcError::ParseStackItem(format!("parse units {}", str)))
@@ -70,6 +94,10 @@ impl Units {
             Ok(Units::Mass(m))
         } else if let Ok(t) = str.parse::<TimeUnits>() {
             Ok(Units::Time(t))
+        } else if let Ok(b) = str.parse::<ByteUnits>() {
+            Ok(Units::Byte(b))
+        } else if let Ok(b) = str.parse::<BitUnits>() {
+            Ok(Units::Bit(b))
         } else {
             Err(RpnCalcError::ParseStackItem(format!("parse units \"{}\"", str)))
         };
@@ -83,6 +111,8 @@ impl Units {
             Units::Time(_) => matches!(other, Units::None | Units::Time(_)),
             Units::Temperature(_) => matches!(other, Units::None | Units::Temperature(_)),
             Units::Angle(_) => matches!(other, Units::None | Units::Angle(_)),
+            Units::Byte(_) => matches!(other, Units::None | Units::Byte(_)),
+            Units::Bit(_) => matches!(other, Units::None | Units::Bit(_)),
             Units::Compound(a, op, b) => match other {
                 Units::None => true,
                 Units::Compound(other_a, other_op, other_b) => {
@@ -103,6 +133,8 @@ impl UnitTrait for Units {
             Units::Time(u) => u.convert_to_base_units(n),
             Units::Temperature(u) => u.convert_to_base_units(n),
             Units::Angle(u) => u.convert_to_base_units(n),
+            Units::Byte(u) => u.convert_to_base_units(n),
+            Units::Bit(u) => u.convert_to_base_units(n),
             Units::Compound(a, op, b) => {
                 let converted_a = a.convert_to_base_units(n);
                 let converted_b = b.convert_to_base_units(1.0);
@@ -122,6 +154,8 @@ impl UnitTrait for Units {
             Units::Time(u) => u.convert_from_base_units(n),
             Units::Temperature(u) => u.convert_from_base_units(n),
             Units::Angle(u) => u.convert_from_base_units(n),
+            Units::Byte(u) => u.convert_from_base_units(n),
+            Units::Bit(u) => u.convert_from_base_units(n),
             Units::Compound(a, op, b) => {
                 let converted_a = a.convert_from_base_units(n);
                 let converted_b = b.convert_from_base_units(1.0);
@@ -143,6 +177,8 @@ impl Display for Units {
             Units::Time(u) => write!(f, "{}", u),
             Units::Temperature(u) => write!(f, "{}", u),
             Units::Angle(u) => write!(f, "{}", u),
+            Units::Byte(u) => write!(f, "{}", u),
+            Units::Bit(u) => write!(f, "{}", u),
             Units::Compound(a, op, b) => {
                 write!(f, "{}{}{}", *a, op, *b)
             }
@@ -190,6 +226,18 @@ mod tests {
     fn test_millimeters() {
         let r = Units::parse("mm").unwrap();
         assert!(matches!(r, Units::Length(LengthUnits::Meter(SIPrefix::Milli))));
+    }
+
+    #[test]
+    fn test_bytes() {
+        let r = Units::parse("MiB").unwrap();
+        assert!(matches!(r, Units::Byte(ByteUnits::Byte(SIPrefix::Mebi))));
+    }
+
+    #[test]
+    fn test_bits() {
+        let r = Units::parse("Mib").unwrap();
+        assert!(matches!(r, Units::Bit(BitUnits::Bit(SIPrefix::Mebi))));
     }
 
     #[test]
@@ -294,6 +342,38 @@ mod tests {
             2e-30,
             Units::Length(LengthUnits::Meter(SIPrefix::Quecto)).convert_to_base_units(2.0)
         );
+        assert_relative_eq!(
+            2048.0,
+            Units::Byte(ByteUnits::Byte(SIPrefix::Kibi)).convert_to_base_units(2.0)
+        );
+        assert_relative_eq!(
+            2097152.0,
+            Units::Byte(ByteUnits::Byte(SIPrefix::Mebi)).convert_to_base_units(2.0)
+        );
+        assert_relative_eq!(
+            2147483648.0,
+            Units::Byte(ByteUnits::Byte(SIPrefix::Gibi)).convert_to_base_units(2.0)
+        );
+        assert_relative_eq!(
+            2199023255552.0,
+            Units::Byte(ByteUnits::Byte(SIPrefix::Tebi)).convert_to_base_units(2.0)
+        );
+        assert_relative_eq!(
+            2251799813685248.0,
+            Units::Byte(ByteUnits::Byte(SIPrefix::Pebi)).convert_to_base_units(2.0)
+        );
+        assert_relative_eq!(
+            2305843009213694000.0,
+            Units::Byte(ByteUnits::Byte(SIPrefix::Exbi)).convert_to_base_units(2.0)
+        );
+        assert_relative_eq!(
+            2361183241434822600000.0,
+            Units::Byte(ByteUnits::Byte(SIPrefix::Zebi)).convert_to_base_units(2.0)
+        );
+        assert_relative_eq!(
+            2417851639229258300000000.0,
+            Units::Byte(ByteUnits::Byte(SIPrefix::Yobi)).convert_to_base_units(2.0)
+        );
 
         assert_relative_eq!(0.6096, Units::Length(LengthUnits::Foot).convert_to_base_units(2.0));
         assert_relative_eq!(0.0508, Units::Length(LengthUnits::Inch).convert_to_base_units(2.0));
@@ -327,6 +407,65 @@ mod tests {
         assert_eq!("", format!("{}", Units::None));
         assert_eq!("in", format!("{}", Units::Length(LengthUnits::Inch)));
         assert_eq!("km", format!("{}", Units::Length(LengthUnits::Meter(SIPrefix::Kilo))));
+        assert_eq!("MiB", format!("{}", Units::Byte(ByteUnits::Byte(SIPrefix::Mebi))));
+    }
+
+    #[test]
+    fn test_operator_multiply() {
+        let u = Units::parse("m*m").unwrap();
+        assert!(matches!(u, Units::Compound(_, UnitsOperator::Multiply, _)));
+        if let Units::Compound(a, _, b) = u {
+            assert!(matches!(*a, Units::Length(LengthUnits::Meter(SIPrefix::None))));
+            assert!(matches!(*b, Units::Length(LengthUnits::Meter(SIPrefix::None))));
+        } else {
+            assert!(false);
+        }
+
+        assert!(matches!(Units::parse("m*"), Err(RpnCalcError::ParseStackItem(_))));
+        assert!(matches!(Units::parse("*m"), Err(RpnCalcError::ParseStackItem(_))));
+        assert!(matches!(Units::parse("*"), Err(RpnCalcError::ParseStackItem(_))));
+    }
+
+    #[test]
+    fn test_operator_divide() {
+        let u = Units::parse("m/s").unwrap();
+        assert!(matches!(u, Units::Compound(_, UnitsOperator::Divide, _)));
+        if let Units::Compound(a, _, b) = u {
+            assert!(matches!(*a, Units::Length(LengthUnits::Meter(SIPrefix::None))));
+            assert!(matches!(*b, Units::Time(TimeUnits::Second(SIPrefix::None))));
+        } else {
+            assert!(false);
+        }
+
+        let u = Units::parse("m/");
+        assert!(matches!(u, Err(RpnCalcError::ParseStackItem(_))));
+
+        let u = Units::parse("/m");
+        assert!(matches!(u, Err(RpnCalcError::ParseStackItem(_))));
+
+        let u = Units::parse("/");
+        assert!(matches!(u, Err(RpnCalcError::ParseStackItem(_))));
+    }
+
+    #[test]
+    fn test_operator_power() {
+        let u = Units::parse("m^2").unwrap();
+        assert!(matches!(u, Units::Compound(_, UnitsOperator::Multiply, _)));
+        if let Units::Compound(a, _, b) = u {
+            assert!(matches!(*a, Units::Length(LengthUnits::Meter(SIPrefix::None))));
+            assert!(matches!(*b, Units::Length(LengthUnits::Meter(SIPrefix::None))));
+        } else {
+            assert!(false);
+        }
+
+        let u = Units::parse("m^");
+        assert!(matches!(u, Err(RpnCalcError::ParseStackItem(_))));
+
+        let u = Units::parse("^2");
+        assert!(matches!(u, Err(RpnCalcError::ParseStackItem(_))));
+
+        let u = Units::parse("^");
+        assert!(matches!(u, Err(RpnCalcError::ParseStackItem(_))));
     }
 
     #[test]

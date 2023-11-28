@@ -54,6 +54,23 @@ pub enum SIPrefix {
     Ronto,
     /// 10^-30
     Quecto,
+
+    /// 2^10
+    Kibi,
+    /// 2^20
+    Mebi,
+    /// 2^30
+    Gibi,
+    /// 2^40
+    Tebi,
+    /// 2^50
+    Pebi,
+    /// 2^60
+    Exbi,
+    /// 2^70
+    Zebi,
+    /// 2^80
+    Yobi,
 }
 
 impl SIPrefix {
@@ -108,12 +125,29 @@ impl SIPrefix {
             Ok(SIPrefix::Ronna)
         } else if str == "Q" {
             Ok(SIPrefix::Quetta)
+        } else if str == "Ki" {
+            Ok(SIPrefix::Kibi)
+        } else if str == "Mi" {
+            Ok(SIPrefix::Mebi)
+        } else if str == "Gi" {
+            Ok(SIPrefix::Gibi)
+        } else if str == "Ti" {
+            Ok(SIPrefix::Tebi)
+        } else if str == "Pi" {
+            Ok(SIPrefix::Pebi)
+        } else if str == "Ei" {
+            Ok(SIPrefix::Exbi)
+        } else if str == "Zi" {
+            Ok(SIPrefix::Zebi)
+        } else if str == "Yi" {
+            Ok(SIPrefix::Yobi)
         } else {
             Err(RpnCalcError::InvalidUnits(format!("unhandled SI prefix: {}", str)))
         };
     }
 
     pub fn multiplier(&self) -> MagnitudeType {
+        let two: MagnitudeType = 2.0;
         return match self {
             SIPrefix::Quetta => 1e30,
             SIPrefix::Ronna => 1e27,
@@ -140,6 +174,15 @@ impl SIPrefix {
             SIPrefix::Yocto => 1e-24,
             SIPrefix::Ronto => 1e-27,
             SIPrefix::Quecto => 1e-30,
+
+            SIPrefix::Kibi => two.powf(10.0),
+            SIPrefix::Mebi => two.powf(20.0),
+            SIPrefix::Gibi => two.powf(30.0),
+            SIPrefix::Tebi => two.powf(40.0),
+            SIPrefix::Pebi => two.powf(50.0),
+            SIPrefix::Exbi => two.powf(60.0),
+            SIPrefix::Zebi => two.powf(70.0),
+            SIPrefix::Yobi => two.powf(80.0),
         };
     }
 }
@@ -172,6 +215,15 @@ impl Display for SIPrefix {
             SIPrefix::Yocto => write!(f, "y"),
             SIPrefix::Ronto => write!(f, "r"),
             SIPrefix::Quecto => write!(f, "q"),
+
+            SIPrefix::Kibi => write!(f, "Ki"),
+            SIPrefix::Mebi => write!(f, "Mi"),
+            SIPrefix::Gibi => write!(f, "Gi"),
+            SIPrefix::Tebi => write!(f, "Ti"),
+            SIPrefix::Pebi => write!(f, "Pi"),
+            SIPrefix::Exbi => write!(f, "Ei"),
+            SIPrefix::Zebi => write!(f, "Zi"),
+            SIPrefix::Yobi => write!(f, "Yi"),
         }
     }
 }

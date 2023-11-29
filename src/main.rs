@@ -5,6 +5,7 @@ use crate::tui::{create_help_string, run_tui};
 use color_eyre::eyre;
 use std::{env, process};
 
+mod constant;
 mod error;
 mod functions;
 mod number;

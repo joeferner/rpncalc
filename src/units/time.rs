@@ -49,7 +49,7 @@ impl UnitTrait for TimeUnits {
 impl Display for TimeUnits {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            TimeUnits::Second(si) => write!(f, "{}m", si),
+            TimeUnits::Second(si) => write!(f, "{}s", si),
             TimeUnits::Minute => write!(f, "min"),
             TimeUnits::Hour => write!(f, "hour"),
         }
@@ -60,6 +60,14 @@ impl Display for TimeUnits {
 mod tests {
     use super::*;
     use approx::assert_relative_eq;
+
+    #[test]
+    fn test_fmt() {
+        assert_eq!("s", format!("{}", TimeUnits::Second(SIPrefix::None)));
+        assert_eq!("ms", format!("{}", TimeUnits::Second(SIPrefix::Milli)));
+        assert_eq!("min", format!("{}", TimeUnits::Minute));
+        assert_eq!("hour", format!("{}", TimeUnits::Hour));
+    }
 
     #[test]
     fn test_convert_to_base_units() {

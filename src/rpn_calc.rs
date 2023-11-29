@@ -1,6 +1,6 @@
+use crate::constant::{get_constants, Constant};
 use crate::error::RpnCalcError;
-use crate::functions;
-use crate::functions::Function;
+use crate::functions::{get_functions, Function};
 use crate::number::Number;
 use crate::stack::Stack;
 use crate::stack_item::StackItem;
@@ -13,61 +13,17 @@ pub struct RpnCalc {
     pub angle_mode: AngleUnits,
     pub base: u16,
     pub functions: HashMap<String, Rc<dyn Function>>,
+    pub constants: HashMap<String, Rc<Constant>>,
 }
 
 impl RpnCalc {
     pub fn new() -> Self {
-        let mut functions: HashMap<String, Rc<dyn Function>> = HashMap::new();
-
-        // arithmetic
-        let add = Rc::new(functions::arithmetic::Add::new());
-        functions.insert("add".to_string(), add.clone());
-        functions.insert("+".to_string(), add.clone());
-
-        let subtract = Rc::new(functions::arithmetic::Subtract::new());
-        functions.insert("sub".to_string(), subtract.clone());
-        functions.insert("-".to_string(), subtract.clone());
-
-        let multiply = Rc::new(functions::arithmetic::Multiply::new());
-        functions.insert("mul".to_string(), multiply.clone());
-        functions.insert("*".to_string(), multiply.clone());
-
-        let divide = Rc::new(functions::arithmetic::Divide::new());
-        functions.insert("div".to_string(), divide.clone());
-        functions.insert("/".to_string(), divide.clone());
-
-        let pow = Rc::new(functions::arithmetic::Pow::new());
-        functions.insert("pow".to_string(), pow.clone());
-        functions.insert("^".to_string(), pow.clone());
-
-        let negate = Rc::new(functions::arithmetic::Negate::new());
-        functions.insert("neg".to_string(), negate.clone());
-        functions.insert("_".to_string(), negate.clone());
-
-        functions.insert("sqrt".to_string(), Rc::new(functions::arithmetic::SquareRoot::new()));
-
-        // base
-        functions.insert("bin".to_string(), Rc::new(functions::base::Binary::new()));
-        functions.insert("oct".to_string(), Rc::new(functions::base::Octal::new()));
-        functions.insert("dec".to_string(), Rc::new(functions::base::Decimal::new()));
-        functions.insert("hex".to_string(), Rc::new(functions::base::Hexidecimal::new()));
-
-        // stack
-        functions.insert("drop".to_string(), Rc::new(functions::stack::Drop::new()));
-        functions.insert("dup".to_string(), Rc::new(functions::stack::Duplicate::new()));
-
-        // trig
-        functions.insert("sin".to_string(), Rc::new(functions::trig::Sin::new()));
-        functions.insert("cos".to_string(), Rc::new(functions::trig::Cos::new()));
-        functions.insert("tan".to_string(), Rc::new(functions::trig::Tan::new()));
-        functions.insert("deg".to_string(), Rc::new(functions::trig::Degrees::new()));
-        functions.insert("rad".to_string(), Rc::new(functions::trig::Radians::new()));
-
         return RpnCalc {
             stack: Stack::new(),
             angle_mode: AngleUnits::Degrees,
             base: 10,
-            functions,
+            functions: get_functions(),
+            constants: get_constants(),
         };
     }
 
@@ -95,6 +51,9 @@ impl RpnCalc {
         if let Ok(func) = self.parse_string_to_function(str) {
             return Ok(StackItem::Function(func));
         }
+        if let Ok(c) = self.parse_string_to_constant(str) {
+            return Ok(StackItem::Number(c.get_value()));
+        }
         if let Ok(s) = RpnCalc::parse_string_to_string_constant(str) {
             return Ok(StackItem::String(s));
         }
@@ -105,6 +64,14 @@ impl RpnCalc {
         let func = self.functions.get(str);
         if let Some(func) = func {
             return Ok(func.clone());
+        }
+        return Err(RpnCalcError::ParseStackItem(str.to_string()));
+    }
+
+    fn parse_string_to_constant(&self, str: &str) -> Result<Rc<Constant>, RpnCalcError> {
+        let c = self.constants.get(str);
+        if let Some(c) = c {
+            return Ok(c.clone());
         }
         return Err(RpnCalcError::ParseStackItem(str.to_string()));
     }

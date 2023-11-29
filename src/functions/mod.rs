@@ -6,4 +6,4 @@ pub mod stack;
 pub mod trig;
 
 pub use self::category::Category;
-pub use self::function::Function;
+pub use self::function::{get_functions, Function};

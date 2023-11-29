@@ -99,7 +99,7 @@ impl Number {
     }
 
     pub fn from_str(str: &str) -> Result<Number, RpnCalcError> {
-        let mut my_str = str.to_string();
+        let mut my_str = str.replace(',', "").to_string();
 
         let negative;
         if my_str.starts_with('-') {

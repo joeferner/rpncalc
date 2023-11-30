@@ -87,6 +87,9 @@ Drop the top item on the stack.
 #### dup
 Duplicate the top item on the stack.
 
+#### paste
+Paste the clipboard text onto the stack.
+
 
 ## TRIG FUNCTIONS
 #### cos

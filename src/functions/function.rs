@@ -53,7 +53,11 @@ pub fn get_functions(clipboard: Rc<RefCell<dyn Clipboard>>) -> HashMap<String, R
     functions.insert("hex".to_string(), Rc::new(functions::base::Hexidecimal::new()));
 
     // stack
-    functions.insert("copy".to_string(), Rc::new(functions::stack::Copy::new(clipboard)));
+    functions.insert(
+        "copy".to_string(),
+        Rc::new(functions::stack::Copy::new(clipboard.clone())),
+    );
+    functions.insert("paste".to_string(), Rc::new(functions::stack::Paste::new(clipboard)));
     functions.insert("drop".to_string(), Rc::new(functions::stack::Drop::new()));
     functions.insert("dup".to_string(), Rc::new(functions::stack::Duplicate::new()));
 

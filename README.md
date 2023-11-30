@@ -78,6 +78,9 @@ Sets the current display to base 8.
 
 
 ## STACK FUNCTIONS
+#### copy
+Copy the top item on the stack to the clipboard.
+
 #### drop
 Drop the top item on the stack.
 

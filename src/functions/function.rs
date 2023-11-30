@@ -2,6 +2,8 @@ use crate::error::RpnCalcError;
 use crate::functions;
 use crate::functions::Category;
 use crate::rpn_calc::RpnCalc;
+use crate::utils::Clipboard;
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt;
 use std::rc::Rc;
@@ -14,7 +16,7 @@ pub trait Function: fmt::Display {
     fn get_category(&self) -> Category;
 }
 
-pub fn get_functions() -> HashMap<String, Rc<dyn Function>> {
+pub fn get_functions(clipboard: Rc<RefCell<dyn Clipboard>>) -> HashMap<String, Rc<dyn Function>> {
     let mut functions: HashMap<String, Rc<dyn Function>> = HashMap::new();
 
     // arithmetic
@@ -51,6 +53,7 @@ pub fn get_functions() -> HashMap<String, Rc<dyn Function>> {
     functions.insert("hex".to_string(), Rc::new(functions::base::Hexidecimal::new()));
 
     // stack
+    functions.insert("copy".to_string(), Rc::new(functions::stack::Copy::new(clipboard)));
     functions.insert("drop".to_string(), Rc::new(functions::stack::Drop::new()));
     functions.insert("dup".to_string(), Rc::new(functions::stack::Duplicate::new()));
 

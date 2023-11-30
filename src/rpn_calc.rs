@@ -5,6 +5,8 @@ use crate::number::Number;
 use crate::stack::Stack;
 use crate::stack_item::StackItem;
 use crate::units::AngleUnits;
+use crate::utils::Clipboard;
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
@@ -17,12 +19,12 @@ pub struct RpnCalc {
 }
 
 impl RpnCalc {
-    pub fn new() -> Self {
+    pub fn new(clipboard: Rc<RefCell<dyn Clipboard>>) -> Self {
         return RpnCalc {
             stack: Stack::new(),
             angle_mode: AngleUnits::Degrees,
             base: 10,
-            functions: get_functions(),
+            functions: get_functions(clipboard),
             constants: get_constants(),
         };
     }
@@ -42,6 +44,10 @@ impl RpnCalc {
 
     pub fn push(&mut self, stack_item: StackItem) -> () {
         self.stack.push(stack_item);
+    }
+
+    pub fn peek(&self) -> Option<StackItem> {
+        return self.stack.peek();
     }
 
     fn parse_string_to_stack_item(&self, str: &str) -> Result<StackItem, RpnCalcError> {
@@ -199,10 +205,11 @@ pub mod tests {
     use crate::units::SIPrefix;
     use crate::units::TimeUnits;
     use crate::units::Units;
+    use crate::utils::MockClipboard;
     use approx::assert_relative_eq;
 
     pub fn run(args: Vec<&str>) -> RpnCalc {
-        let mut rpn_calc = RpnCalc::new();
+        let mut rpn_calc = RpnCalc::new(MockClipboard::get());
         for arg in args {
             rpn_calc.push_str(arg).unwrap();
         }
@@ -253,7 +260,7 @@ pub mod tests {
     }
 
     fn assert_error(args: Vec<&str>, expected_err: RpnCalcError) -> RpnCalc {
-        let mut rpn_calc = RpnCalc::new();
+        let mut rpn_calc = RpnCalc::new(MockClipboard::get());
         for arg in args.iter().take(args.len() - 1) {
             rpn_calc.push_str(arg).unwrap();
         }

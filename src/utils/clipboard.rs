@@ -1,5 +1,4 @@
 use crate::error::RpnCalcError;
-use copypasta::{ClipboardContext, ClipboardProvider};
 
 pub trait Clipboard {
     fn set_contents(&mut self, data: String) -> Result<(), RpnCalcError>;
@@ -7,31 +6,62 @@ pub trait Clipboard {
     fn get_contents(&mut self) -> Result<Option<String>, RpnCalcError>;
 }
 
-pub struct CopypastaClipboard {
-    ctx: ClipboardContext,
-}
+#[cfg(feature = "copypasta")]
+pub mod copypasta {
+    use crate::error::RpnCalcError;
+    use crate::utils::Clipboard;
+    use copypasta::{ClipboardContext, ClipboardProvider};
 
-impl CopypastaClipboard {
-    pub fn new() -> Result<Self, RpnCalcError> {
-        let ctx = ClipboardContext::new().map_err(|err| RpnCalcError::GenericError(format!("{}", err)))?;
-        return Ok(CopypastaClipboard { ctx });
+    pub struct CopypastaClipboard {
+        ctx: ClipboardContext,
+    }
+
+    impl CopypastaClipboard {
+        pub fn new() -> Result<Self, RpnCalcError> {
+            let ctx = ClipboardContext::new().map_err(|err| RpnCalcError::GenericError(format!("{}", err)))?;
+            return Ok(CopypastaClipboard { ctx });
+        }
+    }
+
+    impl Clipboard for CopypastaClipboard {
+        fn set_contents(&mut self, data: String) -> Result<(), RpnCalcError> {
+            self.ctx
+                .set_contents(data)
+                .map_err(|err| RpnCalcError::GenericError(format!("{}", err)))?;
+            return Ok(());
+        }
+
+        fn get_contents(&mut self) -> Result<Option<String>, RpnCalcError> {
+            let contents = self
+                .ctx
+                .get_contents()
+                .map_err(|err| RpnCalcError::GenericError(format!("{}", err)))?;
+            return Ok(Some(contents));
+        }
     }
 }
 
-impl Clipboard for CopypastaClipboard {
-    fn set_contents(&mut self, data: String) -> Result<(), RpnCalcError> {
-        self.ctx
-            .set_contents(data)
-            .map_err(|err| RpnCalcError::GenericError(format!("{}", err)))?;
-        return Ok(());
+#[cfg(not(feature = "copypasta"))]
+pub mod noop {
+    use crate::error::RpnCalcError;
+    use crate::utils::Clipboard;
+
+    pub struct NoopClipboard {}
+
+    impl NoopClipboard {
+        pub fn new() -> Self {
+            return NoopClipboard {};
+        }
     }
 
-    fn get_contents(&mut self) -> Result<Option<String>, RpnCalcError> {
-        let contents = self
-            .ctx
-            .get_contents()
-            .map_err(|err| RpnCalcError::GenericError(format!("{}", err)))?;
-        return Ok(Some(contents));
+    impl Clipboard for NoopClipboard {
+        fn set_contents(&mut self, _data: String) -> Result<(), RpnCalcError> {
+            return Ok(());
+        }
+
+        fn get_contents(&mut self) -> Result<Option<String>, RpnCalcError> {
+            return Ok(Some("".to_string()));
+        }
     }
 }
 

@@ -2,11 +2,17 @@ use crate::error::RpnCalcError;
 use crate::rpn_calc::RpnCalc;
 use crate::tui::nroff::{nroff_format, nroff_to_markdown};
 use crate::tui::{create_help_string, run_tui};
-use crate::utils::CopypastaClipboard;
+use crate::utils::Clipboard;
 use color_eyre::eyre;
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::{env, process};
+
+#[cfg(feature = "copypasta")]
+use crate::utils::CopypastaClipboard;
+
+#[cfg(not(feature = "copypasta"))]
+use crate::utils::NoopClipboard;
 
 mod constant;
 mod error;
@@ -41,7 +47,7 @@ fn main() -> eyre::Result<()> {
             eprintln!("{}", nroff_format(get_usage().as_str(), width as usize));
             process::exit(exitcode::USAGE);
         } else if arg == "--help-readme" {
-            let clipboard = Rc::new(RefCell::new(CopypastaClipboard::new()?));
+            let clipboard = create_clipboard()?;
             let rpn_calc = RpnCalc::new(clipboard);
             let rpn_calc_help = create_help_string(&rpn_calc);
             println!("{}", get_readme_header().as_str());
@@ -61,10 +67,20 @@ fn main() -> eyre::Result<()> {
     return Ok(());
 }
 
+#[cfg(feature = "copypasta")]
+fn create_clipboard() -> Result<Rc<RefCell<dyn Clipboard>>, RpnCalcError> {
+    return Ok(Rc::new(RefCell::new(CopypastaClipboard::new()?)));
+}
+
+#[cfg(not(feature = "copypasta"))]
+fn create_clipboard() -> Result<Rc<RefCell<dyn Clipboard>>, RpnCalcError> {
+    return Ok(Rc::new(RefCell::new(NoopClipboard::new())));
+}
+
 fn run(args: Args) -> Result<(), RpnCalcError> {
     let interactive_mode = args.stack.is_empty() || args.interactive;
 
-    let clipboard = Rc::new(RefCell::new(CopypastaClipboard::new()?));
+    let clipboard = create_clipboard()?;
     let mut rpn_calc = RpnCalc::new(clipboard);
     for arg in args.stack {
         rpn_calc.push_str(arg.as_str())?;

@@ -115,6 +115,9 @@ Calculates the tangent of the top item on the stack using the current angle mode
 #### c = 299792458 m/s
 the speed of light in vacuum
 
+#### e = 2.718281828459045
+Euler's number
+
 #### pi or π = 3.141592653589793
 the ratio of a circle's circumference to its diameter
 

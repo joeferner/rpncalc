@@ -32,6 +32,12 @@ pub fn get_constants() -> HashMap<String, Rc<Constant>> {
     constants.insert("pi".to_string(), pi.clone());
     constants.insert("π".to_string(), pi.clone());
 
+    let e = Rc::new(Constant {
+        value: Number::from_str("2.71828182845904523536028747135266249775724709369995").unwrap(),
+        description: "Euler's number".to_string(),
+    });
+    constants.insert("e".to_string(), e);
+
     let c = Rc::new(Constant {
         value: Number::from_str("299,792,458 m/s").unwrap(),
         description: "the speed of light in vacuum".to_string(),

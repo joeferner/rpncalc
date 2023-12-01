@@ -196,6 +196,22 @@ impl RpnCalc {
             }
         };
     }
+
+    pub fn get_tab_completions(&self, str: &str) -> Vec<String> {
+        let mut results = Vec::new();
+        for name in self.functions.keys() {
+            if name.starts_with(str) {
+                results.push(name.to_string());
+            }
+        }
+        for name in self.constants.keys() {
+            if name.starts_with(str) {
+                results.push(name.to_string());
+            }
+        }
+        results.sort();
+        return results;
+    }
 }
 
 #[cfg(test)]

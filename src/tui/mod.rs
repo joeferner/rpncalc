@@ -3,6 +3,7 @@ mod console;
 mod control;
 mod help;
 mod less;
+mod message;
 pub mod nroff;
 mod prompt;
 mod stack;
@@ -15,6 +16,7 @@ use crate::tui::console::{Console, CrosstermConsole};
 use crate::tui::control::Control;
 pub use crate::tui::help::create_help_string;
 use crate::tui::less::Less;
+use crate::tui::message::Message;
 use crate::tui::prompt::{Prompt, PromptInit};
 use crate::tui::stack::{Stack, StackInit};
 use crate::tui::status::{Status, StatusInit};
@@ -45,8 +47,8 @@ where
     stack_height_config: u16,
     stack_width_config: u16,
     control: ColumnLayout,
-    status: Rc<RefCell<Status>>,
     stack: Rc<RefCell<Stack>>,
+    message: Rc<RefCell<Message>>,
     help: Option<Less>,
     rpn_calc: Rc<RefCell<RpnCalc>>,
 }
@@ -70,9 +72,10 @@ pub fn run_tui(rpn_calc: RpnCalc) -> Result<(), RpnCalcError> {
     let prompt = Rc::new(RefCell::new(Prompt::new(PromptInit {
         rpn_calc: rpn_calc.clone(),
     })));
+    let message = Rc::new(RefCell::new(Message::new()));
     let mut column_layout = ColumnLayout::new(ColumnLayoutInit {
         top: 0,
-        controls: vec![status.clone(), stack.clone(), prompt],
+        controls: vec![status, stack.clone(), prompt, message.clone()],
     });
     column_layout.set_focused_control_index(2);
 
@@ -91,8 +94,8 @@ pub fn run_tui(rpn_calc: RpnCalc) -> Result<(), RpnCalcError> {
         stack_width_config,
         stack_height_config,
         control: column_layout,
-        status,
         stack,
+        message,
         help: None,
         rpn_calc,
     };
@@ -143,7 +146,7 @@ where
                                 ));
                             }
                             HandleKeyEventResult::SetMessage(message) => {
-                                self.status.borrow_mut().set_message(message);
+                                self.message.borrow_mut().set_message(message);
                             }
                             HandleKeyEventResult::Continue => {}
                         }

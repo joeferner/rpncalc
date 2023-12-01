@@ -57,9 +57,17 @@ impl Control for ColumnLayout {
     }
 
     fn redraw(&self, console: &mut dyn Console) -> Result<(), RpnCalcError> {
-        for c in &self.controls {
+        for (idx, c) in self.controls.iter().enumerate() {
+            if idx != self.focused_control_index {
+                c.borrow().redraw(console)?;
+            }
+        }
+
+        // draw focused control last to allow cursor to be placed in correct location
+        if let Some(c) = self.controls.get(self.focused_control_index) {
             c.borrow().redraw(console)?;
         }
+
         return Ok(());
     }
 

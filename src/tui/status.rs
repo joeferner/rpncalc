@@ -63,6 +63,7 @@ impl Control for Status {
             let angle_mode = match rpn_calc.angle_mode {
                 AngleUnits::Degrees => "DEG",
                 AngleUnits::Radians => "RAD",
+                AngleUnits::Gradians => "GRAD",
             };
 
             // draw base

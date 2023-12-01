@@ -67,6 +67,7 @@ pub fn get_functions(clipboard: Rc<RefCell<dyn Clipboard>>) -> HashMap<String, R
     functions.insert("tan".to_string(), Rc::new(functions::trig::Tan::new()));
     functions.insert("deg".to_string(), Rc::new(functions::trig::Degrees::new()));
     functions.insert("rad".to_string(), Rc::new(functions::trig::Radians::new()));
+    functions.insert("grad".to_string(), Rc::new(functions::trig::Gradians::new()));
 
     return functions;
 }

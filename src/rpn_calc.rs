@@ -245,6 +245,11 @@ pub mod tests {
         assert_relative_eq!(expected.magnitude, rpn_calc.pop_number().unwrap().unwrap().magnitude);
     }
 
+    pub fn run_unary_operator_grad(arg: &str, op: &str, expected: Number) {
+        let mut rpn_calc = run(vec!["grad", arg, op]);
+        assert_relative_eq!(expected.magnitude, rpn_calc.pop_number().unwrap().unwrap().magnitude);
+    }
+
     fn assert_run(args: Vec<&str>, expected: Vec<&str>) {
         let rpn_calc = run(args);
         assert_eq!(expected.len(), rpn_calc.stack.items.len(), "unexpected stack length");

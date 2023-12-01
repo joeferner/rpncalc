@@ -98,6 +98,9 @@ Calculates the cosine of the top item on the stack using the current angle mode
 #### deg
 Sets the current angle mode to degrees. Functions taking angles will assume the given angle is in degrees. Functions returning angles will return the angle in degrees.
 
+#### grad
+Sets the current angle mode to gradians. Functions taking angles will assume the given angle is in gradians. Functions returning angles will return the angle in gradians.
+
 #### rad
 Sets the current angle mode to radians. Functions taking angles will assume the given angle is in radians. Functions returning angles will return the angle in radians.
 

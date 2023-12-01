@@ -33,9 +33,9 @@ use std::io::{stdout, Write};
 use std::rc::Rc;
 
 const DEFAULT_STACK_HEIGHT: u16 = 8;
-const DEFAULT_STACK_WIDTH: u16 = 20;
+const DEFAULT_STACK_WIDTH: u16 = 25;
 
-struct InteractiveState<TConsole>
+struct Tui<TConsole>
 where
     TConsole: Console,
 {
@@ -84,7 +84,7 @@ pub fn run_tui(rpn_calc: RpnCalc) -> Result<(), RpnCalcError> {
     let (_, cursor_y) = cursor::position()?;
     column_layout.set_top(cursor_y - total_height);
 
-    let mut state = InteractiveState {
+    let mut state = Tui {
         console: Rc::new(RefCell::new(CrosstermConsole::new())),
         console_width: width,
         console_height: height,
@@ -103,7 +103,7 @@ pub fn run_tui(rpn_calc: RpnCalc) -> Result<(), RpnCalcError> {
     return Ok(());
 }
 
-impl<TConsole> InteractiveState<TConsole>
+impl<TConsole> Tui<TConsole>
 where
     TConsole: Console,
 {

@@ -8,7 +8,7 @@ mod si_prefix;
 mod temperature;
 mod time;
 
-pub use self::angle::{degrees_to_radians, AngleUnits};
+pub use self::angle::{degrees_to_radians, gradians_to_radians, AngleUnits};
 pub use self::bit::BitUnits;
 pub use self::byte::ByteUnits;
 pub use self::length::LengthUnits;

@@ -4,7 +4,7 @@ use std::fmt::{Display, Formatter};
 use regex::Regex;
 
 use crate::error::RpnCalcError;
-use crate::units::{degrees_to_radians, AngleUnits};
+use crate::units::{degrees_to_radians, gradians_to_radians, AngleUnits};
 use crate::units::{UnitTrait, Units};
 
 pub type MagnitudeType = f64;
@@ -356,6 +356,10 @@ pub fn to_radians(magnitude: MagnitudeType, angle_type: AngleUnits) -> Number {
         },
         AngleUnits::Degrees => Number {
             magnitude: degrees_to_radians(magnitude),
+            units: Units::Angle(AngleUnits::Radians),
+        },
+        AngleUnits::Gradians => Number {
+            magnitude: gradians_to_radians(magnitude),
             units: Units::Angle(AngleUnits::Radians),
         },
     };

@@ -9,6 +9,7 @@ use crate::units::UnitTrait;
 pub enum AngleUnits {
     Radians,
     Degrees,
+    Gradians,
 }
 
 impl FromStr for AngleUnits {
@@ -19,6 +20,8 @@ impl FromStr for AngleUnits {
             Ok(AngleUnits::Degrees)
         } else if str == "rad" {
             Ok(AngleUnits::Radians)
+        } else if str == "grad" {
+            Ok(AngleUnits::Gradians)
         } else {
             Err(RpnCalcError::ParseStackItem("failed to parse".to_string()))
         }
@@ -30,6 +33,7 @@ impl UnitTrait for AngleUnits {
         match self {
             AngleUnits::Radians => n,
             AngleUnits::Degrees => degrees_to_radians(n),
+            AngleUnits::Gradians => gradians_to_radians(n),
         }
     }
 
@@ -37,6 +41,7 @@ impl UnitTrait for AngleUnits {
         match self {
             AngleUnits::Radians => n,
             AngleUnits::Degrees => radians_to_degrees(n),
+            AngleUnits::Gradians => radians_to_gradians(n),
         }
     }
 }
@@ -46,6 +51,7 @@ impl Display for AngleUnits {
         match self {
             AngleUnits::Radians => write!(f, "rad"),
             AngleUnits::Degrees => write!(f, "deg"),
+            AngleUnits::Gradians => write!(f, "grad"),
         }
     }
 }
@@ -56,6 +62,14 @@ pub fn degrees_to_radians(deg: MagnitudeType) -> MagnitudeType {
 
 pub fn radians_to_degrees(rad: MagnitudeType) -> MagnitudeType {
     return rad * 180.0 / MAGNITUDE_TYPE_PI;
+}
+
+pub fn gradians_to_radians(grad: MagnitudeType) -> MagnitudeType {
+    return grad * MAGNITUDE_TYPE_PI / 200.0;
+}
+
+pub fn radians_to_gradians(rad: MagnitudeType) -> MagnitudeType {
+    return rad * 200.0 / MAGNITUDE_TYPE_PI;
 }
 
 #[cfg(test)]

@@ -107,3 +107,17 @@ fn create_constants_help_string(rpn_calc: &RpnCalc) -> String {
         |a| Some(format!(" = {}", a.get_value().to_string_format(10, 10))),
     );
 }
+
+#[cfg(test)]
+pub mod tests {
+    use super::*;
+    use crate::rpn_calc::tests::run;
+
+    #[test]
+    fn test_create_help_string() {
+        let rpn_calc = run(vec![]);
+        let str = create_help_string(&rpn_calc);
+        assert!(str.contains("sin"));
+        assert!(str.contains("π"));
+    }
+}

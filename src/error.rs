@@ -55,3 +55,68 @@ impl PartialEq for RpnCalcError {
         };
     }
 }
+
+#[cfg(test)]
+pub mod tests {
+    use super::*;
+    use crate::units::{LengthUnits, SIPrefix};
+
+    #[test]
+    fn test_eq() {
+        assert_eq!(
+            RpnCalcError::GenericError("test".to_string()),
+            RpnCalcError::GenericError("test".to_string())
+        );
+        assert_ne!(
+            RpnCalcError::GenericError("test".to_string()),
+            RpnCalcError::GenericError("other".to_string())
+        );
+
+        assert_eq!(
+            RpnCalcError::ParseStackItem("test".to_string()),
+            RpnCalcError::ParseStackItem("test".to_string())
+        );
+        assert_ne!(
+            RpnCalcError::ParseStackItem("test".to_string()),
+            RpnCalcError::ParseStackItem("other".to_string())
+        );
+
+        assert_eq!(RpnCalcError::NotEnoughArguments, RpnCalcError::NotEnoughArguments);
+        assert_ne!(
+            RpnCalcError::NotEnoughArguments,
+            RpnCalcError::ParseStackItem("".to_string())
+        );
+
+        assert_eq!(
+            RpnCalcError::InvalidArgument("test".to_string()),
+            RpnCalcError::InvalidArgument("test".to_string())
+        );
+        assert_ne!(
+            RpnCalcError::InvalidArgument("test".to_string()),
+            RpnCalcError::InvalidArgument("other".to_string())
+        );
+
+        assert_eq!(
+            RpnCalcError::InvalidUnits("test".to_string()),
+            RpnCalcError::InvalidUnits("test".to_string())
+        );
+        assert_ne!(
+            RpnCalcError::InvalidUnits("test".to_string()),
+            RpnCalcError::InvalidUnits("other".to_string())
+        );
+
+        let units_none = Units::None;
+        let meters = Units::Length(LengthUnits::Meter(SIPrefix::None));
+        assert_eq!(
+            RpnCalcError::IncompatibleUnits(units_none.clone(), meters.clone()),
+            RpnCalcError::IncompatibleUnits(units_none.clone(), meters.clone())
+        );
+        assert_ne!(
+            RpnCalcError::IncompatibleUnits(units_none.clone(), meters.clone()),
+            RpnCalcError::IncompatibleUnits(meters, units_none)
+        );
+
+        assert_eq!(RpnCalcError::DivideByZero, RpnCalcError::DivideByZero);
+        assert_ne!(RpnCalcError::DivideByZero, RpnCalcError::ParseStackItem("".to_string()));
+    }
+}

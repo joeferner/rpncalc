@@ -8,6 +8,7 @@ pub mod nroff;
 mod prompt;
 mod stack;
 mod status;
+mod text_box;
 
 use crate::error::RpnCalcError;
 use crate::rpn_calc::RpnCalc;

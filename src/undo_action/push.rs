@@ -45,7 +45,7 @@ mod test {
 
     #[test]
     fn test_push_undo_redo() {
-        let mut state = RpnState::new();
+        let mut state = RpnState::new().unwrap();
         state.push_str("1").unwrap();
         assert_eq!(state.stack.len(), 1);
 

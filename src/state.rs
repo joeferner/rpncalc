@@ -1,6 +1,7 @@
 use std::{collections::HashMap, sync::Arc};
 
 use anyhow::{anyhow, Error, Result};
+use num_format::SystemLocale;
 use ratatui::widgets::ListState;
 
 use crate::{
@@ -13,6 +14,9 @@ use crate::{
 };
 
 pub struct RpnState {
+    pub locale: SystemLocale,
+    pub precision: usize,
+    pub scientific_notation_limit: f64,
     pub stack: Stack,
     pub functions: HashMap<String, Arc<Box<dyn Func>>>,
     pub undo_stack: UndoStack,
@@ -22,7 +26,7 @@ pub struct RpnState {
 }
 
 impl RpnState {
-    pub fn new() -> Self {
+    pub fn new() -> Result<Self> {
         let mut functions: HashMap<String, Arc<Box<dyn Func>>> = HashMap::new();
 
         let add_func: Arc<Box<dyn Func>> = Arc::new(Box::new(AddFunc::new()));
@@ -41,14 +45,17 @@ impl RpnState {
         functions.insert("divide".to_string(), divide_func.clone());
         functions.insert("/".to_string(), divide_func);
 
-        Self {
+        Ok(Self {
+            locale: SystemLocale::default()?,
             stack: Stack::new(),
             functions,
             undo_stack: UndoStack::new(),
             error: None,
             ui_input_state: Input::new(),
             ui_stack_state: ListState::default(),
-        }
+            precision: 10,
+            scientific_notation_limit: 1_000_000_000.0,
+        })
     }
 
     pub fn push_str(&mut self, s: &str) -> Result<()> {
@@ -202,5 +209,9 @@ impl Input {
             // By leaving the selected one out, it is forgotten and therefore deleted.
             self.input = before_char_to_delete.chain(after_char_to_delete).collect();
         }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.input.is_empty()
     }
 }

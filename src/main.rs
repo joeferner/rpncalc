@@ -15,6 +15,7 @@ use crossterm::{
 };
 use log::{debug, error, info, LevelFilter};
 use log4rs::{
+    append::console::ConsoleAppender,
     append::file::FileAppender,
     config::{Appender, Root},
 };
@@ -40,10 +41,10 @@ fn main() -> Result<()> {
     let args = Args::parse();
 
     let config_dir = get_config_dir()?;
-    init_logger(&config_dir)?;
+    init_logger(Some(&config_dir))?;
     info!("starting rpncalc");
 
-    let mut state = RpnState::new();
+    let mut state = RpnState::new()?;
     if !args.extras.is_empty() {
         for item in &args.extras {
             state.push_str(item)?;
@@ -130,7 +131,7 @@ fn handle_right_press(state: &mut RpnState) -> Result<()> {
 }
 
 fn handle_backspace_press(state: &mut RpnState) -> Result<()> {
-    if state.ui_input_state.get_input().is_empty() {
+    if state.ui_input_state.is_empty() {
         state.pop()
     } else {
         state.ui_input_state.backspace_char();
@@ -151,7 +152,7 @@ fn handle_enter_press(state: &mut RpnState) -> Result<()> {
 }
 
 fn handle_char_press(to_insert: char, state: &mut RpnState) -> Result<()> {
-    if state.ui_input_state.get_input().is_empty() {
+    if state.ui_input_state.is_empty() {
         if to_insert == '+' {
             return state.push_str("+");
         } else if to_insert == '-' {
@@ -192,15 +193,28 @@ fn get_config_dir() -> Result<PathBuf> {
     Ok(p)
 }
 
-fn init_logger(config_dir: &Path) -> Result<()> {
-    let mut log_filename = config_dir.to_path_buf();
-    log_filename.push("rpncalc.log");
+fn init_logger(config_dir: Option<&Path>) -> Result<()> {
+    let log_config = if let Some(config_dir) = config_dir {
+        let mut log_filename = config_dir.to_path_buf();
+        log_filename.push("rpncalc.log");
 
-    let file = FileAppender::builder().build(log_filename)?;
-    let log_config = log4rs::config::Config::builder()
-        .appender(Appender::builder().build("file", Box::new(file)))
-        .build(Root::builder().appender("file").build(LevelFilter::Debug))
-        .unwrap();
-    log4rs::init_config(log_config).unwrap();
+        let file = FileAppender::builder().build(log_filename)?;
+        log4rs::config::Config::builder()
+            .appender(Appender::builder().build("file", Box::new(file)))
+            .build(Root::builder().appender("file").build(LevelFilter::Debug))?
+    } else {
+        let stdout = ConsoleAppender::builder().build();
+        log4rs::config::Config::builder()
+            .appender(Appender::builder().build("stdout", Box::new(stdout)))
+            .build(Root::builder().appender("stdout").build(LevelFilter::Debug))?
+    };
+    if let Err(e) = log4rs::init_config(log_config) {
+        if format!("{}", e)
+            == "attempted to set a logger after the logging system was already initialized"
+        {
+            return Ok(());
+        }
+        return Err(e).context("initializing logger");
+    }
     Ok(())
 }

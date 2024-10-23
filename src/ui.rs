@@ -4,6 +4,7 @@ use ratatui::text::Text;
 use ratatui::widgets::{Borders, List, ListDirection, ListItem, Paragraph};
 use ratatui::{layout::Layout, widgets::Block, Frame};
 
+use crate::stack::item::{StackItem, StackItemToStringOpts};
 use crate::state::RpnState;
 
 pub fn draw(frame: &mut Frame, state: &mut RpnState) {
@@ -17,6 +18,8 @@ pub fn draw(frame: &mut Frame, state: &mut RpnState) {
 
     let vertical_stack = Layout::vertical([Min(0), Length(3)]);
     let [stack_area, input_area] = vertical_stack.areas(left_area);
+
+    let info_text = get_info_text(state);
 
     let mut items: Vec<ListItem> = state
         .stack
@@ -50,7 +53,10 @@ pub fn draw(frame: &mut Frame, state: &mut RpnState) {
         ),
         input_area,
     );
-    frame.render_widget(Block::bordered().title("Info"), right_area);
+    frame.render_widget(
+        Paragraph::new(info_text).block(Block::bordered().title("Info")),
+        right_area,
+    );
 
     frame.set_cursor_position(Position::new(
         // Draw the cursor at the current position in the input field.
@@ -59,6 +65,52 @@ pub fn draw(frame: &mut Frame, state: &mut RpnState) {
         // Move one line down, from the border to the input line
         input_area.y + 1,
     ));
+}
+
+fn get_info_text(state: &mut RpnState) -> String {
+    let n = if state.ui_input_state.is_empty() {
+        state.stack.peek(0).cloned()
+    } else {
+        match StackItem::from_str(state.ui_input_state.get_input()) {
+            Ok(v) => Some(v),
+            Err(_) => None,
+        }
+    };
+
+    if let Some(n) = n {
+        return format!(
+            "Hex: {}\nDec: {}\nOct: {}\nBin: {}\n",
+            n.to_string_opts(
+                &StackItemToStringOpts {
+                    base: 16,
+                    precision: None,
+                },
+                state
+            ),
+            n.to_string_opts(
+                &StackItemToStringOpts {
+                    base: 10,
+                    precision: None,
+                },
+                state
+            ),
+            n.to_string_opts(
+                &StackItemToStringOpts {
+                    base: 8,
+                    precision: None,
+                },
+                state
+            ),
+            n.to_string_opts(
+                &StackItemToStringOpts {
+                    base: 2,
+                    precision: None,
+                },
+                state
+            )
+        );
+    }
+    "Hex:\nDec:\nOct:\nBin:\n".to_string()
 }
 
 fn get_status_text(state: &RpnState) -> String {

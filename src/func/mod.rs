@@ -18,7 +18,7 @@ mod test {
         ($arg0: expr, $arg1: expr, $op: expr, $expected: expr) => {
             use crate::{stack::item::StackItem, state::RpnState};
 
-            let mut state = RpnState::new();
+            let mut state = RpnState::new().unwrap();
             state.push($arg0).unwrap();
             state.push($arg1).unwrap();
             state.push_str($op).unwrap();

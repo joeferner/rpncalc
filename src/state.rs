@@ -14,6 +14,7 @@ pub struct RpnState {
     pub functions: HashMap<String, Arc<Box<dyn Func>>>,
     pub undo_stack: UndoStack,
     pub error: Option<Error>,
+    pub input: Input,
 }
 
 impl RpnState {
@@ -26,6 +27,7 @@ impl RpnState {
             functions,
             undo_stack: UndoStack::new(),
             error: None,
+            input: Input::new(),
         }
     }
 
@@ -58,5 +60,65 @@ impl RpnState {
         } else {
             Err(anyhow!("Nothing to redo"))
         }
+    }
+}
+
+pub struct Input {
+    /// Current value of the input box
+    input: String,
+    /// Position of cursor in the editor area.
+    character_index: usize,
+}
+
+impl Input {
+    pub fn new() -> Self {
+        Self {
+            input: "".to_string(),
+            character_index: 0,
+        }
+    }
+
+    pub fn get_character_index(&self) -> usize {
+        self.character_index
+    }
+
+    pub fn get_input(&self) -> &str {
+        &self.input
+    }
+
+    pub fn enter_char(&mut self, new_char: char) {
+        let index = self.byte_index();
+        self.input.insert(index, new_char);
+        self.move_cursor_right();
+    }
+
+    /// Returns the byte index based on the character position.
+    ///
+    /// Since each character in a string can be contain multiple bytes, it's necessary to calculate
+    /// the byte index based on the index of the character.
+    fn byte_index(&self) -> usize {
+        self.input
+            .char_indices()
+            .map(|(i, _)| i)
+            .nth(self.character_index)
+            .unwrap_or(self.input.len())
+    }
+
+    fn move_cursor_right(&mut self) {
+        let cursor_moved_right = self.character_index.saturating_add(1);
+        self.character_index = self.clamp_cursor(cursor_moved_right);
+    }
+
+    fn clamp_cursor(&self, new_cursor_pos: usize) -> usize {
+        new_cursor_pos.clamp(0, self.input.chars().count())
+    }
+
+    fn reset_cursor(&mut self) {
+        self.character_index = 0;
+    }
+
+    pub fn clear(&mut self) {
+        self.input.clear();
+        self.reset_cursor();
     }
 }

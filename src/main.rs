@@ -1,21 +1,30 @@
 use std::{
-    io::stdout, path::{Path, PathBuf}, process
+    io::stdout,
+    path::{Path, PathBuf},
+    process,
 };
 
 use anyhow::{Context, Result};
 use clap::Parser;
-use crossterm::{event::{Event, KeyCode, KeyEvent, KeyModifiers, KeyboardEnhancementFlags, PopKeyboardEnhancementFlags, PushKeyboardEnhancementFlags}, execute};
+use crossterm::{
+    event::{
+        Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers, KeyboardEnhancementFlags,
+        PopKeyboardEnhancementFlags, PushKeyboardEnhancementFlags,
+    },
+    execute,
+};
 use log::{debug, error, info, LevelFilter};
 use log4rs::{
     append::file::FileAppender,
     config::{Appender, Root},
 };
-use ratatui::{text::Text, Frame};
 use state::RpnState;
+use ui::draw;
 
 mod func;
 mod stack;
 mod state;
+mod ui;
 mod undo_action;
 mod undo_stack;
 
@@ -55,7 +64,9 @@ fn main() -> Result<()> {
 
     terminal.clear()?;
     loop {
-        terminal.draw(draw).context("failed to draw frame")?;
+        terminal
+            .draw(|f| draw(f, &mut state))
+            .context("failed to draw frame")?;
         let event = crossterm::event::read().context("failed to read event")?;
         if let Err(e) = handle_ui_event(event, &mut state) {
             error!("failed to handle ui event; error = {e}");
@@ -83,24 +94,40 @@ fn handle_ui_event(event: Event, state: &mut RpnState) -> Result<()> {
     }
 }
 
-fn handle_key_event(key_event: KeyEvent, state: &mut RpnState) -> Result<()> {
-    debug!("key {key_event:?}");
-    match key_event.modifiers {
-        KeyModifiers::CONTROL => match key_event.code {
-            KeyCode::Char('c') => handle_exit(),
-            KeyCode::Char('d') => handle_exit(),
-            KeyCode::Char('y') => handle_redo(state),
-            KeyCode::Char('z') => handle_undo(state),
-            _ => {
-                debug!("key {key_event:?}");
-                Ok(())
-            }
-        },
-        _ => {
-            debug!("key {key_event:?}");
-            Ok(())
+fn handle_key_event(key: KeyEvent, state: &mut RpnState) -> Result<()> {
+    if matches!(key.modifiers, KeyModifiers::CONTROL) {
+        match key.code {
+            KeyCode::Char('c') => return handle_exit(),
+            KeyCode::Char('d') => return handle_exit(),
+            KeyCode::Char('y') => return handle_redo(state),
+            KeyCode::Char('z') => return handle_undo(state),
+            _ => {}
         }
     }
+    if key.kind == KeyEventKind::Press {
+        match key.code {
+            KeyCode::Enter => return handle_enter_press(state),
+            KeyCode::Char(to_insert) => return handle_char_press(to_insert, state),
+            KeyCode::Backspace => todo!(),
+            KeyCode::Left => todo!(),
+            KeyCode::Right => todo!(),
+            _ => {}
+        }
+    }
+    debug!("key {key:?}");
+    Ok(())
+}
+
+fn handle_enter_press(state: &mut RpnState) -> Result<()> {
+    let input = state.input.get_input().to_string();
+    state.push_str(&input)?;
+    state.input.clear();
+    Ok(())
+}
+
+fn handle_char_press(to_insert: char, state: &mut RpnState) -> Result<()> {
+    state.input.enter_char(to_insert);
+    Ok(())
 }
 
 fn handle_redo(state: &mut RpnState) -> Result<()> {
@@ -121,11 +148,6 @@ pub fn exit_process(code: i32) {
     ratatui::restore();
     info!("rpncalc exiting (code: {code})");
     process::exit(code);
-}
-
-fn draw(frame: &mut Frame) {
-    let text = Text::raw("Hello World!");
-    frame.render_widget(text, frame.area());
 }
 
 fn get_config_dir() -> Result<PathBuf> {

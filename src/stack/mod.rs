@@ -12,12 +12,6 @@ impl Stack {
         Self { items: vec![] }
     }
 
-    pub fn push_str(&mut self, s: &str) -> Result<()> {
-        let item = StackItem::from_str(s)?;
-        self.push(item);
-        Ok(())
-    }
-
     pub fn push(&mut self, item: StackItem) {
         self.items.push(item);
     }

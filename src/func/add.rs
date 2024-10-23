@@ -33,20 +33,18 @@ impl Func for AddFunc {
 mod tests {
     use crate::{stack::item::StackItem, state::RpnState};
 
-    use super::*;
-
     #[test]
     fn test_add() {
         let mut state = RpnState::new();
-        state.stack.push_str("1").unwrap();
-        state.stack.push_str("2").unwrap();
-        let undo = AddFunc::new().execute(&mut state).unwrap();
+        state.push_str("1").unwrap();
+        state.push_str("2").unwrap();
+        state.push_str("add").unwrap();
         assert_eq!(state.stack.len(), 1);
         let answer = state.stack.peek(0).unwrap();
         assert_eq!(*answer, StackItem::Number { value: 3.0 });
 
         // test undo
-        undo.undo(&mut state).unwrap();
+        state.undo().unwrap();
         assert_eq!(2, state.stack.len());
         assert_eq!(
             *state.stack.peek(0).unwrap(),
@@ -58,7 +56,7 @@ mod tests {
         );
 
         // test redo
-        undo.redo(&mut state).unwrap();
+        state.redo().unwrap();
         assert_eq!(state.stack.len(), 1);
         let answer = state.stack.peek(0).unwrap();
         assert_eq!(*answer, StackItem::Number { value: 3.0 });

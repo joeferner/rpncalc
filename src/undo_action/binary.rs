@@ -4,6 +4,7 @@ use crate::{stack::item::StackItem, state::RpnState};
 
 use super::UndoEvent;
 
+#[derive(Debug)]
 pub struct BinaryFuncUndoEvent {
     a: StackItem,
     b: StackItem,
@@ -40,7 +41,7 @@ impl UndoEvent for BinaryFuncUndoEvent {
     fn redo(&self, state: &mut RpnState) -> Result<()> {
         if state.stack.len() < 2 {
             return Err(anyhow!(
-                "unexpected state for redo, expected item at least 2 items on the stack"
+                "unexpected state for redo, expected at least 2 items on the stack"
             ));
         }
         let found_a = state.stack.peek(1).unwrap();

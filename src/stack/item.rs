@@ -1,3 +1,6 @@
+use std::fmt;
+use std::fmt::Display;
+
 use anyhow::{anyhow, Result};
 
 #[derive(Clone, Debug)]
@@ -20,6 +23,14 @@ impl StackItem {
                     value: value + other_value,
                 }),
             },
+        }
+    }
+}
+
+impl Display for StackItem {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            StackItem::Number { value } => write!(f, "{}", value),
         }
     }
 }

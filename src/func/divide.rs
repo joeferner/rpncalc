@@ -36,18 +36,18 @@ mod test {
     #[test]
     fn test_divide() {
         test_binary_func!(
-            StackItem::from_str("1").unwrap(),
-            StackItem::from_str("2").unwrap(),
+            StackItem::Number(1.0),
+            StackItem::Number(2.0),
             "divide",
-            StackItem::from_str("0.5").unwrap()
+            StackItem::Number(0.5)
         );
     }
 
     #[test]
     fn test_divide_by_zero() {
         test_binary_func!(
-            StackItem::from_str("1").unwrap(),
-            StackItem::from_str("0").unwrap(),
+            StackItem::Number(1.0),
+            StackItem::Number(0.0),
             "divide",
             StackItem::Undefined
         );

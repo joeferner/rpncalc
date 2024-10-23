@@ -36,10 +36,10 @@ mod test {
     #[test]
     fn test_add() {
         test_binary_func!(
-            StackItem::from_str("1").unwrap(),
-            StackItem::from_str("2").unwrap(),
+            StackItem::Number(1.0),
+            StackItem::Number(2.0),
             "add",
-            StackItem::from_str("3").unwrap()
+            StackItem::Number(3.0)
         );
     }
 }

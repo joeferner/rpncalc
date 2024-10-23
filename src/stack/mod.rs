@@ -1,3 +1,5 @@
+use core::slice::Iter;
+
 use anyhow::{anyhow, Result};
 use item::StackItem;
 
@@ -40,5 +42,9 @@ impl Stack {
 
     pub fn len(&self) -> usize {
         self.items.len()
+    }
+
+    pub fn iter(&self) -> Iter<StackItem> {
+        self.items.iter()
     }
 }

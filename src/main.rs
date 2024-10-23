@@ -108,7 +108,7 @@ fn handle_key_event(key: KeyEvent, state: &mut RpnState) -> Result<()> {
         match key.code {
             KeyCode::Enter => return handle_enter_press(state),
             KeyCode::Char(to_insert) => return handle_char_press(to_insert, state),
-            KeyCode::Backspace => todo!(),
+            KeyCode::Backspace => return handle_backspace_press(state),
             KeyCode::Left => todo!(),
             KeyCode::Right => todo!(),
             _ => {}
@@ -118,15 +118,24 @@ fn handle_key_event(key: KeyEvent, state: &mut RpnState) -> Result<()> {
     Ok(())
 }
 
+fn handle_backspace_press(state: &mut RpnState) -> Result<()> {
+    if state.ui_input_state.get_input().is_empty() {
+        state.pop()
+    } else {
+        state.ui_input_state.delete_char();
+        Ok(())
+    }
+}
+
 fn handle_enter_press(state: &mut RpnState) -> Result<()> {
-    let input = state.input.get_input().to_string();
+    let input = state.ui_input_state.get_input().to_string();
     state.push_str(&input)?;
-    state.input.clear();
+    state.ui_input_state.clear();
     Ok(())
 }
 
 fn handle_char_press(to_insert: char, state: &mut RpnState) -> Result<()> {
-    state.input.enter_char(to_insert);
+    state.ui_input_state.enter_char(to_insert);
     Ok(())
 }
 

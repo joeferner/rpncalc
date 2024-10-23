@@ -1,11 +1,12 @@
-use std::fmt;
 use std::fmt::Display;
+use std::fmt::{self};
 
 use anyhow::{anyhow, Result};
 
 #[derive(Clone, Debug)]
 pub enum StackItem {
     Number { value: f64 },
+    Undefined,
 }
 
 impl StackItem {
@@ -22,7 +23,51 @@ impl StackItem {
                 StackItem::Number { value: other_value } => Ok(StackItem::Number {
                     value: value + other_value,
                 }),
+                StackItem::Undefined => Ok(StackItem::Undefined),
             },
+            StackItem::Undefined => Ok(StackItem::Undefined),
+        }
+    }
+
+    pub fn subtract(&self, other: &StackItem) -> Result<StackItem> {
+        match self {
+            StackItem::Number { value } => match other {
+                StackItem::Number { value: other_value } => Ok(StackItem::Number {
+                    value: value - other_value,
+                }),
+                StackItem::Undefined => Ok(StackItem::Undefined),
+            },
+            StackItem::Undefined => Ok(StackItem::Undefined),
+        }
+    }
+
+    pub fn multiply(&self, other: &StackItem) -> Result<StackItem> {
+        match self {
+            StackItem::Number { value } => match other {
+                StackItem::Number { value: other_value } => Ok(StackItem::Number {
+                    value: value * other_value,
+                }),
+                StackItem::Undefined => Ok(StackItem::Undefined),
+            },
+            StackItem::Undefined => Ok(StackItem::Undefined),
+        }
+    }
+
+    pub fn divide(&self, other: &StackItem) -> Result<StackItem> {
+        match self {
+            StackItem::Number { value } => match other {
+                StackItem::Number { value: other_value } => {
+                    if *other_value == 0.0 {
+                        Ok(StackItem::Undefined)
+                    } else {
+                        Ok(StackItem::Number {
+                            value: value / other_value,
+                        })
+                    }
+                }
+                StackItem::Undefined => Ok(StackItem::Undefined),
+            },
+            StackItem::Undefined => Ok(StackItem::Undefined),
         }
     }
 }
@@ -31,6 +76,7 @@ impl Display for StackItem {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             StackItem::Number { value } => write!(f, "{}", value),
+            StackItem::Undefined => write!(f, "undefined"),
         }
     }
 }
@@ -40,6 +86,11 @@ impl PartialEq for StackItem {
         match self {
             StackItem::Number { value } => match other {
                 StackItem::Number { value: other_value } => value == other_value,
+                StackItem::Undefined => false,
+            },
+            StackItem::Undefined => match other {
+                StackItem::Number { value: _ } => false,
+                StackItem::Undefined => true,
             },
         }
     }

@@ -40,7 +40,7 @@ impl UndoEvent for PushUndoEvent {
 }
 
 #[cfg(test)]
-mod tests {
+mod test {
     use crate::{stack::item::StackItem, state::RpnState};
 
     #[test]

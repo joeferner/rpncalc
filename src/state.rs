@@ -4,7 +4,9 @@ use anyhow::{anyhow, Error, Result};
 use ratatui::widgets::ListState;
 
 use crate::{
-    func::{add::AddFunc, Func},
+    func::{
+        add::AddFunc, divide::DivideFunc, multiply::MultiplyFunc, subtract::SubtractFunc, Func,
+    },
     stack::{item::StackItem, Stack},
     undo_action::{pop::PopUndoEvent, push::PushUndoEvent},
     undo_stack::UndoStack,
@@ -22,7 +24,22 @@ pub struct RpnState {
 impl RpnState {
     pub fn new() -> Self {
         let mut functions: HashMap<String, Arc<Box<dyn Func>>> = HashMap::new();
-        functions.insert("add".to_string(), Arc::new(Box::new(AddFunc::new())));
+
+        let add_func: Arc<Box<dyn Func>> = Arc::new(Box::new(AddFunc::new()));
+        functions.insert("add".to_string(), add_func.clone());
+        functions.insert("+".to_string(), add_func);
+
+        let subtract_func: Arc<Box<dyn Func>> = Arc::new(Box::new(SubtractFunc::new()));
+        functions.insert("subtract".to_string(), subtract_func.clone());
+        functions.insert("-".to_string(), subtract_func);
+
+        let multiply_func: Arc<Box<dyn Func>> = Arc::new(Box::new(MultiplyFunc::new()));
+        functions.insert("multiply".to_string(), multiply_func.clone());
+        functions.insert("*".to_string(), multiply_func);
+
+        let divide_func: Arc<Box<dyn Func>> = Arc::new(Box::new(DivideFunc::new()));
+        functions.insert("divide".to_string(), divide_func.clone());
+        functions.insert("/".to_string(), divide_func);
 
         Self {
             stack: Stack::new(),
@@ -43,6 +60,10 @@ impl RpnState {
         }
 
         let stack_item = StackItem::from_str(s)?;
+        self.push(stack_item)
+    }
+
+    pub fn push(&mut self, stack_item: StackItem) -> Result<()> {
         self.stack.push(stack_item.clone());
         self.undo_stack
             .push_undo_stack(Box::new(PushUndoEvent::new(stack_item)));

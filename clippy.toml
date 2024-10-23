@@ -1,3 +1,0 @@
-# Documentation for the settings in this file can be found here: https://github.com/rust-lang/rust-clippy#configuration
-
-cognitive-complexity-threshold = 20

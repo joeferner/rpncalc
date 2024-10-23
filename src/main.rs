@@ -1,172 +1,77 @@
-use crate::error::RpnCalcError;
-use crate::rpn_calc::RpnCalc;
-use crate::tui::nroff::{nroff_format, nroff_to_markdown};
-use crate::tui::{create_help_string, run_tui};
-use crate::utils::Clipboard;
-use color_eyre::eyre;
-use std::cell::RefCell;
-use std::rc::Rc;
-use std::{env, process};
+use std::{path::{Path, PathBuf}, process};
 
-#[cfg(feature = "copypasta")]
-use crate::utils::CopypastaClipboard;
+use anyhow::{Context, Result};
+use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
+use log::{debug, info, LevelFilter};
+use log4rs::{
+    append::file::FileAppender,
+    config::{Appender, Root},
+};
+use ratatui::{text::Text, Frame};
+use state::RpnState;
 
-#[cfg(not(feature = "copypasta"))]
-use crate::utils::NoopClipboard;
-
-mod constant;
-mod error;
-mod functions;
-mod number;
-mod rpn_calc;
+mod func;
 mod stack;
-mod stack_item;
-mod tui;
-mod units;
-mod utils;
+mod state;
+mod undo_action;
 
-struct Args {
-    // set to force interactive mode even if stack items are presented
-    interactive: bool,
+fn main() -> Result<()> {
+    let config_dir = get_config_dir()?;
+    init_logger(&config_dir)?;
+    info!("starting rpncalc");
 
-    stack: Vec<String>,
-}
-
-fn main() -> eyre::Result<()> {
-    color_eyre::install()?;
-
-    let mut args = Args {
-        stack: Vec::new(),
-        interactive: false,
-    };
-    for arg in env::args().skip(1) {
-        if arg == "-i" || arg == "--interactive" {
-            args.interactive = true;
-        } else if arg == "-h" || arg == "--help" {
-            let (width, _) = crossterm::terminal::size().unwrap_or((80, 80));
-            eprintln!("{}", nroff_format(get_usage().as_str(), width as usize));
-            process::exit(exitcode::USAGE);
-        } else if arg == "--help-readme" {
-            let clipboard = create_clipboard()?;
-            let rpn_calc = RpnCalc::new(clipboard);
-            let rpn_calc_help = create_help_string(&rpn_calc);
-            println!("{}", get_readme_header().as_str());
-            println!("{}", nroff_to_markdown(get_usage().as_str()));
-            println!("{}", nroff_to_markdown(rpn_calc_help.as_str()));
-            println!("{}", get_readme_footer().as_str());
-            process::exit(exitcode::OK);
-        } else {
-            args.stack.push(arg);
+    let mut terminal = ratatui::init();
+    let mut state = RpnState::new();
+    terminal.clear()?;
+    loop {
+        terminal.draw(draw).context("failed to draw frame")?;
+        match crossterm::event::read().context("failed to read event")? {
+            Event::FocusGained => {}
+            Event::FocusLost => {}
+            Event::Key(key_event) => handle_key_event(key_event, &mut state)?,
+            Event::Mouse(mouse_event) => debug!("mouse {mouse_event:?}"),
+            Event::Paste(value) => debug!("paste {value:?}"),
+            Event::Resize(_, _) => {}
         }
     }
-
-    if let Err(err) = run(args) {
-        eprintln!("{}", err);
-        process::exit(exitcode::DATAERR);
-    }
-    return Ok(());
 }
 
-#[cfg(feature = "copypasta")]
-fn create_clipboard() -> Result<Rc<RefCell<dyn Clipboard>>, RpnCalcError> {
-    return Ok(Rc::new(RefCell::new(CopypastaClipboard::new()?)));
-}
-
-#[cfg(not(feature = "copypasta"))]
-fn create_clipboard() -> Result<Rc<RefCell<dyn Clipboard>>, RpnCalcError> {
-    return Ok(Rc::new(RefCell::new(NoopClipboard::new())));
-}
-
-fn run(args: Args) -> Result<(), RpnCalcError> {
-    let interactive_mode = args.stack.is_empty() || args.interactive;
-
-    let clipboard = create_clipboard()?;
-    let mut rpn_calc = RpnCalc::new(clipboard);
-    for arg in args.stack {
-        rpn_calc.push_str(arg.as_str())?;
-    }
-
-    if interactive_mode {
-        run_tui(rpn_calc)?;
+fn handle_key_event(key_event: KeyEvent, _state: &mut RpnState) -> Result<()> {
+    if matches!(key_event.modifiers, KeyModifiers::CONTROL) {
+        if matches!(key_event.code, KeyCode::Char('c')) {
+            exit_process(0);
+        }
     } else {
-        for stack_item in &rpn_calc.stack.items {
-            println!("{}", rpn_calc.format_stack_item(stack_item));
-        }
+        debug!("key {key_event:?}");
     }
-
-    return Ok(());
+    Ok(())
 }
 
-fn get_usage() -> String {
-    return "Usage: rpncalc [option]... [stack item]...
-Reverse Polish Notation calculator
-
-  -h, --help        display this help and exit
-  -i, --interactive enter interactive mode even if stack items are supplied
-
-By default, rpncalc will enter interactive mode if no stack items are supplied. If stack items \
-are supplied you can use -i to force interactive mode.
-
-In interactive mode typing \"help\" will show additional help.
-
-.SH Examples
-
-.IP \"add -1 plus 2\"
-rpncalc -1 2 +
-
-.IP \"add 0x42 plus 16 decimal and display the result as hex\"
-rpncalc hex 0x42 16 +
-
-.IP \"convert 5ft to meters\"
-rpncalc \"5 ft\" \"0 m\" +"
-        .to_string();
+pub fn exit_process(code: i32) {
+    ratatui::restore();
+    process::exit(code);
 }
 
-fn get_readme_header() -> String {
-    return "
-## rpncalc \
-[![master](https://github.com/joeferner/rpncalc/actions/workflows/master.yml/badge.svg)]\
-(https://github.com/joeferner/rpncalc/actions/workflows/master.yml) \
-[![codecov](https://codecov.io/gh/joeferner/rpncalc/branch/master/graph/badge.svg?token=SFH1NL79H4)]\
-(https://codecov.io/gh/joeferner/rpncalc)
-
-rpncalc is a command line Reverse Polish Notation calculator.
-"
-    .to_string();
+fn draw(frame: &mut Frame) {
+    let text = Text::raw("Hello World!");
+    frame.render_widget(text, frame.area());
 }
 
-fn get_readme_footer() -> String {
-    return "
-## Development Workspace Setup
+fn get_config_dir() -> Result<PathBuf> {
+    let mut p = dirs::config_dir().context("could not find config directory")?;
+    p.push("rpncalc");
+    Ok(p.into())
+}
 
-The main facility used for interacting with this project's lifecycle (build/test/format/lint) is
-[cargo-make](https://sagiegurari.github.io/cargo-make). Therefore, this is the only dependency \
-you need to install on your machine:
+fn init_logger(config_dir: &Path) -> Result<()> {
+    let mut log_filename = config_dir.to_path_buf();
+    log_filename.push("rpncalc.log");
 
-```bash
-cargo install cargo-make
-```
-
-## Commands
-
-With `cargo-make`, all of this project's commands will become available to you:
-
-```bash
-cargo make clean            # Clean up temporary files
-cargo make build            # Lint and build the project
-cargo make run              # Run the application
-cargo make test             # Run all unit tests
-cargo make test-coverage    # Run all unit tests and write a code coverage report to STDOUT
-cargo make test-coverage-ci # Run all unit tests and write a code coverage report to a text file \
-in LCOV format
-cargo make format           # Formats (rewrites) every applicable file in the project
-cargo make format-ci        # Formats (report only) every applicable file in the project
-cargo make lint             # Lints (report only) every applicable file in the project
-cargo make lint-watch       # Lints (report only) every applicable file in the project and \
-re-lints whenever files change
-cargo make generate-readme  # Updates README.md
-cargo make pre-commit       # Runs pre-commit tasks
-```
-"
-    .to_string();
+    let file = FileAppender::builder().build(log_filename)?;
+    let log_config = log4rs::config::Config::builder()
+        .appender(Appender::builder().build("file", Box::new(file)))
+        .build(Root::builder().appender("file").build(LevelFilter::Debug))
+        .unwrap();
+    log4rs::init_config(log_config).unwrap();
+    Ok(())
 }

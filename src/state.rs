@@ -117,7 +117,12 @@ impl Input {
             .unwrap_or(self.input.len())
     }
 
-    fn move_cursor_right(&mut self) {
+    pub fn move_cursor_left(&mut self) {
+        let cursor_moved_left = self.character_index.saturating_sub(1);
+        self.character_index = self.clamp_cursor(cursor_moved_left);
+    }
+
+    pub fn move_cursor_right(&mut self) {
         let cursor_moved_right = self.character_index.saturating_add(1);
         self.character_index = self.clamp_cursor(cursor_moved_right);
     }
@@ -135,7 +140,7 @@ impl Input {
         self.reset_cursor();
     }
 
-    pub fn delete_char(&mut self) {
+    pub fn backspace_char(&mut self) {
         let is_not_cursor_leftmost = self.character_index != 0;
         if is_not_cursor_leftmost {
             // Method "remove" is not used on the saved text for deleting the selected char.
@@ -157,8 +162,24 @@ impl Input {
         }
     }
 
-    fn move_cursor_left(&mut self) {
-        let cursor_moved_left = self.character_index.saturating_sub(1);
-        self.character_index = self.clamp_cursor(cursor_moved_left);
+    pub fn delete_char(&mut self) {
+        let is_not_cursor_rightmost = self.character_index != self.input.len();
+        if is_not_cursor_rightmost {
+            // Method "remove" is not used on the saved text for deleting the selected char.
+            // Reason: Using remove on String works on bytes instead of the chars.
+            // Using remove would require special care because of char boundaries.
+
+            let from_left_to_current_index = self.character_index;
+            let current_index = self.character_index + 1;
+
+            // Getting all characters before the selected character.
+            let before_char_to_delete = self.input.chars().take(from_left_to_current_index);
+            // Getting all characters after selected character.
+            let after_char_to_delete = self.input.chars().skip(current_index);
+
+            // Put all characters together except the selected one.
+            // By leaving the selected one out, it is forgotten and therefore deleted.
+            self.input = before_char_to_delete.chain(after_char_to_delete).collect();
+        }
     }
 }

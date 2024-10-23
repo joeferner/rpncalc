@@ -109,8 +109,9 @@ fn handle_key_event(key: KeyEvent, state: &mut RpnState) -> Result<()> {
             KeyCode::Enter => return handle_enter_press(state),
             KeyCode::Char(to_insert) => return handle_char_press(to_insert, state),
             KeyCode::Backspace => return handle_backspace_press(state),
-            KeyCode::Left => todo!(),
-            KeyCode::Right => todo!(),
+            KeyCode::Delete => return handle_delete_press(state),
+            KeyCode::Left => return handle_left_press(state),
+            KeyCode::Right => return handle_right_press(state),
             _ => {}
         }
     }
@@ -118,13 +119,28 @@ fn handle_key_event(key: KeyEvent, state: &mut RpnState) -> Result<()> {
     Ok(())
 }
 
+fn handle_left_press(state: &mut RpnState) -> Result<()> {
+    state.ui_input_state.move_cursor_left();
+    Ok(())
+}
+
+fn handle_right_press(state: &mut RpnState) -> Result<()> {
+    state.ui_input_state.move_cursor_right();
+    Ok(())
+}
+
 fn handle_backspace_press(state: &mut RpnState) -> Result<()> {
     if state.ui_input_state.get_input().is_empty() {
         state.pop()
     } else {
-        state.ui_input_state.delete_char();
+        state.ui_input_state.backspace_char();
         Ok(())
     }
+}
+
+fn handle_delete_press(state: &mut RpnState) -> Result<()> {
+    state.ui_input_state.delete_char();
+    Ok(())
 }
 
 fn handle_enter_press(state: &mut RpnState) -> Result<()> {

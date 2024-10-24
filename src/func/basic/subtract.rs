@@ -1,20 +1,22 @@
 use anyhow::Result;
 
-use crate::{state::RpnState, undo_action::UndoEvent};
+use crate::{
+    func::{execute_binary, Func},
+    state::RpnState,
+    undo_action::UndoEvent,
+};
 
-use super::{execute_binary, Func};
+pub struct SubtractFunc {}
 
-pub struct AddFunc {}
-
-impl AddFunc {
+impl SubtractFunc {
     pub fn new() -> Self {
         Self {}
     }
 }
 
-impl Func for AddFunc {
+impl Func for SubtractFunc {
     fn execute(&self, state: &mut RpnState) -> Result<Box<dyn UndoEvent>> {
-        execute_binary(state, |a, b| a.add(b))
+        execute_binary(state, |a, b| a.subtract(b))
     }
 }
 
@@ -23,12 +25,12 @@ mod test {
     use crate::test_binary_func;
 
     #[test]
-    fn test_add() {
+    fn test_subtract() {
         test_binary_func!(
             StackItem::Number(1.0, 10),
             StackItem::Number(2.0, 10),
-            "add",
-            StackItem::Number(3.0, 10)
+            "subtract",
+            StackItem::Number(-1.0, 10)
         );
     }
 }

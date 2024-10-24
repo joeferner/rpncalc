@@ -6,13 +6,8 @@ use crate::{
     undo_action::{binary::BinaryFuncUndoEvent, unary::UnaryFuncUndoEvent, UndoEvent},
 };
 
-pub mod add;
-pub mod cos;
-pub mod divide;
-pub mod multiply;
-pub mod sin;
-pub mod subtract;
-pub mod tan;
+pub mod basic;
+pub mod trig;
 
 pub trait Func {
     fn execute(&self, state: &mut RpnState) -> Result<Box<dyn UndoEvent>>;

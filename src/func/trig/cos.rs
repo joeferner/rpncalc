@@ -1,21 +1,23 @@
 use anyhow::Result;
 
-use crate::{state::RpnState, undo_action::UndoEvent};
+use crate::{
+    func::{execute_unary, Func},
+    state::RpnState,
+    undo_action::UndoEvent,
+};
 
-use super::{execute_unary, Func};
+pub struct CosFunc {}
 
-pub struct SinFunc {}
-
-impl SinFunc {
+impl CosFunc {
     pub fn new() -> Self {
         Self {}
     }
 }
 
-impl Func for SinFunc {
+impl Func for CosFunc {
     fn execute(&self, state: &mut RpnState) -> Result<Box<dyn UndoEvent>> {
         let angle_mode = state.angle_mode;
-        execute_unary(state, |a| a.sin(angle_mode))
+        execute_unary(state, |a| a.cos(angle_mode))
     }
 }
 
@@ -28,8 +30,8 @@ mod test {
         test_unary_angle_func!(
             AngleMode::Degrees,
             StackItem::Number(1.0, 10),
-            "sin",
-            StackItem::Number(0.01745240643728351, 10)
+            "cos",
+            StackItem::Number(0.9998476951563913, 10)
         );
     }
 }

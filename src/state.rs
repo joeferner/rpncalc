@@ -6,8 +6,9 @@ use ratatui::widgets::ListState;
 
 use crate::{
     func::{
-        add::AddFunc, cos::CosFunc, divide::DivideFunc, multiply::MultiplyFunc, sin::SinFunc,
-        subtract::SubtractFunc, tan::TanFunc, Func,
+        basic::{add::AddFunc, divide::DivideFunc, multiply::MultiplyFunc, subtract::SubtractFunc},
+        trig::{cos::CosFunc, sin::SinFunc, tan::TanFunc},
+        Func,
     },
     stack::{item::StackItem, Stack},
     undo_action::{pop::PopUndoEvent, push::PushUndoEvent},

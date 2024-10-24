@@ -1,8 +1,10 @@
 use anyhow::Result;
 
-use crate::{state::RpnState, undo_action::UndoEvent};
-
-use super::{execute_binary, Func};
+use crate::{
+    func::{execute_binary, Func},
+    state::RpnState,
+    undo_action::UndoEvent,
+};
 
 pub struct MultiplyFunc {}
 

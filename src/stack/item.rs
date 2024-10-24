@@ -32,8 +32,8 @@ impl StackItem {
 
     pub fn add(&self, other: &StackItem) -> Result<StackItem> {
         match self {
-            StackItem::Number(value, display_base) => match other {
-                StackItem::Number(other_value, _) => {
+            StackItem::Number(value, _) => match other {
+                StackItem::Number(other_value, display_base) => {
                     Ok(StackItem::Number(value + other_value, *display_base))
                 }
                 StackItem::Undefined => Ok(StackItem::Undefined),
@@ -44,8 +44,8 @@ impl StackItem {
 
     pub fn subtract(&self, other: &StackItem) -> Result<StackItem> {
         match self {
-            StackItem::Number(value, display_base) => match other {
-                StackItem::Number(other_value, _) => {
+            StackItem::Number(value, _) => match other {
+                StackItem::Number(other_value, display_base) => {
                     Ok(StackItem::Number(value - other_value, *display_base))
                 }
                 StackItem::Undefined => Ok(StackItem::Undefined),
@@ -56,8 +56,8 @@ impl StackItem {
 
     pub fn multiply(&self, other: &StackItem) -> Result<StackItem> {
         match self {
-            StackItem::Number(value, display_base) => match other {
-                StackItem::Number(other_value, _) => {
+            StackItem::Number(value, _) => match other {
+                StackItem::Number(other_value, display_base) => {
                     Ok(StackItem::Number(value * other_value, *display_base))
                 }
                 StackItem::Undefined => Ok(StackItem::Undefined),
@@ -68,8 +68,8 @@ impl StackItem {
 
     pub fn divide(&self, other: &StackItem) -> Result<StackItem> {
         match self {
-            StackItem::Number(value, display_base) => match other {
-                StackItem::Number(other_value, _) => {
+            StackItem::Number(value, _) => match other {
+                StackItem::Number(other_value, display_base) => {
                     if *other_value == 0.0 {
                         Ok(StackItem::Undefined)
                     } else {

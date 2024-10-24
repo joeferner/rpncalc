@@ -6,16 +6,21 @@ use ratatui::widgets::{Borders, List, ListDirection, ListItem, Paragraph};
 use ratatui::{layout::Layout, widgets::Block, Frame};
 
 use crate::stack::item::{StackItem, StackItemToStringOpts};
-use crate::state::RpnState;
+use crate::state::{AngleMode, RpnState};
 
 pub fn draw(frame: &mut Frame, state: &mut RpnState) {
-    let status_text = get_status_text(state);
+    let status_left_text = get_status_left_text(state);
+    let status_right_text = get_status_right_text(state);
 
-    let vertical_main = Layout::vertical([Length(1), Min(0), Length(1)]);
-    let [title_area, main_area, status_area] = vertical_main.areas(frame.area());
+    let vertical_main = Layout::vertical([Min(0), Length(1)]);
+    let [main_area, status_area] = vertical_main.areas(frame.area());
 
     let horizontal = Layout::horizontal([Min(60), Percentage(100)]);
     let [left_area, right_area] = horizontal.areas(main_area);
+
+    let status_horizontal =
+        Layout::horizontal([Percentage(100), Length(status_right_text.len() as u16)]);
+    let [status_left_area, status_right_area] = status_horizontal.areas(status_area);
 
     let vertical_stack = Layout::vertical([Min(0), Length(3)]);
     let [stack_area, input_area] = vertical_stack.areas(left_area);
@@ -43,8 +48,8 @@ pub fn draw(frame: &mut Frame, state: &mut RpnState) {
 
     let list = List::new(items).direction(ListDirection::BottomToTop);
 
-    frame.render_widget(Block::new().title("RPN Calculator"), title_area);
-    frame.render_widget(Block::new().title(status_text), status_area);
+    frame.render_widget(Block::new().title(status_left_text), status_left_area);
+    frame.render_widget(Block::new().title(status_right_text), status_right_area);
 
     frame.render_stateful_widget(
         list.block(
@@ -157,7 +162,15 @@ fn get_info_text(state: &mut RpnState) -> String {
     "Hex:\nDec:\nOct:\nBin:\n".to_string()
 }
 
-fn get_status_text(state: &RpnState) -> String {
+fn get_status_right_text(state: &RpnState) -> String {
+    let angle_mode = match state.angle_mode {
+        AngleMode::Degrees => "DEG",
+        AngleMode::Radians => "RAD",
+    };
+    format!(" {angle_mode} ")
+}
+
+fn get_status_left_text(state: &RpnState) -> String {
     if let Some(e) = &state.error {
         format!("{e}")
     } else {

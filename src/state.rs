@@ -7,7 +7,9 @@ use ratatui::widgets::ListState;
 use crate::{
     func::{
         basic::{add::AddFunc, divide::DivideFunc, multiply::MultiplyFunc, subtract::SubtractFunc},
-        trig::{cos::CosFunc, sin::SinFunc, tan::TanFunc},
+        trig::{
+            cos::CosFunc, degrees::DegreesFunc, radians::RadiansFunc, sin::SinFunc, tan::TanFunc,
+        },
         Func,
     },
     stack::{item::StackItem, Stack},
@@ -48,6 +50,8 @@ impl RpnState {
         functions.insert("divide".to_string(), divide_func.clone());
         functions.insert("/".to_string(), divide_func);
 
+        functions.insert("rad".to_string(), Arc::new(Box::new(RadiansFunc::new())));
+        functions.insert("deg".to_string(), Arc::new(Box::new(DegreesFunc::new())));
         functions.insert("sin".to_string(), Arc::new(Box::new(SinFunc::new())));
         functions.insert("cos".to_string(), Arc::new(Box::new(CosFunc::new())));
         functions.insert("tan".to_string(), Arc::new(Box::new(TanFunc::new())));
@@ -119,7 +123,7 @@ pub struct Input {
     character_index: usize,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AngleMode {
     Degrees,
     Radians,

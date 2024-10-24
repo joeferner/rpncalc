@@ -1,1 +1,0 @@
-- toggle angle mode, show it in status bar

@@ -6,7 +6,8 @@ use ratatui::widgets::{Borders, List, ListDirection, ListItem, Paragraph};
 use ratatui::{layout::Layout, widgets::Block, Frame};
 
 use crate::stack::item::{StackItem, StackItemToStringOpts};
-use crate::state::{AngleMode, RpnState};
+use crate::state::angle_mode::AngleMode;
+use crate::state::RpnState;
 
 pub fn draw(frame: &mut Frame, state: &mut RpnState) {
     let status_left_text = get_status_left_text(state);

@@ -2,7 +2,7 @@ use anyhow::Result;
 
 use crate::{
     func::Func,
-    state::{AngleMode, RpnState},
+    state::{angle_mode::AngleMode, RpnState},
     undo_action::UndoEvent,
 };
 
@@ -19,7 +19,7 @@ impl DegreesFunc {
 impl Func for DegreesFunc {
     fn execute(&self, state: &mut RpnState) -> Result<Box<dyn UndoEvent>> {
         let previous_mode = state.angle_mode;
-        state.angle_mode = AngleMode::Radians;
+        state.angle_mode = AngleMode::Degrees;
         Ok(Box::new(AngleUndoEvent {
             previous_mode,
             new_mode: AngleMode::Degrees,
@@ -29,10 +29,10 @@ impl Func for DegreesFunc {
 
 #[cfg(test)]
 mod test {
-    use crate::{state::AngleMode, test_angle_mode_func};
+    use crate::{state::angle_mode::AngleMode, test_angle_mode_func};
 
     #[test]
-    fn test_sin() {
+    fn test_degrees() {
         test_angle_mode_func!(AngleMode::Radians, AngleMode::Degrees, "deg");
     }
 }

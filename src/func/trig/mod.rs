@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Result};
 
 use crate::{
-    state::{AngleMode, RpnState},
+    state::{angle_mode::AngleMode, RpnState},
     undo_action::UndoEvent,
 };
 

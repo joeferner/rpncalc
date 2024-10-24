@@ -23,7 +23,7 @@ impl Func for TanFunc {
 
 #[cfg(test)]
 mod test {
-    use crate::{state::AngleMode, test_unary_angle_func};
+    use crate::{state::angle_mode::AngleMode, test_unary_angle_func};
 
     #[test]
     fn test_sin() {

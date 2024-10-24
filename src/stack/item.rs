@@ -6,7 +6,7 @@ use anyhow::{anyhow, Result};
 use log::warn;
 use num_format::ToFormattedString;
 
-use crate::state::{AngleMode, RpnState};
+use crate::state::{angle_mode::AngleMode, RpnState};
 
 #[derive(Clone, Debug)]
 pub enum StackItem {

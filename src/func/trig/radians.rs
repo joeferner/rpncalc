@@ -2,7 +2,7 @@ use anyhow::Result;
 
 use crate::{
     func::Func,
-    state::{AngleMode, RpnState},
+    state::{angle_mode::AngleMode, RpnState},
     undo_action::UndoEvent,
 };
 
@@ -29,10 +29,10 @@ impl Func for RadiansFunc {
 
 #[cfg(test)]
 mod test {
-    use crate::{state::AngleMode, test_angle_mode_func};
+    use crate::{state::angle_mode::AngleMode, test_angle_mode_func};
 
     #[test]
-    fn test_sin() {
+    fn test_radians() {
         test_angle_mode_func!(AngleMode::Degrees, AngleMode::Radians, "rad");
     }
 }

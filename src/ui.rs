@@ -30,6 +30,8 @@ pub fn draw(frame: &mut Frame, state: &mut RpnState) {
                 &StackItemToStringOpts {
                     base: None,
                     precision: None,
+                    left_pad_with_zeros: true,
+                    include_base_prefix: true,
                 },
                 state,
             ))
@@ -103,6 +105,8 @@ fn get_info_text(state: &mut RpnState) -> String {
                 &StackItemToStringOpts {
                     base: Some(16),
                     precision: None,
+                    left_pad_with_zeros: true,
+                    include_base_prefix: false,
                 },
                 state,
             )
@@ -114,6 +118,8 @@ fn get_info_text(state: &mut RpnState) -> String {
             &StackItemToStringOpts {
                 base: Some(10),
                 precision: None,
+                left_pad_with_zeros: false,
+                include_base_prefix: false,
             },
             state,
         );
@@ -123,6 +129,8 @@ fn get_info_text(state: &mut RpnState) -> String {
                 &StackItemToStringOpts {
                     base: Some(8),
                     precision: None,
+                    left_pad_with_zeros: true,
+                    include_base_prefix: false,
                 },
                 state,
             )
@@ -135,6 +143,8 @@ fn get_info_text(state: &mut RpnState) -> String {
                 &StackItemToStringOpts {
                     base: Some(2),
                     precision: None,
+                    left_pad_with_zeros: true,
+                    include_base_prefix: false,
                 },
                 state,
             )

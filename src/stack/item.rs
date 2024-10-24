@@ -130,11 +130,11 @@ impl StackItem {
 
                 if is_integer(*n) {
                     if base == 2 {
-                        return to_string_binary(*n);
+                        return to_string_binary(*n, opts);
                     } else if base == 8 {
-                        return to_string_octal(*n);
+                        return to_string_octal(*n, opts);
                     } else if base == 16 {
-                        return to_string_hex(*n);
+                        return to_string_hex(*n, opts);
                     }
                 }
                 to_string_opts_base10(*n, opts, state)
@@ -148,12 +148,18 @@ impl Display for StackItem {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             StackItem::Number(value, display_base) => {
+                let opts = StackItemToStringOpts {
+                    base: None,
+                    precision: None,
+                    left_pad_with_zeros: true,
+                    include_base_prefix: true,
+                };
                 if *display_base == 2 {
-                    write!(f, "{}", to_string_binary(*value))
+                    write!(f, "{}", to_string_binary(*value, &opts))
                 } else if *display_base == 8 {
-                    write!(f, "{}", to_string_octal(*value))
+                    write!(f, "{}", to_string_octal(*value, &opts))
                 } else if *display_base == 16 {
-                    write!(f, "{}", to_string_hex(*value))
+                    write!(f, "{}", to_string_hex(*value, &opts))
                 } else {
                     write!(f, "{}", value)
                 }
@@ -183,44 +189,49 @@ impl PartialEq for StackItem {
 pub struct StackItemToStringOpts {
     pub base: Option<u8>,
     pub precision: Option<usize>,
+    pub left_pad_with_zeros: bool,
+    pub include_base_prefix: bool,
 }
 
-fn to_string_binary(n: f64) -> String {
+fn to_string_binary(n: f64, opts: &StackItemToStringOpts) -> String {
     if !is_integer(n) {
         return format!("{}", n);
     }
     let whole_part = n as i128;
     let abs_whole_part = whole_part.abs();
     let sign = if n < 0.0 { "-" } else { "" };
+    let base_prefix = if opts.include_base_prefix { "0b" } else { "" };
     format!(
-        "{sign}0b{}",
-        group_digits(format!("{:b}", abs_whole_part), 4, true)
+        "{sign}{base_prefix}{}",
+        group_digits(format!("{:b}", abs_whole_part), 4, opts.left_pad_with_zeros)
     )
 }
 
-fn to_string_octal(n: f64) -> String {
+fn to_string_octal(n: f64, opts: &StackItemToStringOpts) -> String {
     if !is_integer(n) {
         return format!("{}", n);
     }
     let whole_part = n as i128;
     let abs_whole_part = whole_part.abs();
     let sign = if n < 0.0 { "-" } else { "" };
+    let base_prefix = if opts.include_base_prefix { "0o" } else { "" };
     format!(
-        "{sign}0o{}",
-        group_digits(format!("{:o}", abs_whole_part), 4, false)
+        "{sign}{base_prefix}{}",
+        group_digits(format!("{:o}", abs_whole_part), 4, opts.left_pad_with_zeros)
     )
 }
 
-fn to_string_hex(n: f64) -> String {
+fn to_string_hex(n: f64, opts: &StackItemToStringOpts) -> String {
     if !is_integer(n) {
         return format!("{}", n);
     }
     let whole_part = n as i128;
     let abs_whole_part = whole_part.abs();
     let sign = if n < 0.0 { "-" } else { "" };
+    let base_prefix = if opts.include_base_prefix { "0x" } else { "" };
     format!(
-        "{sign}0x{}",
-        group_digits(format!("{:x}", abs_whole_part), 4, false)
+        "{sign}{base_prefix}{}",
+        group_digits(format!("{:x}", abs_whole_part), 4, opts.left_pad_with_zeros)
     )
 }
 
@@ -321,6 +332,8 @@ mod test {
         let opts = StackItemToStringOpts {
             base: Some(10),
             precision: None,
+            left_pad_with_zeros: false,
+            include_base_prefix: false,
         };
         let mut state = RpnState::new().unwrap();
         state.locale = SystemLocale::from_name(en_locale).unwrap();
@@ -350,6 +363,8 @@ mod test {
         let opts = StackItemToStringOpts {
             base: Some(16),
             precision: None,
+            left_pad_with_zeros: false,
+            include_base_prefix: true,
         };
         let state = RpnState::new().unwrap();
 
@@ -377,6 +392,8 @@ mod test {
         let opts = StackItemToStringOpts {
             base: Some(8),
             precision: None,
+            left_pad_with_zeros: false,
+            include_base_prefix: true,
         };
         let state = RpnState::new().unwrap();
 
@@ -404,6 +421,8 @@ mod test {
         let opts = StackItemToStringOpts {
             base: Some(2),
             precision: None,
+            left_pad_with_zeros: true,
+            include_base_prefix: true,
         };
         let state = RpnState::new().unwrap();
 

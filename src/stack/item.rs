@@ -1,3 +1,4 @@
+use core::f64;
 use std::fmt::Display;
 use std::fmt::{self};
 
@@ -5,7 +6,7 @@ use anyhow::{anyhow, Result};
 use log::warn;
 use num_format::ToFormattedString;
 
-use crate::state::RpnState;
+use crate::state::{AngleMode, RpnState};
 
 #[derive(Clone, Debug)]
 pub enum StackItem {
@@ -78,6 +79,40 @@ impl StackItem {
                 StackItem::Undefined => Ok(StackItem::Undefined),
             },
             StackItem::Undefined => Ok(StackItem::Undefined),
+        }
+    }
+
+    pub fn sin(&self, angle_mode: AngleMode) -> Result<StackItem> {
+        let r = self.to_radians(angle_mode);
+        match r {
+            StackItem::Number(v, display_base) => Ok(StackItem::Number(v.sin(), display_base)),
+            StackItem::Undefined => Ok(StackItem::Undefined),
+        }
+    }
+
+    pub fn cos(&self, angle_mode: AngleMode) -> Result<StackItem> {
+        let r = self.to_radians(angle_mode);
+        match r {
+            StackItem::Number(v, display_base) => Ok(StackItem::Number(v.cos(), display_base)),
+            StackItem::Undefined => Ok(StackItem::Undefined),
+        }
+    }
+
+    pub fn tan(&self, angle_mode: AngleMode) -> Result<StackItem> {
+        let r = self.to_radians(angle_mode);
+        match r {
+            StackItem::Number(v, display_base) => Ok(StackItem::Number(v.tan(), display_base)),
+            StackItem::Undefined => Ok(StackItem::Undefined),
+        }
+    }
+
+    pub fn to_radians(&self, from_angle_mode: AngleMode) -> StackItem {
+        match self {
+            StackItem::Number(v, display_base) => match from_angle_mode {
+                AngleMode::Degrees => StackItem::Number(degrees_to_radians(*v), *display_base),
+                AngleMode::Radians => StackItem::Number(*v, *display_base),
+            },
+            StackItem::Undefined => StackItem::Undefined,
         }
     }
 
@@ -246,6 +281,10 @@ fn group_digits(s: String, digits_per_group: usize, pad_left_with_zeros: bool) -
 fn is_integer(n: f64) -> bool {
     let whole_part = n as i128;
     ((whole_part as f64) - n).abs() < f64::EPSILON * 1000.0
+}
+
+fn degrees_to_radians(v: f64) -> f64 {
+    v * f64::consts::PI / 180.0
 }
 
 #[cfg(test)]

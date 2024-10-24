@@ -6,7 +6,7 @@ use ratatui::widgets::ListState;
 
 use crate::{
     func::{
-        add::AddFunc, divide::DivideFunc, multiply::MultiplyFunc, subtract::SubtractFunc, Func,
+        add::AddFunc, cos::CosFunc, divide::DivideFunc, multiply::MultiplyFunc, sin::SinFunc, subtract::SubtractFunc, tan::TanFunc, Func
     },
     stack::{item::StackItem, Stack},
     undo_action::{pop::PopUndoEvent, push::PushUndoEvent},
@@ -17,6 +17,7 @@ pub struct RpnState {
     pub locale: SystemLocale,
     pub precision: usize,
     pub scientific_notation_limit: f64,
+    pub angle_mode: AngleMode,
     pub stack: Stack,
     pub functions: HashMap<String, Arc<Box<dyn Func>>>,
     pub undo_stack: UndoStack,
@@ -45,9 +46,14 @@ impl RpnState {
         functions.insert("divide".to_string(), divide_func.clone());
         functions.insert("/".to_string(), divide_func);
 
+        functions.insert("sin".to_string(), Arc::new(Box::new(SinFunc::new())));
+        functions.insert("cos".to_string(), Arc::new(Box::new(CosFunc::new())));
+        functions.insert("tan".to_string(), Arc::new(Box::new(TanFunc::new())));
+
         Ok(Self {
             locale: SystemLocale::default()?,
             stack: Stack::new(),
+            angle_mode: AngleMode::Degrees,
             functions,
             undo_stack: UndoStack::new(),
             error: None,
@@ -109,6 +115,12 @@ pub struct Input {
     input: String,
     /// Position of cursor in the editor area.
     character_index: usize,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum AngleMode {
+    Degrees,
+    Radians,
 }
 
 impl Input {

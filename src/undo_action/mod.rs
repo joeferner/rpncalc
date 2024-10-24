@@ -5,6 +5,7 @@ use anyhow::Result;
 use crate::state::RpnState;
 
 pub mod binary;
+pub mod unary;
 pub mod pop;
 pub mod push;
 

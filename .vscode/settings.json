@@ -1,6 +1,7 @@
 {
     "cSpell.words": [
         "Appender",
+        "consts",
         "crossterm",
         "ratatui",
         "rpncalc"

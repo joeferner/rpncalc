@@ -3,13 +3,16 @@ use anyhow::{anyhow, Result};
 use crate::{
     stack::item::StackItem,
     state::RpnState,
-    undo_action::{binary::BinaryFuncUndoEvent, UndoEvent},
+    undo_action::{binary::BinaryFuncUndoEvent, unary::UnaryFuncUndoEvent, UndoEvent},
 };
 
 pub mod add;
+pub mod cos;
 pub mod divide;
 pub mod multiply;
+pub mod sin;
 pub mod subtract;
+pub mod tan;
 
 pub trait Func {
     fn execute(&self, state: &mut RpnState) -> Result<Box<dyn UndoEvent>>;
@@ -30,6 +33,20 @@ where
     Ok(Box::new(BinaryFuncUndoEvent::new(a, b, result)))
 }
 
+pub(super) fn execute_unary<F>(state: &mut RpnState, calc: F) -> Result<Box<dyn UndoEvent>>
+where
+    F: FnOnce(&StackItem) -> Result<StackItem>,
+{
+    if state.stack.len() < 1 {
+        return Err(anyhow!("Not enough arguments"));
+    }
+    let a = state.stack.peek(0).unwrap().clone();
+    let result = calc(&a)?;
+    state.stack.pop_n(1)?;
+    state.stack.push(result.clone());
+    Ok(Box::new(UnaryFuncUndoEvent::new(a, result)))
+}
+
 mod test {
     #[cfg(test)]
     #[macro_export]
@@ -48,8 +65,35 @@ mod test {
             // test undo
             state.undo().unwrap();
             assert_eq!(2, state.stack.len(), "stack size after undo");
-            assert_eq!(*state.stack.peek(1).unwrap(), $arg0,);
+            assert_eq!(*state.stack.peek(1).unwrap(), $arg0);
             assert_eq!(*state.stack.peek(0).unwrap(), $arg1);
+
+            // test redo
+            state.redo().unwrap();
+            assert_eq!(state.stack.len(), 1);
+            let answer = state.stack.peek(0).unwrap();
+            assert_eq!(*answer, $expected);
+        };
+    }
+
+    #[cfg(test)]
+    #[macro_export]
+    macro_rules! test_unary_angle_func {
+        ($angle_mode: expr, $arg0: expr, $op: expr, $expected: expr) => {
+            use crate::{stack::item::StackItem, state::RpnState};
+
+            let mut state = RpnState::new().unwrap();
+            state.angle_mode = $angle_mode;
+            state.push($arg0).unwrap();
+            state.push_str($op).unwrap();
+            assert_eq!(state.stack.len(), 1, "stack size after op");
+            let answer = state.stack.peek(0).unwrap();
+            assert_eq!(*answer, $expected, "answer after op");
+
+            // test undo
+            state.undo().unwrap();
+            assert_eq!(1, state.stack.len(), "stack size after undo");
+            assert_eq!(*state.stack.peek(0).unwrap(), $arg0);
 
             // test redo
             state.redo().unwrap();

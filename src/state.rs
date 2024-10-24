@@ -155,6 +155,14 @@ impl Input {
         self.character_index = self.clamp_cursor(cursor_moved_right);
     }
 
+    pub fn move_cursor_home(&mut self) {
+        self.character_index = 0;
+    }
+
+    pub fn move_cursor_end(&mut self) {
+        self.character_index = self.input.chars().count();
+    }
+
     fn clamp_cursor(&self, new_cursor_pos: usize) -> usize {
         new_cursor_pos.clamp(0, self.input.chars().count())
     }

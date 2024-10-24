@@ -113,6 +113,8 @@ fn handle_key_event(key: KeyEvent, state: &mut RpnState) -> Result<()> {
             KeyCode::Delete => return handle_delete_press(state),
             KeyCode::Left => return handle_left_press(state),
             KeyCode::Right => return handle_right_press(state),
+            KeyCode::Home => return handle_home_press(state),
+            KeyCode::End => return handle_end_press(state),
             _ => {}
         }
     }
@@ -127,6 +129,16 @@ fn handle_left_press(state: &mut RpnState) -> Result<()> {
 
 fn handle_right_press(state: &mut RpnState) -> Result<()> {
     state.ui_input_state.move_cursor_right();
+    Ok(())
+}
+
+fn handle_home_press(state: &mut RpnState) -> Result<()> {
+    state.ui_input_state.move_cursor_home();
+    Ok(())
+}
+
+fn handle_end_press(state: &mut RpnState) -> Result<()> {
+    state.ui_input_state.move_cursor_end();
     Ok(())
 }
 
@@ -155,7 +167,7 @@ fn handle_char_press(to_insert: char, state: &mut RpnState) -> Result<()> {
     if state.ui_input_state.is_empty() {
         if to_insert == '+' {
             return state.push_str("+");
-        } else if to_insert == '-' {
+        } else if to_insert == '_' {
             return state.push_str("-");
         } else if to_insert == '*' {
             return state.push_str("*");

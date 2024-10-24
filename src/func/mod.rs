@@ -1,6 +1,10 @@
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 
-use crate::{state::RpnState, undo_action::UndoEvent};
+use crate::{
+    stack::item::StackItem,
+    state::RpnState,
+    undo_action::{binary::BinaryFuncUndoEvent, UndoEvent},
+};
 
 pub mod add;
 pub mod divide;
@@ -9,6 +13,21 @@ pub mod subtract;
 
 pub trait Func {
     fn execute(&self, state: &mut RpnState) -> Result<Box<dyn UndoEvent>>;
+}
+
+pub(super) fn execute_binary<F>(state: &mut RpnState, calc: F) -> Result<Box<dyn UndoEvent>>
+where
+    F: FnOnce(&StackItem, &StackItem) -> Result<StackItem>,
+{
+    if state.stack.len() < 2 {
+        return Err(anyhow!("Not enough arguments"));
+    }
+    let a = state.stack.peek(1).unwrap().clone();
+    let b = state.stack.peek(0).unwrap().clone();
+    let result = calc(&a, &b)?;
+    state.stack.pop_n(2)?;
+    state.stack.push(result.clone());
+    Ok(Box::new(BinaryFuncUndoEvent::new(a, b, result)))
 }
 
 mod test {

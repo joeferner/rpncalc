@@ -1,11 +1,8 @@
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 
-use crate::{
-    state::RpnState,
-    undo_action::{binary::BinaryFuncUndoEvent, UndoEvent},
-};
+use crate::{state::RpnState, undo_action::UndoEvent};
 
-use super::Func;
+use super::{execute_binary, Func};
 
 pub struct AddFunc {}
 
@@ -17,15 +14,7 @@ impl AddFunc {
 
 impl Func for AddFunc {
     fn execute(&self, state: &mut RpnState) -> Result<Box<dyn UndoEvent>> {
-        if state.stack.len() < 2 {
-            return Err(anyhow!("Not enough arguments"));
-        }
-        let a = state.stack.peek(1).unwrap().clone();
-        let b = state.stack.peek(0).unwrap().clone();
-        let result = a.add(&b)?;
-        state.stack.pop_n(2)?;
-        state.stack.push(result.clone());
-        Ok(Box::new(BinaryFuncUndoEvent::new(a, b, result)))
+        execute_binary(state, |a, b| a.add(&b))
     }
 }
 

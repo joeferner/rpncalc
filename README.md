@@ -1,0 +1,4 @@
+- left pad if prefix is shown
+- don't show prefix in right panel
+- you second number for display format
+- toggle angle mode, show it in status bar

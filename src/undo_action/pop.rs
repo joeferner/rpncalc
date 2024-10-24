@@ -54,7 +54,7 @@ mod test {
         state.undo().unwrap();
         assert_eq!(state.stack.len(), 1);
         let answer = state.stack.peek(0).unwrap();
-        assert_eq!(*answer, StackItem::Number(1.0));
+        assert_eq!(*answer, StackItem::Number(1.0, 10));
 
         // test redo
         state.redo().unwrap();

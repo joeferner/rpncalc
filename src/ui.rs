@@ -1,5 +1,6 @@
 use ratatui::layout::Constraint::{Length, Min, Percentage};
 use ratatui::layout::{Alignment, Position};
+use ratatui::symbols::{border, line};
 use ratatui::text::Text;
 use ratatui::widgets::{Borders, List, ListDirection, ListItem, Paragraph};
 use ratatui::{layout::Layout, widgets::Block, Frame};
@@ -24,8 +25,15 @@ pub fn draw(frame: &mut Frame, state: &mut RpnState) {
     let mut items: Vec<ListItem> = state
         .stack
         .iter()
-        .map(|item| {
-            let text = Text::from(format!("{}", item)).alignment(Alignment::Right);
+        .map(|stack_item| {
+            let text = Text::from(stack_item.to_string_opts(
+                &StackItemToStringOpts {
+                    base: None,
+                    precision: None,
+                },
+                state,
+            ))
+            .alignment(Alignment::Right);
             ListItem::new(text)
         })
         .collect();
@@ -48,13 +56,25 @@ pub fn draw(frame: &mut Frame, state: &mut RpnState) {
     frame.render_widget(
         Paragraph::new(state.ui_input_state.get_input()).block(
             Block::new()
+                .border_set(border::Set {
+                    top_left: line::NORMAL.vertical_right,
+                    ..border::PLAIN
+                })
                 .borders(Borders::TOP | Borders::LEFT | Borders::BOTTOM)
                 .title(""),
         ),
         input_area,
     );
     frame.render_widget(
-        Paragraph::new(info_text).block(Block::bordered().title("Info")),
+        Paragraph::new(info_text).block(
+            Block::bordered()
+                .border_set(border::Set {
+                    top_left: line::NORMAL.horizontal_down,
+                    bottom_left: line::NORMAL.horizontal_up,
+                    ..border::PLAIN
+                })
+                .title("Info"),
+        ),
         right_area,
     );
 
@@ -78,37 +98,51 @@ fn get_info_text(state: &mut RpnState) -> String {
     };
 
     if let Some(n) = n {
-        return format!(
-            "Hex: {}\nDec: {}\nOct: {}\nBin: {}\n",
+        let hex = if n.is_integer() {
             n.to_string_opts(
                 &StackItemToStringOpts {
-                    base: 16,
+                    base: Some(16),
                     precision: None,
                 },
-                state
-            ),
-            n.to_string_opts(
-                &StackItemToStringOpts {
-                    base: 10,
-                    precision: None,
-                },
-                state
-            ),
-            n.to_string_opts(
-                &StackItemToStringOpts {
-                    base: 8,
-                    precision: None,
-                },
-                state
-            ),
-            n.to_string_opts(
-                &StackItemToStringOpts {
-                    base: 2,
-                    precision: None,
-                },
-                state
+                state,
             )
+        } else {
+            "".to_string()
+        };
+
+        let dec = n.to_string_opts(
+            &StackItemToStringOpts {
+                base: Some(10),
+                precision: None,
+            },
+            state,
         );
+
+        let oct = if n.is_integer() {
+            n.to_string_opts(
+                &StackItemToStringOpts {
+                    base: Some(8),
+                    precision: None,
+                },
+                state,
+            )
+        } else {
+            "".to_string()
+        };
+
+        let bin = if n.is_integer() {
+            n.to_string_opts(
+                &StackItemToStringOpts {
+                    base: Some(2),
+                    precision: None,
+                },
+                state,
+            )
+        } else {
+            "".to_string()
+        };
+
+        return format!("Hex: {}\nDec: {}\nOct: {}\nBin: {}\n", hex, dec, oct, bin);
     }
     "Hex:\nDec:\nOct:\nBin:\n".to_string()
 }

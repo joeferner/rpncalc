@@ -9,22 +9,32 @@ use crate::state::RpnState;
 
 #[derive(Clone, Debug)]
 pub enum StackItem {
-    Number(f64),
+    // value, display base
+    Number(f64, u8),
     Undefined,
 }
 
 impl StackItem {
     pub fn from_str(s: &str) -> Result<StackItem> {
-        if let Ok(v) = s.parse::<f64>() {
-            return Ok(StackItem::Number(v));
+        if s.starts_with("0x") || s.starts_with("-0x") {
+            let neg = if s.starts_with("-") { -1.0 } else { 1.0 };
+            let s = s.trim_start_matches("-").trim_start_matches("0x");
+            return match i128::from_str_radix(s, 16) {
+                Ok(v) => Ok(StackItem::Number(neg * (v as f64), 16)),
+                Err(e) => Err(anyhow!("parse error: {e}")),
+            };
+        } else if let Ok(v) = s.parse::<f64>() {
+            return Ok(StackItem::Number(v, 10));
         }
         Err(anyhow!("parse error: {s}"))
     }
 
     pub fn add(&self, other: &StackItem) -> Result<StackItem> {
         match self {
-            StackItem::Number(value) => match other {
-                StackItem::Number(other_value) => Ok(StackItem::Number(value + other_value)),
+            StackItem::Number(value, display_base) => match other {
+                StackItem::Number(other_value, _) => {
+                    Ok(StackItem::Number(value + other_value, *display_base))
+                }
                 StackItem::Undefined => Ok(StackItem::Undefined),
             },
             StackItem::Undefined => Ok(StackItem::Undefined),
@@ -33,8 +43,10 @@ impl StackItem {
 
     pub fn subtract(&self, other: &StackItem) -> Result<StackItem> {
         match self {
-            StackItem::Number(value) => match other {
-                StackItem::Number(other_value) => Ok(StackItem::Number(value - other_value)),
+            StackItem::Number(value, display_base) => match other {
+                StackItem::Number(other_value, _) => {
+                    Ok(StackItem::Number(value - other_value, *display_base))
+                }
                 StackItem::Undefined => Ok(StackItem::Undefined),
             },
             StackItem::Undefined => Ok(StackItem::Undefined),
@@ -43,8 +55,10 @@ impl StackItem {
 
     pub fn multiply(&self, other: &StackItem) -> Result<StackItem> {
         match self {
-            StackItem::Number(value) => match other {
-                StackItem::Number(other_value) => Ok(StackItem::Number(value * other_value)),
+            StackItem::Number(value, display_base) => match other {
+                StackItem::Number(other_value, _) => {
+                    Ok(StackItem::Number(value * other_value, *display_base))
+                }
                 StackItem::Undefined => Ok(StackItem::Undefined),
             },
             StackItem::Undefined => Ok(StackItem::Undefined),
@@ -53,12 +67,12 @@ impl StackItem {
 
     pub fn divide(&self, other: &StackItem) -> Result<StackItem> {
         match self {
-            StackItem::Number(value) => match other {
-                StackItem::Number(other_value) => {
+            StackItem::Number(value, display_base) => match other {
+                StackItem::Number(other_value, _) => {
                     if *other_value == 0.0 {
                         Ok(StackItem::Undefined)
                     } else {
-                        Ok(StackItem::Number(value / other_value))
+                        Ok(StackItem::Number(value / other_value, *display_base))
                     }
                 }
                 StackItem::Undefined => Ok(StackItem::Undefined),
@@ -67,30 +81,112 @@ impl StackItem {
         }
     }
 
+    pub fn is_integer(&self) -> bool {
+        match self {
+            StackItem::Number(v, _) => is_integer(*v),
+            StackItem::Undefined => false,
+        }
+    }
+
     pub fn to_string_opts(&self, opts: &StackItemToStringOpts, state: &RpnState) -> String {
         match self {
-            StackItem::Number(n) => {
-                let whole_part = *n as i128;
-                let abs_whole_part = whole_part.abs();
+            StackItem::Number(n, display_base) => {
+                let base = opts.base.unwrap_or(*display_base);
 
-                if opts.base == 10 {
-                    return to_string_opts_base10(*n, opts, state);
-                }
-
-                if *n >= 0.0 && ((whole_part as f64) - n).abs() < f64::EPSILON * 1000.0 {
-                    if opts.base == 2 {
-                        return group_digits(format!("{:b}", abs_whole_part), 4, true);
-                    } else if opts.base == 8 {
-                        return group_digits(format!("{:o}", abs_whole_part), 4, false);
-                    } else if opts.base == 16 {
-                        return group_digits(format!("{:x}", abs_whole_part), 4, false);
+                if is_integer(*n) {
+                    if base == 2 {
+                        return to_string_binary(*n);
+                    } else if base == 8 {
+                        return to_string_octal(*n);
+                    } else if base == 16 {
+                        return to_string_hex(*n);
                     }
                 }
-                "".to_string()
+                to_string_opts_base10(*n, opts, state)
             }
             StackItem::Undefined => "Undefined".to_string(),
         }
     }
+}
+
+impl Display for StackItem {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            StackItem::Number(value, display_base) => {
+                if *display_base == 2 {
+                    write!(f, "{}", to_string_binary(*value))
+                } else if *display_base == 8 {
+                    write!(f, "{}", to_string_octal(*value))
+                } else if *display_base == 16 {
+                    write!(f, "{}", to_string_hex(*value))
+                } else {
+                    write!(f, "{}", value)
+                }
+            }
+            StackItem::Undefined => write!(f, "Undefined"),
+        }
+    }
+}
+
+impl PartialEq for StackItem {
+    fn eq(&self, other: &Self) -> bool {
+        match self {
+            StackItem::Number(value, display_base) => match other {
+                StackItem::Number(other_value, other_display_base) => {
+                    value == other_value && display_base == other_display_base
+                }
+                StackItem::Undefined => false,
+            },
+            StackItem::Undefined => match other {
+                StackItem::Number(_, _) => false,
+                StackItem::Undefined => true,
+            },
+        }
+    }
+}
+
+pub struct StackItemToStringOpts {
+    pub base: Option<u8>,
+    pub precision: Option<usize>,
+}
+
+fn to_string_binary(n: f64) -> String {
+    if !is_integer(n) {
+        return format!("{}", n);
+    }
+    let whole_part = n as i128;
+    let abs_whole_part = whole_part.abs();
+    let sign = if n < 0.0 { "-" } else { "" };
+    format!(
+        "{sign}0b{}",
+        group_digits(format!("{:b}", abs_whole_part), 4, true)
+    )
+}
+
+fn to_string_octal(n: f64) -> String {
+    if !is_integer(n) {
+        return format!("{}", n);
+    }
+    let whole_part = n as i128;
+    let abs_whole_part = whole_part.abs();
+    let sign = if n < 0.0 { "-" } else { "" };
+    format!(
+        "{sign}0o{}",
+        group_digits(format!("{:o}", abs_whole_part), 4, false)
+    )
+}
+
+fn to_string_hex(n: f64) -> String {
+    if !is_integer(n) {
+        return format!("{}", n);
+    }
+    let whole_part = n as i128;
+    let abs_whole_part = whole_part.abs();
+    let sign = if n < 0.0 { "-" } else { "" };
+    format!(
+        "{sign}0x{}",
+        group_digits(format!("{:x}", abs_whole_part), 4, false)
+    )
 }
 
 fn to_string_opts_base10(n: f64, opts: &StackItemToStringOpts, state: &RpnState) -> String {
@@ -147,33 +243,9 @@ fn group_digits(s: String, digits_per_group: usize, pad_left_with_zeros: bool) -
     v.join(" ")
 }
 
-impl Display for StackItem {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            StackItem::Number(value) => write!(f, "{}", value),
-            StackItem::Undefined => write!(f, "undefined"),
-        }
-    }
-}
-
-impl PartialEq for StackItem {
-    fn eq(&self, other: &Self) -> bool {
-        match self {
-            StackItem::Number(value) => match other {
-                StackItem::Number(other_value) => value == other_value,
-                StackItem::Undefined => false,
-            },
-            StackItem::Undefined => match other {
-                StackItem::Number(_) => false,
-                StackItem::Undefined => true,
-            },
-        }
-    }
-}
-
-pub struct StackItemToStringOpts {
-    pub base: u8,
-    pub precision: Option<usize>,
+fn is_integer(n: f64) -> bool {
+    let whole_part = n as i128;
+    ((whole_part as f64) - n).abs() < f64::EPSILON * 1000.0
 }
 
 #[cfg(test)]
@@ -191,7 +263,7 @@ mod test {
         ($expected: expr, $num: expr, $opts: expr, $state: expr) => {
             assert_eq!(
                 $expected,
-                StackItem::Number($num).to_string_opts(&$opts, &$state)
+                StackItem::Number($num, 10).to_string_opts(&$opts, &$state)
             );
         };
     }
@@ -208,7 +280,7 @@ mod test {
             .unwrap();
 
         let opts = StackItemToStringOpts {
-            base: 10,
+            base: Some(10),
             precision: None,
         };
         let mut state = RpnState::new().unwrap();
@@ -237,26 +309,26 @@ mod test {
         init_logger(None).unwrap();
 
         let opts = StackItemToStringOpts {
-            base: 16,
+            base: Some(16),
             precision: None,
         };
         let state = RpnState::new().unwrap();
 
-        assert_to_string_opts!("0", 0.0, &opts, &state);
+        assert_to_string_opts!("0x0", 0.0, &opts, &state);
 
-        assert_to_string_opts!("", 0.1, &opts, &state);
-        assert_to_string_opts!("1", 1.0, &opts, &state);
-        assert_to_string_opts!("3e8", 1000.0, &opts, &state);
-        assert_to_string_opts!("", 1000.1, &opts, &state);
+        assert_to_string_opts!("0.1", 0.1, &opts, &state);
+        assert_to_string_opts!("0x1", 1.0, &opts, &state);
+        assert_to_string_opts!("0x3e8", 1000.0, &opts, &state);
+        assert_to_string_opts!("1,000.1", 1000.1, &opts, &state);
 
-        assert_to_string_opts!("", -0.1, &opts, &state);
-        assert_to_string_opts!("", -1.0, &opts, &state);
+        assert_to_string_opts!("-0.1", -0.1, &opts, &state);
+        assert_to_string_opts!("-0x1", -1.0, &opts, &state);
 
-        assert_to_string_opts!("5f5 e100", 1e8, &opts, &state);
+        assert_to_string_opts!("0x5f5 e100", 1e8, &opts, &state);
 
-        assert_to_string_opts!("3e8", 1e3, &opts, &state);
-        assert_to_string_opts!("", 1000e100, &opts, &state);
-        assert_to_string_opts!("", 1.123e100, &opts, &state);
+        assert_to_string_opts!("0x3e8", 1e3, &opts, &state);
+        assert_to_string_opts!("1e103", 1000e100, &opts, &state);
+        assert_to_string_opts!("1.123e100", 1.123e100, &opts, &state);
     }
 
     #[test]
@@ -264,26 +336,26 @@ mod test {
         init_logger(None).unwrap();
 
         let opts = StackItemToStringOpts {
-            base: 8,
+            base: Some(8),
             precision: None,
         };
         let state = RpnState::new().unwrap();
 
-        assert_to_string_opts!("0", 0.0, &opts, &state);
+        assert_to_string_opts!("0o0", 0.0, &opts, &state);
 
-        assert_to_string_opts!("", 0.1, &opts, &state);
-        assert_to_string_opts!("1", 1.0, &opts, &state);
-        assert_to_string_opts!("1750", 1000.0, &opts, &state);
-        assert_to_string_opts!("", 1000.1, &opts, &state);
+        assert_to_string_opts!("0.1", 0.1, &opts, &state);
+        assert_to_string_opts!("0o1", 1.0, &opts, &state);
+        assert_to_string_opts!("0o1750", 1000.0, &opts, &state);
+        assert_to_string_opts!("1,000.1", 1000.1, &opts, &state);
 
-        assert_to_string_opts!("", -0.1, &opts, &state);
-        assert_to_string_opts!("", -1.0, &opts, &state);
+        assert_to_string_opts!("-0.1", -0.1, &opts, &state);
+        assert_to_string_opts!("-0o1", -1.0, &opts, &state);
 
-        assert_to_string_opts!("5 7536 0400", 1e8, &opts, &state);
+        assert_to_string_opts!("0o5 7536 0400", 1e8, &opts, &state);
 
-        assert_to_string_opts!("1750", 1e3, &opts, &state);
-        assert_to_string_opts!("", 1000e100, &opts, &state);
-        assert_to_string_opts!("", 1.123e100, &opts, &state);
+        assert_to_string_opts!("0o1750", 1e3, &opts, &state);
+        assert_to_string_opts!("1e103", 1000e100, &opts, &state);
+        assert_to_string_opts!("1.123e100", 1.123e100, &opts, &state);
     }
 
     #[test]
@@ -291,25 +363,25 @@ mod test {
         init_logger(None).unwrap();
 
         let opts = StackItemToStringOpts {
-            base: 2,
+            base: Some(2),
             precision: None,
         };
         let state = RpnState::new().unwrap();
 
-        assert_to_string_opts!("0000", 0.0, &opts, &state);
+        assert_to_string_opts!("0b0000", 0.0, &opts, &state);
 
-        assert_to_string_opts!("", 0.1, &opts, &state);
-        assert_to_string_opts!("0001", 1.0, &opts, &state);
-        assert_to_string_opts!("0011 1110 1000", 1000.0, &opts, &state);
-        assert_to_string_opts!("", 1000.1, &opts, &state);
+        assert_to_string_opts!("0.1", 0.1, &opts, &state);
+        assert_to_string_opts!("0b0001", 1.0, &opts, &state);
+        assert_to_string_opts!("0b0011 1110 1000", 1000.0, &opts, &state);
+        assert_to_string_opts!("1,000.1", 1000.1, &opts, &state);
 
-        assert_to_string_opts!("", -0.1, &opts, &state);
-        assert_to_string_opts!("", -1.0, &opts, &state);
+        assert_to_string_opts!("-0.1", -0.1, &opts, &state);
+        assert_to_string_opts!("-0b0001", -1.0, &opts, &state);
 
-        assert_to_string_opts!("0101 1111 0101 1110 0001 0000 0000", 1e8, &opts, &state);
+        assert_to_string_opts!("0b0101 1111 0101 1110 0001 0000 0000", 1e8, &opts, &state);
 
-        assert_to_string_opts!("0011 1110 1000", 1e3, &opts, &state);
-        assert_to_string_opts!("", 1000e100, &opts, &state);
-        assert_to_string_opts!("", 1.123e100, &opts, &state);
+        assert_to_string_opts!("0b0011 1110 1000", 1e3, &opts, &state);
+        assert_to_string_opts!("1e103", 1000e100, &opts, &state);
+        assert_to_string_opts!("1.123e100", 1.123e100, &opts, &state);
     }
 }

@@ -14,7 +14,7 @@ impl AddFunc {
 
 impl Func for AddFunc {
     fn execute(&self, state: &mut RpnState) -> Result<Box<dyn UndoEvent>> {
-        execute_binary(state, |a, b| a.add(&b))
+        execute_binary(state, |a, b| a.add(b))
     }
 }
 
@@ -25,10 +25,10 @@ mod test {
     #[test]
     fn test_add() {
         test_binary_func!(
-            StackItem::Number(1.0),
-            StackItem::Number(2.0),
+            StackItem::Number(1.0, 10),
+            StackItem::Number(2.0, 10),
             "add",
-            StackItem::Number(3.0)
+            StackItem::Number(3.0, 10)
         );
     }
 }

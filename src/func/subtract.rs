@@ -1,9 +1,6 @@
 use anyhow::Result;
 
-use crate::{
-    state::RpnState,
-    undo_action::UndoEvent,
-};
+use crate::{state::RpnState, undo_action::UndoEvent};
 
 use super::{execute_binary, Func};
 
@@ -17,7 +14,7 @@ impl SubtractFunc {
 
 impl Func for SubtractFunc {
     fn execute(&self, state: &mut RpnState) -> Result<Box<dyn UndoEvent>> {
-        execute_binary(state, |a, b| a.subtract(&b))
+        execute_binary(state, |a, b| a.subtract(b))
     }
 }
 
@@ -28,10 +25,10 @@ mod test {
     #[test]
     fn test_subtract() {
         test_binary_func!(
-            StackItem::Number(1.0),
-            StackItem::Number(2.0),
+            StackItem::Number(1.0, 10),
+            StackItem::Number(2.0, 10),
             "subtract",
-            StackItem::Number(-1.0)
+            StackItem::Number(-1.0, 10)
         );
     }
 }

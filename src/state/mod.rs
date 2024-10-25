@@ -86,6 +86,11 @@ impl RpnState {
     }
 
     pub fn push_str(&mut self, s: &str) -> Result<()> {
+        if let Some(constant) = self.constants.get(s) {
+            let stack_item = StackItem::Number(constant.value, 10);
+            return self.push(stack_item);
+        }
+
         if let Some(func) = self.functions.get(s) {
             let func = func.clone();
             let undo = func.execute(self)?;

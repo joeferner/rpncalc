@@ -122,15 +122,19 @@ fn get_info_text(state: &mut RpnState) -> String {
             "".to_string()
         };
 
-        let dec = n.to_string_opts(
-            &StackItemToStringOpts {
-                base: Some(10),
-                precision: None,
-                left_pad_with_zeros: false,
-                include_base_prefix: false,
-            },
-            state,
-        );
+        let dec = match n {
+            StackItem::Number(_, _) => n.to_string_opts(
+                &StackItemToStringOpts {
+                    base: Some(10),
+                    precision: None,
+                    left_pad_with_zeros: false,
+                    include_base_prefix: false,
+                },
+                state,
+            ),
+            StackItem::String(_) => "".to_string(),
+            StackItem::Undefined => "".to_string(),
+        };
 
         let oct = if n.is_integer() {
             n.to_string_opts(

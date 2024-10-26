@@ -12,22 +12,28 @@ use crate::state::{angle_mode::AngleMode, RpnState};
 pub enum StackItem {
     // value, display base
     Number(f64, u8),
+    String(String),
     Undefined,
 }
 
 impl StackItem {
     pub fn from_str(s: &str) -> Result<StackItem> {
-        if s.starts_with("0x") || s.starts_with("-0x") {
+        let s = s.trim();
+        if s.len() >= 2 && s.starts_with("'") && s.ends_with("'") {
+            let s = &s[1..s.len() - 1];
+            Ok(StackItem::String(s.to_string()))
+        } else if s.starts_with("0x") || s.starts_with("-0x") {
             let neg = if s.starts_with("-") { -1.0 } else { 1.0 };
             let s = s.trim_start_matches("-").trim_start_matches("0x");
-            return match i128::from_str_radix(s, 16) {
+            match i128::from_str_radix(s, 16) {
                 Ok(v) => Ok(StackItem::Number(neg * (v as f64), 16)),
                 Err(e) => Err(anyhow!("parse error: {e}")),
-            };
+            }
         } else if let Ok(v) = s.parse::<f64>() {
-            return Ok(StackItem::Number(v, 10));
+            Ok(StackItem::Number(v, 10))
+        } else {
+            Err(anyhow!("parse error: {s}"))
         }
-        Err(anyhow!("parse error: {s}"))
     }
 
     pub fn add(&self, other: &StackItem) -> Result<StackItem> {
@@ -37,8 +43,14 @@ impl StackItem {
                     Ok(StackItem::Number(value + other_value, *display_base))
                 }
                 StackItem::Undefined => Ok(StackItem::Undefined),
+                StackItem::String(_) => Ok(StackItem::Undefined),
             },
             StackItem::Undefined => Ok(StackItem::Undefined),
+            StackItem::String(s) => match other {
+                StackItem::Number(_, _) => Ok(StackItem::Undefined),
+                StackItem::Undefined => Ok(StackItem::Undefined),
+                StackItem::String(other_s) => Ok(StackItem::String(format!("{s}{other_s}"))),
+            },
         }
     }
 
@@ -49,8 +61,10 @@ impl StackItem {
                     Ok(StackItem::Number(value - other_value, *display_base))
                 }
                 StackItem::Undefined => Ok(StackItem::Undefined),
+                StackItem::String(_) => Ok(StackItem::Undefined),
             },
             StackItem::Undefined => Ok(StackItem::Undefined),
+            StackItem::String(_) => Ok(StackItem::Undefined),
         }
     }
 
@@ -61,8 +75,10 @@ impl StackItem {
                     Ok(StackItem::Number(value * other_value, *display_base))
                 }
                 StackItem::Undefined => Ok(StackItem::Undefined),
+                StackItem::String(_) => Ok(StackItem::Undefined),
             },
             StackItem::Undefined => Ok(StackItem::Undefined),
+            StackItem::String(_) => Ok(StackItem::Undefined),
         }
     }
 
@@ -77,8 +93,10 @@ impl StackItem {
                     }
                 }
                 StackItem::Undefined => Ok(StackItem::Undefined),
+                StackItem::String(_) => Ok(StackItem::Undefined),
             },
             StackItem::Undefined => Ok(StackItem::Undefined),
+            StackItem::String(_) => Ok(StackItem::Undefined),
         }
     }
 
@@ -87,6 +105,7 @@ impl StackItem {
         match r {
             StackItem::Number(v, display_base) => Ok(StackItem::Number(v.sin(), display_base)),
             StackItem::Undefined => Ok(StackItem::Undefined),
+            StackItem::String(_) => Ok(StackItem::Undefined),
         }
     }
 
@@ -95,6 +114,7 @@ impl StackItem {
         match r {
             StackItem::Number(v, display_base) => Ok(StackItem::Number(v.cos(), display_base)),
             StackItem::Undefined => Ok(StackItem::Undefined),
+            StackItem::String(_) => Ok(StackItem::Undefined),
         }
     }
 
@@ -103,6 +123,7 @@ impl StackItem {
         match r {
             StackItem::Number(v, display_base) => Ok(StackItem::Number(v.tan(), display_base)),
             StackItem::Undefined => Ok(StackItem::Undefined),
+            StackItem::String(_) => Ok(StackItem::Undefined),
         }
     }
 
@@ -113,6 +134,7 @@ impl StackItem {
                 AngleMode::Radians => StackItem::Number(*v, *display_base),
             },
             StackItem::Undefined => StackItem::Undefined,
+            StackItem::String(_) => StackItem::Undefined,
         }
     }
 
@@ -120,6 +142,7 @@ impl StackItem {
         match self {
             StackItem::Number(v, _) => is_integer(*v),
             StackItem::Undefined => false,
+            StackItem::String(_) => false,
         }
     }
 
@@ -140,6 +163,7 @@ impl StackItem {
                 to_string_opts_base10(*n, opts, state)
             }
             StackItem::Undefined => "Undefined".to_string(),
+            StackItem::String(s) => format!("'{s}'"),
         }
     }
 }
@@ -165,6 +189,7 @@ impl Display for StackItem {
                 }
             }
             StackItem::Undefined => write!(f, "Undefined"),
+            StackItem::String(s) => write!(f, "'{s}'"),
         }
     }
 }
@@ -177,10 +202,17 @@ impl PartialEq for StackItem {
                     value == other_value && display_base == other_display_base
                 }
                 StackItem::Undefined => false,
+                StackItem::String(_) => false,
             },
             StackItem::Undefined => match other {
                 StackItem::Number(_, _) => false,
                 StackItem::Undefined => true,
+                StackItem::String(_) => false,
+            },
+            StackItem::String(s) => match other {
+                StackItem::Number(_, _) => false,
+                StackItem::Undefined => false,
+                StackItem::String(other_s) => s == other_s,
             },
         }
     }
@@ -441,5 +473,30 @@ mod test {
         assert_to_string_opts!("0b0011 1110 1000", 1e3, &opts, &state);
         assert_to_string_opts!("1e103", 1000e100, &opts, &state);
         assert_to_string_opts!("1.123e100", 1.123e100, &opts, &state);
+    }
+
+    #[test]
+    pub fn from_str_string() {
+        StackItem::from_str("'").expect_err("ok");
+        assert_eq!(
+            StackItem::String("test".to_string()),
+            StackItem::from_str("'test'").unwrap()
+        );
+    }
+
+    #[test]
+    pub fn to_add_number_to_number() {
+        let v = StackItem::Number(42.0, 10)
+            .add(&StackItem::Number(13.0, 16))
+            .unwrap();
+        assert_eq!(StackItem::Number(42.0 + 13.0, 16), v);
+    }
+
+    #[test]
+    pub fn to_add_string_to_string() {
+        let v = StackItem::String("te".to_string())
+            .add(&&StackItem::String("st".to_string()))
+            .unwrap();
+        assert_eq!(StackItem::String("test".to_string()), v);
     }
 }

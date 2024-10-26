@@ -1,15 +1,32 @@
+use std::{collections::HashMap, sync::Arc};
+
 use anyhow::{anyhow, Result};
+use cos::CosFunc;
+use degrees::DegreesFunc;
+use radians::RadiansFunc;
+use sin::SinFunc;
+use tan::TanFunc;
 
 use crate::{
     state::{angle_mode::AngleMode, RpnState},
     undo_action::UndoEvent,
 };
 
+use super::Func;
+
 pub mod cos;
 pub mod degrees;
 pub mod radians;
 pub mod sin;
 pub mod tan;
+
+pub fn trig_register_functions(functions: &mut HashMap<String, Arc<Box<dyn Func>>>) {
+    functions.insert("rad".to_string(), Arc::new(Box::new(RadiansFunc::new())));
+    functions.insert("deg".to_string(), Arc::new(Box::new(DegreesFunc::new())));
+    functions.insert("sin".to_string(), Arc::new(Box::new(SinFunc::new())));
+    functions.insert("cos".to_string(), Arc::new(Box::new(CosFunc::new())));
+    functions.insert("tan".to_string(), Arc::new(Box::new(TanFunc::new())));
+}
 
 #[derive(Debug)]
 pub struct AngleUndoEvent {

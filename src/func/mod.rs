@@ -1,4 +1,9 @@
+use std::{collections::HashMap, sync::Arc};
+
 use anyhow::{anyhow, Result};
+use basic::basic_register_functions;
+use trig::trig_register_functions;
+use variable::variable_register_functions;
 
 use crate::{
     stack::item::StackItem,
@@ -8,6 +13,13 @@ use crate::{
 
 pub mod basic;
 pub mod trig;
+pub mod variable;
+
+pub fn register_functions(functions: &mut HashMap<String, Arc<Box<dyn Func>>>) {
+    basic_register_functions(functions);
+    trig_register_functions(functions);
+    variable_register_functions(functions);
+}
 
 pub trait Func {
     fn execute(&self, state: &mut RpnState) -> Result<Box<dyn UndoEvent>>;

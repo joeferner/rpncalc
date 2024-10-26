@@ -9,13 +9,7 @@ use num_format::SystemLocale;
 use ratatui::widgets::ListState;
 
 use crate::{
-    func::{
-        basic::{add::AddFunc, divide::DivideFunc, multiply::MultiplyFunc, subtract::SubtractFunc},
-        trig::{
-            cos::CosFunc, degrees::DegreesFunc, radians::RadiansFunc, sin::SinFunc, tan::TanFunc,
-        },
-        Func,
-    },
+    func::{register_functions, Func},
     stack::{item::StackItem, Stack},
     undo_action::{pop::PopUndoEvent, push::PushUndoEvent},
     undo_stack::UndoStack,
@@ -33,6 +27,7 @@ pub struct RpnState {
     pub stack: Stack,
     pub functions: HashMap<String, Arc<Box<dyn Func>>>,
     pub constants: HashMap<String, Arc<Constant>>,
+    pub variables: HashMap<String, StackItem>,
     pub undo_stack: UndoStack,
     pub error: Option<Error>,
     pub ui_input_state: Input,
@@ -42,28 +37,7 @@ pub struct RpnState {
 impl RpnState {
     pub fn new() -> Result<Self> {
         let mut functions: HashMap<String, Arc<Box<dyn Func>>> = HashMap::new();
-
-        let add_func: Arc<Box<dyn Func>> = Arc::new(Box::new(AddFunc::new()));
-        functions.insert("add".to_string(), add_func.clone());
-        functions.insert("+".to_string(), add_func);
-
-        let subtract_func: Arc<Box<dyn Func>> = Arc::new(Box::new(SubtractFunc::new()));
-        functions.insert("subtract".to_string(), subtract_func.clone());
-        functions.insert("-".to_string(), subtract_func);
-
-        let multiply_func: Arc<Box<dyn Func>> = Arc::new(Box::new(MultiplyFunc::new()));
-        functions.insert("multiply".to_string(), multiply_func.clone());
-        functions.insert("*".to_string(), multiply_func);
-
-        let divide_func: Arc<Box<dyn Func>> = Arc::new(Box::new(DivideFunc::new()));
-        functions.insert("divide".to_string(), divide_func.clone());
-        functions.insert("/".to_string(), divide_func);
-
-        functions.insert("rad".to_string(), Arc::new(Box::new(RadiansFunc::new())));
-        functions.insert("deg".to_string(), Arc::new(Box::new(DegreesFunc::new())));
-        functions.insert("sin".to_string(), Arc::new(Box::new(SinFunc::new())));
-        functions.insert("cos".to_string(), Arc::new(Box::new(CosFunc::new())));
-        functions.insert("tan".to_string(), Arc::new(Box::new(TanFunc::new())));
+        register_functions(&mut functions);
 
         let mut constants: HashMap<String, Arc<Constant>> = HashMap::new();
         constants.insert("pi".to_string(), Arc::new(Constant::new(f64::consts::PI)));
@@ -76,6 +50,7 @@ impl RpnState {
             angle_mode: AngleMode::Degrees,
             functions,
             constants,
+            variables: HashMap::default(),
             undo_stack: UndoStack::new(),
             error: None,
             ui_input_state: Input::new(),
@@ -89,6 +64,10 @@ impl RpnState {
         if let Some(constant) = self.constants.get(s) {
             let stack_item = StackItem::Number(constant.value, 10);
             return self.push(stack_item);
+        }
+
+        if let Some(variable) = self.variables.get(s) {
+            return self.push(variable.clone());
         }
 
         if let Some(func) = self.functions.get(s) {

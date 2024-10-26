@@ -32,7 +32,7 @@ pub fn draw(frame: &mut Frame, state: &mut RpnState) {
         .stack
         .iter()
         .map(|stack_item| {
-            let text = Text::from(stack_item.to_string_opts(
+            let v = stack_item.to_string_opts(
                 &StackItemToStringOpts {
                     base: None,
                     precision: None,
@@ -40,8 +40,10 @@ pub fn draw(frame: &mut Frame, state: &mut RpnState) {
                     include_base_prefix: true,
                 },
                 state,
-            ))
-            .alignment(Alignment::Right);
+            );
+            // add a space to the right so that when a user double clicks
+            // a value it doesn't select the right border as well
+            let text = Text::from(format!("{v} ")).alignment(Alignment::Right);
             ListItem::new(text)
         })
         .collect();

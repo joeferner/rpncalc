@@ -123,5 +123,12 @@ mod test {
         assert_eq!(1, state.variables.len());
         let x = state.variables.get("x").unwrap();
         assert_eq!(StackItem::Number(42.0, 10), x.clone());
+
+        // get value of variable
+        state.push_str("x").unwrap();
+        assert_eq!(
+            StackItem::Number(42.0, 10),
+            state.stack.peek(0).unwrap().clone()
+        );
     }
 }

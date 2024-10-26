@@ -10,8 +10,9 @@ use ratatui::widgets::ListState;
 
 use crate::{
     func::{register_functions, Func},
+    parser::run_expression,
     stack::{item::StackItem, Stack},
-    undo_action::{pop::PopUndoEvent, push::PushUndoEvent},
+    undo_action::pop::PopUndoEvent,
     undo_stack::UndoStack,
 };
 
@@ -61,31 +62,7 @@ impl RpnState {
     }
 
     pub fn push_str(&mut self, s: &str) -> Result<()> {
-        if let Some(constant) = self.constants.get(s) {
-            let stack_item = StackItem::Number(constant.value, 10);
-            return self.push(stack_item);
-        }
-
-        if let Some(variable) = self.variables.get(s) {
-            return self.push(variable.clone());
-        }
-
-        if let Some(func) = self.functions.get(s) {
-            let func = func.clone();
-            let undo = func.execute(self)?;
-            self.undo_stack.push_undo_stack(undo);
-            return Ok(());
-        }
-
-        let stack_item = StackItem::from_str(s)?;
-        self.push(stack_item)
-    }
-
-    pub fn push(&mut self, stack_item: StackItem) -> Result<()> {
-        self.stack.push(stack_item.clone());
-        self.undo_stack
-            .push_undo_stack(Box::new(PushUndoEvent::new(stack_item)));
-        Ok(())
+        run_expression(s, self)
     }
 
     pub fn undo(&mut self) -> Result<()> {

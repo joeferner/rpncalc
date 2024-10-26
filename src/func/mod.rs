@@ -54,16 +54,16 @@ where
     Ok(Box::new(UnaryFuncUndoEvent::new(a, result)))
 }
 
+#[cfg(test)]
 mod test {
-    #[cfg(test)]
     #[macro_export]
     macro_rules! test_binary_func {
         ($arg0: expr, $arg1: expr, $op: expr, $expected: expr) => {
             use crate::{stack::item::StackItem, state::RpnState};
 
             let mut state = RpnState::new().unwrap();
-            state.push($arg0).unwrap();
-            state.push($arg1).unwrap();
+            state.push_str(&($arg0).to_string()).unwrap();
+            state.push_str(&($arg1).to_string()).unwrap();
             state.push_str($op).unwrap();
             assert_eq!(state.stack.len(), 1, "stack size after op");
             let answer = state.stack.peek(0).unwrap();
@@ -83,7 +83,6 @@ mod test {
         };
     }
 
-    #[cfg(test)]
     #[macro_export]
     macro_rules! test_unary_angle_func {
         ($angle_mode: expr, $arg0: expr, $op: expr, $expected: expr) => {
@@ -91,7 +90,7 @@ mod test {
 
             let mut state = RpnState::new().unwrap();
             state.angle_mode = $angle_mode;
-            state.push($arg0).unwrap();
+            state.push_str(&($arg0).to_string()).unwrap();
             state.push_str($op).unwrap();
             assert_eq!(state.stack.len(), 1, "stack size after op");
             let answer = state.stack.peek(0).unwrap();

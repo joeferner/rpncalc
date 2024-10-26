@@ -1,0 +1,23 @@
+WHITESPACE = _{ " " }
+
+decimal = @{ int ~ ("." ~ ASCII_DIGIT*)? ~ (^"e" ~ int)? }
+int     =  { ("+" | "-")? ~ ASCII_DIGIT+ }
+
+hex       = @{ ("+" | "-")? ~ "0x" ~ hex_digit+ }
+hex_digit =  { ASCII_DIGIT | "a" | "b" | "c" | "d" | "e" | "f" | "A" | "B" | "C" | "D" | "E" | "F" }
+
+ident = @{ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
+
+string = @{ "'" ~ ("\\'" | (!"'" ~ ANY))* ~ "'" }
+
+primary = { hex | decimal | ident | string }
+
+binary_op = _{ add | subtract | multiply | divide }
+add       =  { "+" }
+subtract  =  { "-" }
+multiply  =  { "*" }
+divide    =  { "/" }
+
+binary_expr = { primary ~ (binary_op ~ primary)* }
+
+expr = _{ SOI ~ binary_expr ~ EOI }

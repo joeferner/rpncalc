@@ -6,7 +6,8 @@
     "vscode": {
       "extensions": [
         "streetsidesoftware.code-spell-checker",
-        "rust-lang.rust-analyzer"
+        "rust-lang.rust-analyzer",
+        "pest.pest-ide-tools"
       ]
     }
   }

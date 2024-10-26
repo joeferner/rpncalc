@@ -4,6 +4,7 @@
         "consts",
         "crossterm",
         "ratatui",
-        "rpncalc"
+        "rpncalc",
+        "undos"
     ]
 }

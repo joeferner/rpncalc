@@ -2,7 +2,7 @@ use core::f64;
 use std::fmt::Display;
 use std::fmt::{self};
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use log::warn;
 use num_format::ToFormattedString;
 
@@ -17,25 +17,6 @@ pub enum StackItem {
 }
 
 impl StackItem {
-    pub fn from_str(s: &str) -> Result<StackItem> {
-        let s = s.trim();
-        if s.len() >= 2 && s.starts_with("'") && s.ends_with("'") {
-            let s = &s[1..s.len() - 1];
-            Ok(StackItem::String(s.to_string()))
-        } else if s.starts_with("0x") || s.starts_with("-0x") {
-            let neg = if s.starts_with("-") { -1.0 } else { 1.0 };
-            let s = s.trim_start_matches("-").trim_start_matches("0x");
-            match i128::from_str_radix(s, 16) {
-                Ok(v) => Ok(StackItem::Number(neg * (v as f64), 16)),
-                Err(e) => Err(anyhow!("parse error: {e}")),
-            }
-        } else if let Ok(v) = s.parse::<f64>() {
-            Ok(StackItem::Number(v, 10))
-        } else {
-            Err(anyhow!("parse error: {s}"))
-        }
-    }
-
     pub fn add(&self, other: &StackItem) -> Result<StackItem> {
         match self {
             StackItem::Number(value, _) => match other {
@@ -473,15 +454,6 @@ mod test {
         assert_to_string_opts!("0b0011 1110 1000", 1e3, &opts, &state);
         assert_to_string_opts!("1e103", 1000e100, &opts, &state);
         assert_to_string_opts!("1.123e100", 1.123e100, &opts, &state);
-    }
-
-    #[test]
-    pub fn from_str_string() {
-        StackItem::from_str("'").expect_err("ok");
-        assert_eq!(
-            StackItem::String("test".to_string()),
-            StackItem::from_str("'test'").unwrap()
-        );
     }
 
     #[test]

@@ -1,3 +1,4 @@
+use log::error;
 use ratatui::layout::Constraint::{Length, Min, Percentage};
 use ratatui::layout::{Alignment, Position};
 use ratatui::symbols::{border, line};
@@ -5,6 +6,7 @@ use ratatui::text::Text;
 use ratatui::widgets::{Borders, List, ListDirection, ListItem, Paragraph};
 use ratatui::{layout::Layout, widgets::Block, Frame};
 
+use crate::parser::run_expression;
 use crate::stack::item::{StackItem, StackItemToStringOpts};
 use crate::state::angle_mode::AngleMode;
 use crate::state::RpnState;
@@ -101,8 +103,15 @@ fn get_info_text(state: &mut RpnState) -> String {
     let n = if state.ui_input_state.is_empty() {
         state.stack.peek(0).cloned()
     } else {
-        match StackItem::from_str(state.ui_input_state.get_input()) {
-            Ok(v) => Some(v),
+        let s = state.ui_input_state.get_input().to_string();
+        match run_expression(&s, state) {
+            Ok(_) => {
+                let v = state.stack.peek(0).cloned();
+                if let Err(e) = state.undo() {
+                    error!("failed to undo; error = {e}");
+                }
+                v
+            }
             Err(_) => None,
         }
     };

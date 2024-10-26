@@ -23,6 +23,7 @@ use state::RpnState;
 use ui::draw;
 
 mod func;
+mod parser;
 mod stack;
 mod state;
 mod ui;

@@ -9,8 +9,8 @@ use num_format::SystemLocale;
 use ratatui::widgets::ListState;
 
 use crate::{
+    expr::run::run_expression,
     func::{register_functions, Func},
-    parser::run_expression,
     stack::{item::StackItem, Stack},
     undo_action::pop::PopUndoEvent,
     undo_stack::UndoStack,

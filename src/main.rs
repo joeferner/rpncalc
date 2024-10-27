@@ -22,8 +22,8 @@ use log4rs::{
 use state::RpnState;
 use ui::draw;
 
+mod expr;
 mod func;
-mod parser;
 mod stack;
 mod state;
 mod ui;

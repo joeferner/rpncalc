@@ -6,7 +6,7 @@ use ratatui::text::Text;
 use ratatui::widgets::{Borders, List, ListDirection, ListItem, Paragraph};
 use ratatui::{layout::Layout, widgets::Block, Frame};
 
-use crate::parser::run_expression;
+use crate::expr::run::run_expression;
 use crate::stack::item::{StackItem, StackItemToStringOpts};
 use crate::state::angle_mode::AngleMode;
 use crate::state::RpnState;

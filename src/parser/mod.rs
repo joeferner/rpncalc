@@ -1,5 +1,9 @@
 use anyhow::{anyhow, Context, Result};
-use pest::{iterators::Pair, pratt_parser::PrattParser, Parser};
+use pest::{
+    iterators::{Pair, Pairs},
+    pratt_parser::PrattParser,
+    Parser,
+};
 use pest_derive::Parser;
 
 use crate::{
@@ -43,11 +47,19 @@ fn parse_expression(s: &str) -> Result<Expr> {
 
     let mut pairs =
         ExpressionParser::parse(Rule::expr, s).with_context(|| format!("failed to parse: {s}"))?;
+
+    // discard SOI and EOI
     let pairs = pairs.next().unwrap().into_inner();
 
+    do_parse(pairs)
+}
+
+fn do_parse(pairs: Pairs<Rule>) -> Result<Expr> {
     PRATT_PARSER
         .map_primary(|primary| match primary.as_rule() {
             Rule::primary => parse_primary(primary.into_inner().next().unwrap()),
+            Rule::primary_paren => do_parse(primary.into_inner()),
+            Rule::binary_expr => do_parse(primary.into_inner()),
             rule => unreachable!("Expr::parse expected primary, found {:?}", rule),
         })
         .map_infix(|lhs, op, rhs| {
@@ -140,7 +152,9 @@ fn parse_primary(pair: Pair<Rule>) -> Result<Expr> {
         Rule::hex => parse_hex(pair),
         Rule::ident => parse_ident(pair),
         Rule::string => parse_string(pair),
-        _ => unreachable!("only primary expressions expected, but found {pair:?}"),
+        _ => Err(anyhow!(
+            "only primary expressions expected, but found {pair:?}"
+        )),
     }
 }
 
@@ -238,6 +252,14 @@ mod test {
         assert_eq!(1, state.stack.len());
         assert_eq!(
             StackItem::Number(2.0 + 3.0 * 4.0, 10),
+            state.stack.peek(0).unwrap().clone()
+        );
+
+        let mut state = RpnState::new().unwrap();
+        run_expression("(2 + 3) * 4", &mut state).unwrap();
+        assert_eq!(1, state.stack.len());
+        assert_eq!(
+            StackItem::Number((2.0 + 3.0) * 4.0, 10),
             state.stack.peek(0).unwrap().clone()
         );
     }

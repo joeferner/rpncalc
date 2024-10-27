@@ -12,12 +12,14 @@ string = @{ "'" ~ ("\\'" | (!"'" ~ ANY))* ~ "'" }
 
 primary = { hex | decimal | ident | string }
 
+primary_paren = { primary | "(" ~ binary_expr ~ ")" }
+
 binary_op = _{ add | subtract | multiply | divide }
 add       =  { "+" }
 subtract  =  { "-" }
 multiply  =  { "*" }
 divide    =  { "/" }
 
-binary_expr = { primary ~ (binary_op ~ primary)* }
+binary_expr = { primary_paren ~ (binary_op ~ primary_paren)* }
 
 expr = _{ SOI ~ binary_expr ~ EOI }

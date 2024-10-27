@@ -22,7 +22,7 @@ impl Func for MultiplyFunc {
 
 #[cfg(test)]
 mod test {
-    use crate::test_binary_func;
+    use crate::{test_binary_func, test_expr};
 
     #[test]
     fn test_multiply() {
@@ -30,7 +30,12 @@ mod test {
             StackItem::Number(2.0, 10),
             StackItem::Number(3.0, 10),
             "multiply",
-            StackItem::Number(6.0, 10)
+            StackItem::Number(2.0 * 3.0, 10)
         );
+    }
+
+    #[test]
+    fn test_multiply_expr() {
+        test_expr!("2 * 3", StackItem::Number(2.0 * 3.0, 10));
     }
 }

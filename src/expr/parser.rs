@@ -23,12 +23,12 @@ lazy_static::lazy_static! {
         PrattParser::new()
             // Addition and subtract have equal precedence
             .op(Op::infix(add, Left) | Op::infix(subtract, Left))
-            .op(Op::infix(multiply, Left) | Op::infix(divide, Left))
+            .op(Op::infix(multiply, Left) | Op::infix(divide, Left) | Op::infix(modulus, Left))
     };
 }
 
 pub fn parse_expression(s: &str) -> Result<Expr> {
-    if s == "+" || s == "-" || s == "*" || s == "/" {
+    if s == "+" || s == "-" || s == "*" || s == "/" || s == "%" {
         return Ok(Expr::Ident(s.to_string()));
     }
 
@@ -55,6 +55,7 @@ fn do_parse(pairs: Pairs<Rule>) -> Result<Expr> {
                 Rule::subtract => "-".to_string(),
                 Rule::multiply => "*".to_string(),
                 Rule::divide => "/".to_string(),
+                Rule::modulus => "%".to_string(),
                 rule => unreachable!("Expr::parse expected infix operation, found {:?}", rule),
             };
             Ok(Expr::BinaryOp {

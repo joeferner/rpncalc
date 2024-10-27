@@ -22,7 +22,7 @@ impl Func for SubtractFunc {
 
 #[cfg(test)]
 mod test {
-    use crate::test_binary_func;
+    use crate::{test_binary_func, test_expr};
 
     #[test]
     fn test_subtract() {
@@ -30,7 +30,12 @@ mod test {
             StackItem::Number(1.0, 10),
             StackItem::Number(2.0, 10),
             "subtract",
-            StackItem::Number(-1.0, 10)
+            StackItem::Number(1.0 - 2.0, 10)
         );
+    }
+
+    #[test]
+    fn test_subtract_expr() {
+        test_expr!("1 - 2", StackItem::Number(1.0 - 2.0, 10));
     }
 }

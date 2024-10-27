@@ -57,6 +57,29 @@ where
 #[cfg(test)]
 mod test {
     #[macro_export]
+    macro_rules! test_expr {
+        ($expr: expr, $expected: expr) => {
+            use crate::{stack::item::StackItem, state::RpnState};
+
+            let mut state = RpnState::new().unwrap();
+            state.push_str(&($expr).to_string()).unwrap();
+            assert_eq!(state.stack.len(), 1, "stack size after op");
+            let answer = state.stack.peek(0).unwrap();
+            assert_eq!(*answer, $expected, "answer after op");
+
+            // test undo
+            state.undo().unwrap();
+            assert_eq!(0, state.stack.len(), "stack size after undo");
+
+            // test redo
+            state.redo().unwrap();
+            assert_eq!(state.stack.len(), 1);
+            let answer = state.stack.peek(0).unwrap();
+            assert_eq!(*answer, $expected);
+        };
+    }
+
+    #[macro_export]
     macro_rules! test_binary_func {
         ($arg0: expr, $arg1: expr, $op: expr, $expected: expr) => {
             use crate::{stack::item::StackItem, state::RpnState};

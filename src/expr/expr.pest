@@ -14,11 +14,12 @@ primary = { hex | decimal | ident | string }
 
 primary_paren = { primary | "(" ~ binary_expr ~ ")" }
 
-binary_op = _{ add | subtract | multiply | divide }
+binary_op = _{ add | subtract | multiply | divide | modulus }
 add       =  { "+" }
 subtract  =  { "-" }
 multiply  =  { "*" }
 divide    =  { "/" }
+modulus   =  { "%" }
 
 binary_expr = { primary_paren ~ (binary_op ~ primary_paren)* }
 

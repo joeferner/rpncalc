@@ -2,6 +2,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use add::AddFunc;
 use divide::DivideFunc;
+use modulus::ModulusFunc;
 use multiply::MultiplyFunc;
 use subtract::SubtractFunc;
 
@@ -9,6 +10,7 @@ use super::Func;
 
 pub mod add;
 pub mod divide;
+pub mod modulus;
 pub mod multiply;
 pub mod subtract;
 
@@ -28,4 +30,8 @@ pub fn basic_register_functions(functions: &mut HashMap<String, Arc<Box<dyn Func
     let divide_func: Arc<Box<dyn Func>> = Arc::new(Box::new(DivideFunc::new()));
     functions.insert("divide".to_string(), divide_func.clone());
     functions.insert("/".to_string(), divide_func);
+
+    let modulus_func: Arc<Box<dyn Func>> = Arc::new(Box::new(ModulusFunc::new()));
+    functions.insert("mod".to_string(), modulus_func.clone());
+    functions.insert("%".to_string(), modulus_func);
 }

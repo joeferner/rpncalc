@@ -81,6 +81,24 @@ impl StackItem {
         }
     }
 
+    pub fn modulus(&self, other: &StackItem) -> Result<StackItem> {
+        match self {
+            StackItem::Number(value, _) => match other {
+                StackItem::Number(other_value, display_base) => {
+                    if *other_value == 0.0 {
+                        Ok(StackItem::Undefined)
+                    } else {
+                        Ok(StackItem::Number(value % other_value, *display_base))
+                    }
+                }
+                StackItem::Undefined => Ok(StackItem::Undefined),
+                StackItem::String(_) => Ok(StackItem::Undefined),
+            },
+            StackItem::Undefined => Ok(StackItem::Undefined),
+            StackItem::String(_) => Ok(StackItem::Undefined),
+        }
+    }
+
     pub fn sin(&self, angle_mode: AngleMode) -> Result<StackItem> {
         let r = self.to_radians(angle_mode);
         match r {

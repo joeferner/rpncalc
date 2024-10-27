@@ -22,7 +22,7 @@ impl Func for AddFunc {
 
 #[cfg(test)]
 mod test {
-    use crate::test_binary_func;
+    use crate::{test_binary_func, test_expr};
 
     #[test]
     fn test_add() {
@@ -30,7 +30,12 @@ mod test {
             StackItem::Number(1.0, 10),
             StackItem::Number(2.0, 10),
             "add",
-            StackItem::Number(3.0, 10)
+            StackItem::Number(1.0 + 2.0, 10)
         );
+    }
+
+    #[test]
+    fn test_add_expr() {
+        test_expr!("1 + 2", StackItem::Number(1.0 + 2.0, 10));
     }
 }

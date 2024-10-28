@@ -1,18 +1,64 @@
+use std::{
+    fmt::{self, Formatter},
+    ops::Range,
+};
+
+use annotate_snippets::{Level, Renderer, Snippet};
+
 use crate::stack::item::StackItem;
 
+pub mod lexer;
 pub mod parser;
+pub mod reader;
 pub mod run;
 
 #[derive(Debug)]
 pub enum Expr {
     StackItem(StackItem),
-    Ident(String),
+    Identifier(String),
+    FunctionCall(String, Vec<Expr>),
     BinaryOp {
         lhs: Box<Expr>,
         op: String,
         rhs: Box<Expr>,
     },
 }
+
+#[derive(Debug, Clone)]
+pub struct ExprError {
+    source: String,
+    location: Option<Range<usize>>,
+    message: String,
+}
+
+impl ExprError {
+    fn new(source: &str, location: Option<Range<usize>>, message: &str) -> Self {
+        Self {
+            source: source.to_owned(),
+            location,
+            message: message.to_owned(),
+        }
+    }
+
+    fn get_snippet(&self) -> Snippet {
+        let mut s = Snippet::source(&self.source).line_start(1);
+        if let Some(location) = &self.location {
+            s = s.annotation(Level::Error.span(location.clone()).label(&self.message));
+        }
+        s
+    }
+}
+
+impl std::error::Error for ExprError {}
+
+impl fmt::Display for ExprError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let msg = Level::Error.title("").snippet(self.get_snippet());
+        f.write_str(&format!("{}", Renderer::styled().render(msg)))
+    }
+}
+
+pub type ExprResult<T> = Result<T, ExprError>;
 
 #[cfg(test)]
 mod test {
@@ -72,6 +118,14 @@ mod test {
         assert_eq!(1, state.stack.len());
         assert_eq!(
             StackItem::Number(2.0 + 3.0 * 4.0, 10),
+            state.stack.peek(0).unwrap().clone()
+        );
+
+        let mut state = RpnState::new().unwrap();
+        run_expression("3 * 4 + 2", &mut state).unwrap();
+        assert_eq!(1, state.stack.len());
+        assert_eq!(
+            StackItem::Number(3.0 * 4.0 + 2.0, 10),
             state.stack.peek(0).unwrap().clone()
         );
 

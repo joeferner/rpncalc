@@ -23,15 +23,23 @@ impl Func for CosFunc {
 
 #[cfg(test)]
 mod test {
-    use crate::{state::angle_mode::AngleMode, test_unary_angle_func};
+    use crate::{state::angle_mode::AngleMode, test_expr, test_unary_angle_func};
 
     #[test]
-    fn test_sin() {
+    fn test_cos() {
         test_unary_angle_func!(
             AngleMode::Degrees,
-            StackItem::Number(1.0, 10),
+            StackItem::Number(30.0, 10),
             "cos",
-            StackItem::Number(0.9998476951563913, 10)
+            StackItem::Number((30.0_f64).to_radians().cos(), 10)
+        );
+    }
+
+    #[test]
+    fn test_cos_expr() {
+        test_expr!(
+            "cos(30)",
+            StackItem::Number((30.0_f64).to_radians().cos(), 10)
         );
     }
 }

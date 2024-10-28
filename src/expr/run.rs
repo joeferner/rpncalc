@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 
 use crate::{
     stack::item::StackItem,
@@ -6,10 +6,11 @@ use crate::{
     undo_action::{multi::MultiUndoEvent, push::PushUndoEvent, UndoEvent},
 };
 
-use super::{parser::parse_expression, Expr};
+use super::{lexer::ExprLexer, parser::parse_expression_from_tokenizer, Expr};
 
 pub fn run_expression(s: &str, state: &mut RpnState) -> Result<()> {
-    let expr = parse_expression(s)?;
+    let tokenizer = ExprLexer::new(s).context("tokenizing failed")?;
+    let expr = parse_expression_from_tokenizer(tokenizer).context("parse failed")?;
 
     let mut undos: Vec<Box<dyn UndoEvent>> = vec![];
     match run_expr(&expr, state, &mut undos) {
@@ -39,9 +40,22 @@ fn run_expr(expr: &Expr, state: &mut RpnState, undos: &mut Vec<Box<dyn UndoEvent
             undos.push(Box::new(PushUndoEvent::new(stack_item.clone())));
             Ok(())
         }
-        Expr::Ident(ident) => run_ident(ident, state, undos),
+        Expr::Identifier(ident) => run_ident(ident, state, undos),
         Expr::BinaryOp { lhs, op, rhs } => run_binary_op(lhs, op, rhs, state, undos),
+        Expr::FunctionCall(ident, args) => run_function_call(ident, args, state, undos),
     }
+}
+
+fn run_function_call(
+    fn_name: &str,
+    args: &Vec<Expr>,
+    state: &mut RpnState,
+    undos: &mut Vec<Box<dyn UndoEvent>>,
+) -> Result<()> {
+    for arg in args {
+        run_expr(arg, state, undos)?;
+    }
+    run_ident(fn_name, state, undos)
 }
 
 fn run_ident(ident: &str, state: &mut RpnState, undos: &mut Vec<Box<dyn UndoEvent>>) -> Result<()> {

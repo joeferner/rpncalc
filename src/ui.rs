@@ -1,3 +1,4 @@
+use annotate_snippets::{Level, Renderer};
 use log::error;
 use ratatui::layout::Constraint::{Length, Min, Percentage};
 use ratatui::layout::{Alignment, Position};
@@ -7,6 +8,7 @@ use ratatui::widgets::{Borders, List, ListDirection, ListItem, Paragraph};
 use ratatui::{layout::Layout, widgets::Block, Frame};
 
 use crate::expr::run::run_expression;
+use crate::expr::ExprError;
 use crate::stack::item::{StackItem, StackItemToStringOpts};
 use crate::state::angle_mode::AngleMode;
 use crate::state::RpnState;
@@ -28,7 +30,7 @@ pub fn draw(frame: &mut Frame, state: &mut RpnState) {
     let vertical_stack = Layout::vertical([Min(0), Length(3)]);
     let [stack_area, input_area] = vertical_stack.areas(left_area);
 
-    let info_text = get_info_text(state);
+    let info_text = get_info_text(state, right_area.width as usize);
 
     let mut items: Vec<ListItem> = state
         .stack
@@ -99,7 +101,15 @@ pub fn draw(frame: &mut Frame, state: &mut RpnState) {
     ));
 }
 
-fn get_info_text(state: &mut RpnState) -> String {
+fn get_info_text(state: &mut RpnState, width: usize) -> String {
+    if let Some(e) = &state.error {
+        if let Some(e) = e.downcast_ref::<ExprError>() {
+            let msg = Level::Error.title("").snippet(e.get_snippet());
+            let s = format!("{}", Renderer::plain().term_width(width).render(msg));
+            return s;
+        }
+    }
+
     let n = if state.ui_input_state.is_empty() {
         state.stack.peek(0).cloned()
     } else {

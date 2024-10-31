@@ -44,7 +44,7 @@ impl ExprError {
         }
     }
 
-    fn get_snippet(&self) -> Snippet {
+    pub fn get_snippet(&self) -> Snippet {
         let mut s = Snippet::source(&self.source).line_start(1);
         if let Some(location) = &self.location {
             s = s.annotation(Level::Error.span(location.clone()).label(&self.message));

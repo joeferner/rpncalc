@@ -80,6 +80,31 @@ mod test {
     }
 
     #[macro_export]
+    macro_rules! test_unary_func {
+        ($arg0: expr, $op: expr, $expected: expr) => {
+            use crate::{stack::item::StackItem, state::RpnState};
+
+            let mut state = RpnState::new().unwrap();
+            state.push_str(&($arg0).to_string()).unwrap();
+            state.push_str($op).unwrap();
+            assert_eq!(state.stack.len(), 1, "stack size after op");
+            let answer = state.stack.peek(0).unwrap();
+            assert_eq!(*answer, $expected, "answer after op");
+
+            // test undo
+            state.undo().unwrap();
+            assert_eq!(1, state.stack.len(), "stack size after undo");
+            assert_eq!(*state.stack.peek(0).unwrap(), $arg0);
+
+            // test redo
+            state.redo().unwrap();
+            assert_eq!(state.stack.len(), 1);
+            let answer = state.stack.peek(0).unwrap();
+            assert_eq!(*answer, $expected);
+        };
+    }
+
+    #[macro_export]
     macro_rules! test_binary_func {
         ($arg0: expr, $arg1: expr, $op: expr, $expected: expr) => {
             use crate::{stack::item::StackItem, state::RpnState};

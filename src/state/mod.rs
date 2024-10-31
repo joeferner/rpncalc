@@ -31,6 +31,7 @@ pub struct RpnState {
     pub variables: HashMap<String, StackItem>,
     pub undo_stack: UndoStack,
     pub error: Option<Error>,
+    pub completions: Option<Vec<String>>,
     pub ui_input_state: Input,
     pub ui_stack_state: ListState,
 }
@@ -54,6 +55,7 @@ impl RpnState {
             variables: HashMap::default(),
             undo_stack: UndoStack::new(),
             error: None,
+            completions: None,
             ui_input_state: Input::new(),
             ui_stack_state: ListState::default(),
             precision: 10,

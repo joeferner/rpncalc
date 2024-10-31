@@ -14,7 +14,6 @@ use crate::state::angle_mode::AngleMode;
 use crate::state::RpnState;
 
 pub fn draw(frame: &mut Frame, state: &mut RpnState) {
-    let status_left_text = get_status_left_text(state);
     let status_right_text = get_status_right_text(state);
 
     let vertical_main = Layout::vertical([Min(0), Length(1)]);
@@ -31,6 +30,7 @@ pub fn draw(frame: &mut Frame, state: &mut RpnState) {
     let [stack_area, input_area] = vertical_stack.areas(left_area);
 
     let info_text = get_info_text(state, right_area.width as usize);
+    let status_left_text = get_status_left_text(state, status_left_area.width as usize);
 
     let mut items: Vec<ListItem> = state
         .stack
@@ -196,9 +196,12 @@ fn get_status_right_text(state: &RpnState) -> String {
     format!(" {angle_mode} ")
 }
 
-fn get_status_left_text(state: &RpnState) -> String {
+fn get_status_left_text(state: &RpnState, width: usize) -> String {
     if let Some(e) = &state.error {
         format!("{e}")
+    } else if let Some(completions) = &state.completions {
+        let s = completions.join(" ");
+        s[0..width.min(s.len())].to_string()
     } else {
         "".to_string()
     }

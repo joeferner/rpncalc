@@ -27,6 +27,12 @@ impl Input {
         self.move_cursor_right();
     }
 
+    pub fn enter_str(&mut self, s: &str) {
+        for c in s.chars() {
+            self.enter_char(c);
+        }
+    }
+
     /// Returns the byte index based on the character position.
     ///
     /// Since each character in a string can be contain multiple bytes, it's necessary to calculate

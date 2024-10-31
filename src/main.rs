@@ -116,6 +116,7 @@ fn handle_key_event(key: KeyEvent, state: &mut RpnState) -> Result<()> {
             KeyCode::Right => return handle_right_press(state),
             KeyCode::Home => return handle_home_press(state),
             KeyCode::End => return handle_end_press(state),
+            KeyCode::Tab => return handle_tab_press(state),
             _ => {}
         }
     }
@@ -143,7 +144,43 @@ fn handle_end_press(state: &mut RpnState) -> Result<()> {
     Ok(())
 }
 
+fn handle_tab_press(state: &mut RpnState) -> Result<()> {
+    let input = state.ui_input_state.get_input();
+    let mut completions: Vec<String> = vec![];
+
+    for key in state.constants.keys() {
+        if key.starts_with(input) {
+            completions.push(key.to_owned());
+        }
+    }
+
+    for key in state.variables.keys() {
+        if key.starts_with(input) {
+            completions.push(key.to_owned());
+        }
+    }
+
+    for key in state.functions.keys() {
+        if key.starts_with(input) {
+            completions.push(key.to_owned());
+        }
+    }
+
+    if completions.len() == 1 {
+        state
+            .ui_input_state
+            .enter_str(&completions[0][input.len()..]);
+    } else {
+        completions.sort();
+        state.completions = Some(completions);
+    }
+
+    Ok(())
+}
+
 fn handle_backspace_press(state: &mut RpnState) -> Result<()> {
+    state.completions = None;
+
     if state.ui_input_state.is_empty() {
         state.pop()
     } else {
@@ -153,11 +190,15 @@ fn handle_backspace_press(state: &mut RpnState) -> Result<()> {
 }
 
 fn handle_delete_press(state: &mut RpnState) -> Result<()> {
+    state.completions = None;
+
     state.ui_input_state.delete_char();
     Ok(())
 }
 
 fn handle_enter_press(state: &mut RpnState) -> Result<()> {
+    state.completions = None;
+
     let input = state.ui_input_state.get_input().to_string();
     state.push_str(&input)?;
     state.ui_input_state.clear();
@@ -165,6 +206,8 @@ fn handle_enter_press(state: &mut RpnState) -> Result<()> {
 }
 
 fn handle_char_press(to_insert: char, state: &mut RpnState) -> Result<()> {
+    state.completions = None;
+
     if state.ui_input_state.is_empty() {
         if to_insert == '+' {
             return state.push_str("+");

@@ -2,6 +2,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use add::AddFunc;
 use divide::DivideFunc;
+use inverse::InverseFunc;
 use modulus::ModulusFunc;
 use multiply::MultiplyFunc;
 use negate::NegateFunc;
@@ -11,6 +12,7 @@ use super::Func;
 
 pub mod add;
 pub mod divide;
+pub mod inverse;
 pub mod modulus;
 pub mod multiply;
 pub mod negate;
@@ -37,6 +39,6 @@ pub fn basic_register_functions(functions: &mut HashMap<String, Arc<Box<dyn Func
     functions.insert("mod".to_string(), modulus_func.clone());
     functions.insert("%".to_string(), modulus_func);
 
-    let negate_func: Arc<Box<dyn Func>> = Arc::new(Box::new(NegateFunc::new()));
-    functions.insert("neg".to_string(), negate_func.clone());
+    functions.insert("neg".to_string(), Arc::new(Box::new(NegateFunc::new())));
+    functions.insert("inv".to_string(), Arc::new(Box::new(InverseFunc::new())));
 }

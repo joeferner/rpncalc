@@ -40,8 +40,8 @@ impl ExprLexer {
             &mut reader,
             &mut tokens,
             &LexStrState {
-                hex_re: Regex::new(r"^([+|-]?)0x([0-9a-fA-F]+)").unwrap(),
-                decimal_re: Regex::new(r"^([+|-]?)([0-9]+)(\.[0-9]*)?").unwrap(),
+                hex_re: Regex::new(r"^0x([0-9a-fA-F]+)").unwrap(),
+                decimal_re: Regex::new(r"^([0-9]+)(\.[0-9]*)?").unwrap(),
                 identifier_re: Regex::new(r"^[a-zA-Z][a-zA-Z0-9_]*").unwrap(),
                 char_re: Regex::new(r"^[+-/*%()]").unwrap(),
             },

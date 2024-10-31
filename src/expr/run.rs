@@ -41,6 +41,7 @@ fn run_expr(expr: &Expr, state: &mut RpnState, undos: &mut Vec<Box<dyn UndoEvent
             Ok(())
         }
         Expr::Identifier(ident) => run_ident(ident, state, undos),
+        Expr::UnaryOp { op, rhs } => run_unary_op(op, rhs, state, undos),
         Expr::BinaryOp { lhs, op, rhs } => run_binary_op(lhs, op, rhs, state, undos),
         Expr::FunctionCall(ident, args) => run_function_call(ident, args, state, undos),
     }
@@ -75,6 +76,16 @@ fn run_ident(ident: &str, state: &mut RpnState, undos: &mut Vec<Box<dyn UndoEven
     } else {
         Err(anyhow!("unknown constant, variable, or function: {ident}"))
     }
+}
+
+fn run_unary_op(
+    op: &str,
+    rhs: &Expr,
+    state: &mut RpnState,
+    undos: &mut Vec<Box<dyn UndoEvent>>,
+) -> Result<()> {
+    run_expr(rhs, state, undos)?;
+    run_ident(op, state, undos)
 }
 
 fn run_binary_op(

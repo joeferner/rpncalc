@@ -17,6 +17,10 @@ pub enum Expr {
     StackItem(StackItem),
     Identifier(String),
     FunctionCall(String, Vec<Expr>),
+    UnaryOp {
+        op: String,
+        rhs: Box<Expr>,
+    },
     BinaryOp {
         lhs: Box<Expr>,
         op: String,
@@ -64,41 +68,23 @@ pub type ExprResult<T> = Result<T, ExprError>;
 mod test {
     use run::run_expression;
 
-    use crate::{stack::item::StackItem, state::RpnState};
+    use crate::{state::RpnState, test_expr};
 
     use super::*;
 
     #[test]
     pub fn test_parse_string() {
-        let mut state = RpnState::new().unwrap();
-        run_expression("'test\\'asd'", &mut state).unwrap();
-        assert_eq!(1, state.stack.len());
-        assert_eq!(
-            StackItem::String("test'asd".to_string()),
-            state.stack.peek(0).unwrap().clone()
-        );
+        test_expr!("'test\\'asd'", StackItem::String("test'asd".to_string()));
     }
 
     #[test]
     pub fn test_parse_decimal() {
-        let mut state = RpnState::new().unwrap();
-        run_expression("-42.5", &mut state).unwrap();
-        assert_eq!(1, state.stack.len());
-        assert_eq!(
-            StackItem::Number(-42.5, 10),
-            state.stack.peek(0).unwrap().clone()
-        );
+        test_expr!("-42.5", StackItem::Number(-42.5, 10));
     }
 
     #[test]
     pub fn test_parse_hex() {
-        let mut state = RpnState::new().unwrap();
-        run_expression("-0x1f2e", &mut state).unwrap();
-        assert_eq!(1, state.stack.len());
-        assert_eq!(
-            StackItem::Number(-0x1f2e as f64, 16),
-            state.stack.peek(0).unwrap().clone()
-        );
+        test_expr!("-0x1f2e", StackItem::Number(-0x1f2e as f64, 16));
     }
 
     #[test]
@@ -113,39 +99,19 @@ mod test {
 
     #[test]
     pub fn test_parse_simple_expr() {
-        let mut state = RpnState::new().unwrap();
-        run_expression("1+2", &mut state).unwrap();
-        assert_eq!(1, state.stack.len());
-        assert_eq!(
-            StackItem::Number(1.0 + 2.0, 10),
-            state.stack.peek(0).unwrap().clone()
-        );
+        test_expr!("1+2", StackItem::Number(1.0 + 2.0, 10));
     }
 
     #[test]
     pub fn test_order_of_operation() {
-        let mut state = RpnState::new().unwrap();
-        run_expression("2 + 3 * 4", &mut state).unwrap();
-        assert_eq!(1, state.stack.len());
-        assert_eq!(
-            StackItem::Number(2.0 + 3.0 * 4.0, 10),
-            state.stack.peek(0).unwrap().clone()
-        );
+        test_expr!("2 + 3 * 4", StackItem::Number(2.0 + 3.0 * 4.0, 10));
+        test_expr!("3 * 4 + 2", StackItem::Number(3.0 * 4.0 + 2.0, 10));
+        test_expr!("(2 + 3) * 4", StackItem::Number((2.0 + 3.0) * 4.0, 10))
+    }
 
-        let mut state = RpnState::new().unwrap();
-        run_expression("3 * 4 + 2", &mut state).unwrap();
-        assert_eq!(1, state.stack.len());
-        assert_eq!(
-            StackItem::Number(3.0 * 4.0 + 2.0, 10),
-            state.stack.peek(0).unwrap().clone()
-        );
-
-        let mut state = RpnState::new().unwrap();
-        run_expression("(2 + 3) * 4", &mut state).unwrap();
-        assert_eq!(1, state.stack.len());
-        assert_eq!(
-            StackItem::Number((2.0 + 3.0) * 4.0, 10),
-            state.stack.peek(0).unwrap().clone()
-        );
+    #[test]
+    pub fn test_unary_expr() {
+        test_expr!("+30", StackItem::Number(30.0, 10));
+        test_expr!("-30", StackItem::Number(-30.0, 10));
     }
 }

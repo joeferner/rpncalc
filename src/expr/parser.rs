@@ -18,7 +18,7 @@ fn parse_additive(tokenizer: &mut ExprLexer) -> ExprResult<Expr> {
 }
 
 fn parse_multiplicative(tokenizer: &mut ExprLexer) -> ExprResult<Expr> {
-    parse_binary_expression!(tokenizer, ["*", "/", "%"], parse_function_invocation)
+    parse_binary_expression!(tokenizer, ["*", "/", "%"], parse_unary)
 }
 
 #[macro_export]
@@ -45,6 +45,25 @@ macro_rules! parse_binary_expression {
             return Ok(lhs);
         }
     }};
+}
+
+fn parse_unary(tokenizer: &mut ExprLexer) -> ExprResult<Expr> {
+    if let Some(t) = tokenizer.peek(0) {
+        if let ExprTokenType::Operator(op) = &t.token_type {
+            if op == "+" {
+                tokenizer.take(); // skip
+            } else if op == "-" {
+                tokenizer.take(); // skip
+                let rhs = parse_unary(tokenizer)?;
+                return Ok(Expr::UnaryOp {
+                    op: "neg".to_string(),
+                    rhs: Box::new(rhs),
+                });
+            }
+        }
+    }
+
+    parse_function_invocation(tokenizer)
 }
 
 fn parse_function_invocation(tokenizer: &mut ExprLexer) -> ExprResult<Expr> {

@@ -58,7 +58,7 @@ where
 mod test {
     #[macro_export]
     macro_rules! test_expr {
-        ($expr: expr, $expected: expr) => {
+        ($expr: expr, $expected: expr) => {{
             use crate::{stack::item::StackItem, state::RpnState};
 
             let mut state = RpnState::new().unwrap();
@@ -76,7 +76,7 @@ mod test {
             assert_eq!(state.stack.len(), 1);
             let answer = state.stack.peek(0).unwrap();
             assert_eq!(*answer, $expected);
-        };
+        }};
     }
 
     #[macro_export]

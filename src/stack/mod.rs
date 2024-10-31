@@ -5,6 +5,7 @@ use item::StackItem;
 
 pub mod item;
 
+#[derive(Debug)]
 pub struct Stack {
     items: Vec<StackItem>,
 }

@@ -107,6 +107,14 @@ impl StackItem {
         }
     }
 
+    pub fn sqrt(&self) -> Result<StackItem> {
+        match self {
+            StackItem::Number(v, display_base) => Ok(StackItem::Number(v.sqrt(), *display_base)),
+            StackItem::Undefined => Ok(StackItem::Undefined),
+            StackItem::String(_) => Ok(StackItem::Undefined),
+        }
+    }
+
     pub fn sin(&self, angle_mode: AngleMode) -> Result<StackItem> {
         let r = self.to_radians(angle_mode);
         match r {

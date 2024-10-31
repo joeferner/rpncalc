@@ -133,7 +133,7 @@ mod test {
 
     #[macro_export]
     macro_rules! test_unary_angle_func {
-        ($angle_mode: expr, $arg0: expr, $op: expr, $expected: expr) => {
+        ($angle_mode: expr, $arg0: expr, $op: expr, $expected: expr) => {{
             use crate::{stack::item::StackItem, state::RpnState};
 
             let mut state = RpnState::new().unwrap();
@@ -154,6 +154,34 @@ mod test {
             assert_eq!(state.stack.len(), 1);
             let answer = state.stack.peek(0).unwrap();
             assert_eq!(*answer, $expected);
-        };
+        }};
+    }
+
+    #[macro_export]
+    macro_rules! test_binary_angle_func {
+        ($angle_mode: expr, $arg0: expr, $arg1: expr, $op: expr, $expected: expr) => {{
+            use crate::{stack::item::StackItem, state::RpnState};
+
+            let mut state = RpnState::new().unwrap();
+            state.angle_mode = $angle_mode;
+            state.push_str(&($arg0).to_string()).unwrap();
+            state.push_str(&($arg1).to_string()).unwrap();
+            state.push_str($op).unwrap();
+            assert_eq!(state.stack.len(), 1, "stack size after op");
+            let answer = state.stack.peek(0).unwrap();
+            assert_eq!(*answer, $expected, "answer after op");
+
+            // test undo
+            state.undo().unwrap();
+            assert_eq!(2, state.stack.len(), "stack size after undo");
+            assert_eq!(*state.stack.peek(1).unwrap(), $arg0);
+            assert_eq!(*state.stack.peek(0).unwrap(), $arg1);
+
+            // test redo
+            state.redo().unwrap();
+            assert_eq!(state.stack.len(), 1);
+            let answer = state.stack.peek(0).unwrap();
+            assert_eq!(*answer, $expected);
+        }};
     }
 }

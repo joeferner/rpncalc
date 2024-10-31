@@ -18,6 +18,7 @@ pub enum ExprTokenType {
     String(String),
     LeftParen,
     RightParen,
+    Comma,
 }
 
 #[derive(Debug)]
@@ -125,6 +126,14 @@ impl ExprLexer {
     pub fn get_source(&self) -> &str {
         &self.source
     }
+
+    pub fn is_next_token(&self, token_type: ExprTokenType) -> bool {
+        if let Some(t) = self.peek(0) {
+            t.token_type == token_type
+        } else {
+            false
+        }
+    }
 }
 
 struct LexStrState {
@@ -147,7 +156,12 @@ fn lex_str(
     let source = reader.get_source().to_string();
 
     while reader.len() > 0 {
-        if let Some(captures) = reader.try_take_re(&state.hex_re) {
+        if let Some(location) = reader.try_take_str(",") {
+            tokens.push(ExprToken {
+                token_type: ExprTokenType::Comma,
+                location,
+            });
+        } else if let Some(captures) = reader.try_take_re(&state.hex_re) {
             lex_hex_number(&source, captures, tokens)?;
         } else if let Some(captures) = reader.try_take_re(&state.decimal_re) {
             lex_decimal_number(&source, captures, tokens)?;

@@ -129,6 +129,17 @@ impl StackItem {
         }
     }
 
+    pub fn asin(&self, angle_mode: AngleMode) -> Result<StackItem> {
+        match self {
+            StackItem::Number(v, display_base) => Ok(StackItem::Number(
+                radians_to_angle_mode(v.asin(), angle_mode),
+                *display_base,
+            )),
+            StackItem::Undefined => Ok(StackItem::Undefined),
+            StackItem::String(_) => Ok(StackItem::Undefined),
+        }
+    }
+
     pub fn sin(&self, angle_mode: AngleMode) -> Result<StackItem> {
         let r = self.to_radians(angle_mode);
         match r {
@@ -138,10 +149,47 @@ impl StackItem {
         }
     }
 
+    pub fn acos(&self, angle_mode: AngleMode) -> Result<StackItem> {
+        match self {
+            StackItem::Number(v, display_base) => Ok(StackItem::Number(
+                radians_to_angle_mode(v.acos(), angle_mode),
+                *display_base,
+            )),
+            StackItem::Undefined => Ok(StackItem::Undefined),
+            StackItem::String(_) => Ok(StackItem::Undefined),
+        }
+    }
+
     pub fn cos(&self, angle_mode: AngleMode) -> Result<StackItem> {
         let r = self.to_radians(angle_mode);
         match r {
             StackItem::Number(v, display_base) => Ok(StackItem::Number(v.cos(), display_base)),
+            StackItem::Undefined => Ok(StackItem::Undefined),
+            StackItem::String(_) => Ok(StackItem::Undefined),
+        }
+    }
+
+    pub fn atan(&self, angle_mode: AngleMode) -> Result<StackItem> {
+        match self {
+            StackItem::Number(v, display_base) => Ok(StackItem::Number(
+                radians_to_angle_mode(v.atan(), angle_mode),
+                *display_base,
+            )),
+            StackItem::Undefined => Ok(StackItem::Undefined),
+            StackItem::String(_) => Ok(StackItem::Undefined),
+        }
+    }
+
+    pub fn atan2(&self, other: &StackItem, angle_mode: AngleMode) -> Result<StackItem> {
+        match self {
+            StackItem::Number(v, display_base) => match other {
+                StackItem::Number(other_v, _) => Ok(StackItem::Number(
+                    radians_to_angle_mode(v.atan2(*other_v), angle_mode),
+                    *display_base,
+                )),
+                StackItem::String(_) => Ok(StackItem::Undefined),
+                StackItem::Undefined => Ok(StackItem::Undefined),
+            },
             StackItem::Undefined => Ok(StackItem::Undefined),
             StackItem::String(_) => Ok(StackItem::Undefined),
         }
@@ -518,5 +566,12 @@ mod test {
             .add(&&StackItem::String("st".to_string()))
             .unwrap();
         assert_eq!(StackItem::String("test".to_string()), v);
+    }
+}
+
+pub fn radians_to_angle_mode(v: f64, angle_mode: AngleMode) -> f64 {
+    match angle_mode {
+        AngleMode::Degrees => v * 180.0 / f64::consts::PI,
+        AngleMode::Radians => v,
     }
 }

@@ -22,6 +22,19 @@ impl<'a> InputReader<'a> {
         ret
     }
 
+    pub fn try_take_str(&mut self, s: &str) -> Option<Range<usize>> {
+        if self.s.starts_with(s) {
+            let len = s.len();
+            let range = self.offset..self.offset + len;
+            self.s = &self.s[len..];
+            self.offset += len;
+            self.skip_whitespace();
+            Some(range)
+        } else {
+            None
+        }
+    }
+
     pub fn try_take_re(&mut self, re: &regex::Regex) -> Option<ReResult> {
         if let Some(captures) = re.captures(self.s) {
             let len = captures.get(0).unwrap().len();

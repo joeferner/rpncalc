@@ -73,26 +73,16 @@ fn parse_function_invocation(tokenizer: &mut ExprLexer) -> ExprResult<Expr> {
             let mut args = vec![];
 
             tokenizer.take(); // skip identifier
-            tokenizer.take(); // skip left paren
-            loop {
-                if let Some(t) = tokenizer.peek(0) {
-                    match t.token_type {
-                        ExprTokenType::RightParen => {
-                            tokenizer.take();
-                            break;
-                        }
-                        _ => {
-                            args.push(parse_additive(tokenizer)?);
-                        }
-                    }
-                } else {
-                    return Err(ExprError::new(
-                        tokenizer.get_source(),
-                        None,
-                        "expected argument list",
-                    ));
+            tokenizer.take_token(ExprTokenType::LeftParen)?;
+            let mut first = true;
+            while !tokenizer.is_next_token(ExprTokenType::RightParen) {
+                if !first {
+                    tokenizer.take_token(ExprTokenType::Comma)?;
                 }
+                args.push(parse_additive(tokenizer)?);
+                first = false;
             }
+            tokenizer.take_token(ExprTokenType::RightParen)?;
             return Ok(Expr::FunctionCall(fn_name, args));
         }
     }

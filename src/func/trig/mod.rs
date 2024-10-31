@@ -1,6 +1,10 @@
 use std::{collections::HashMap, sync::Arc};
 
+use acos::ACosFunc;
 use anyhow::{anyhow, Result};
+use asin::ASinFunc;
+use atan::ATanFunc;
+use atan2::ATan2Func;
 use cos::CosFunc;
 use degrees::DegreesFunc;
 use radians::RadiansFunc;
@@ -14,6 +18,10 @@ use crate::{
 
 use super::Func;
 
+pub mod acos;
+pub mod asin;
+pub mod atan;
+pub mod atan2;
 pub mod cos;
 pub mod degrees;
 pub mod radians;
@@ -23,8 +31,12 @@ pub mod tan;
 pub fn trig_register_functions(functions: &mut HashMap<String, Arc<Box<dyn Func>>>) {
     functions.insert("rad".to_string(), Arc::new(Box::new(RadiansFunc::new())));
     functions.insert("deg".to_string(), Arc::new(Box::new(DegreesFunc::new())));
+    functions.insert("asin".to_string(), Arc::new(Box::new(ASinFunc::new())));
     functions.insert("sin".to_string(), Arc::new(Box::new(SinFunc::new())));
+    functions.insert("acos".to_string(), Arc::new(Box::new(ACosFunc::new())));
     functions.insert("cos".to_string(), Arc::new(Box::new(CosFunc::new())));
+    functions.insert("atan".to_string(), Arc::new(Box::new(ATanFunc::new())));
+    functions.insert("atan2".to_string(), Arc::new(Box::new(ATan2Func::new())));
     functions.insert("tan".to_string(), Arc::new(Box::new(TanFunc::new())));
 }
 

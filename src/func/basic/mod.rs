@@ -6,6 +6,7 @@ use inverse::InverseFunc;
 use modulus::ModulusFunc;
 use multiply::MultiplyFunc;
 use negate::NegateFunc;
+use square::SquareFunc;
 use square_root::SquareRootFunc;
 use subtract::SubtractFunc;
 
@@ -17,6 +18,7 @@ pub mod inverse;
 pub mod modulus;
 pub mod multiply;
 pub mod negate;
+pub mod square;
 pub mod square_root;
 pub mod subtract;
 
@@ -47,4 +49,5 @@ pub fn basic_register_functions(functions: &mut HashMap<String, Arc<Box<dyn Func
         "sqrt".to_string(),
         Arc::new(Box::new(SquareRootFunc::new())),
     );
+    functions.insert("sq".to_string(), Arc::new(Box::new(SquareFunc::new())));
 }

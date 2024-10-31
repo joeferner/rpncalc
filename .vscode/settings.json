@@ -3,6 +3,7 @@
         "Appender",
         "consts",
         "crossterm",
+        "powf",
         "ratatui",
         "rpncalc",
         "undos"

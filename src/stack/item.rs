@@ -99,6 +99,20 @@ impl StackItem {
         }
     }
 
+    pub fn pow(&self, other: &StackItem) -> Result<StackItem> {
+        match self {
+            StackItem::Number(value, display_base) => match other {
+                StackItem::Number(other_value, _) => {
+                    Ok(StackItem::Number(value.powf(*other_value), *display_base))
+                }
+                StackItem::Undefined => Ok(StackItem::Undefined),
+                StackItem::String(_) => Ok(StackItem::Undefined),
+            },
+            StackItem::Undefined => Ok(StackItem::Undefined),
+            StackItem::String(_) => Ok(StackItem::Undefined),
+        }
+    }
+
     pub fn negate(&self) -> Result<StackItem> {
         match self {
             StackItem::Number(v, display_base) => Ok(StackItem::Number(-v, *display_base)),

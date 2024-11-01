@@ -217,6 +217,10 @@ fn handle_char_press(to_insert: char, state: &mut RpnState) -> Result<()> {
             return state.push_str("*");
         } else if to_insert == '/' {
             return state.push_str("/");
+        } else if to_insert == '^' {
+            return state.push_str("^");
+        } else if to_insert == '%' {
+            return state.push_str("%");
         }
     }
     state.ui_input_state.enter_char(to_insert);

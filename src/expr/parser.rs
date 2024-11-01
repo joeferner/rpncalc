@@ -18,7 +18,11 @@ fn parse_additive(tokenizer: &mut ExprLexer) -> ExprResult<Expr> {
 }
 
 fn parse_multiplicative(tokenizer: &mut ExprLexer) -> ExprResult<Expr> {
-    parse_binary_expression!(tokenizer, ["*", "/", "%"], parse_unary)
+    parse_binary_expression!(tokenizer, ["*", "/", "%"], parse_exponentiation)
+}
+
+fn parse_exponentiation(tokenizer: &mut ExprLexer) -> ExprResult<Expr> {
+    parse_binary_expression!(tokenizer, ["^"], parse_unary)
 }
 
 #[macro_export]

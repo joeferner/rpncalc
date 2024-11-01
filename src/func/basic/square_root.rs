@@ -34,7 +34,7 @@ impl Func for SquareRootFunc {
 
 #[cfg(test)]
 mod test {
-    use crate::{test_expr, test_unary_func};
+    use crate::{state::RpnState, test_expr, test_unary_func};
 
     #[test]
     fn test_square_root() {
@@ -43,6 +43,13 @@ mod test {
             "sqrt",
             StackItem::Number(5.0_f64.sqrt(), 10)
         );
+    }
+
+    #[test]
+    fn test_square_root_negative() {
+        let mut state = RpnState::new().unwrap();
+        state.push_str("-5").unwrap();
+        state.push_str("sqrt").expect_err("expected input error");
     }
 
     #[test]

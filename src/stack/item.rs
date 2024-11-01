@@ -2,7 +2,7 @@ use core::f64;
 use std::fmt::Display;
 use std::fmt::{self};
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use log::warn;
 use num_format::ToFormattedString;
 
@@ -123,7 +123,13 @@ impl StackItem {
 
     pub fn sqrt(&self) -> Result<StackItem> {
         match self {
-            StackItem::Number(v, display_base) => Ok(StackItem::Number(v.sqrt(), *display_base)),
+            StackItem::Number(v, display_base) => {
+                if *v < 0.0 {
+                    Err(anyhow!("cannot take the square root of a negative number"))
+                } else {
+                    Ok(StackItem::Number(v.sqrt(), *display_base))
+                }
+            }
             StackItem::Undefined => Ok(StackItem::Undefined),
             StackItem::String(_) => Ok(StackItem::Undefined),
         }

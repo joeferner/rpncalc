@@ -1,7 +1,5 @@
 use std::ops::Range;
 
-use regex::Captures;
-
 use super::{ExprError, ExprResult};
 
 #[derive(Debug)]
@@ -22,79 +20,74 @@ impl<'a> InputReader<'a> {
         ret
     }
 
-    pub fn try_take_str(&mut self, s: &str) -> Option<Range<usize>> {
+    pub fn try_take_str(&mut self, s: &str) -> Option<ReaderResult> {
         if self.s.starts_with(s) {
             let len = s.len();
-            let range = self.offset..self.offset + len;
+            let location = self.offset..self.offset + len;
             self.s = &self.s[len..];
             self.offset += len;
             self.skip_whitespace();
-            Some(range)
-        } else {
-            None
-        }
-    }
-
-    pub fn try_take_re(&mut self, re: &regex::Regex) -> Option<ReResult> {
-        if let Some(captures) = re.captures(self.s) {
-            let len = captures.get(0).unwrap().len();
-            let range = self.offset..self.offset + len;
-            self.s = &self.s[len..];
-            self.offset += len;
-            self.skip_whitespace();
-            Some(ReResult {
-                location: range,
-                value: captures,
+            Some(ReaderResult {
+                location: location.clone(),
+                text: &self.source[location.clone()],
             })
         } else {
             None
         }
     }
 
-    pub fn try_take_string(&mut self) -> ExprResult<Option<ReaderResult<String>>> {
-        if self.s.starts_with("'") {
-            let start_offset = self.offset;
-            let before_len = self.s.len();
-
-            self.s = &self.s[1..];
-            let mut escape = false;
-            let mut ch_count = 0;
-            let mut value = "".to_string();
-            for ch in self.s.chars() {
-                ch_count += 1;
-                if escape {
-                    escape = false;
-                    if ch == '\'' {
-                        value.push(ch);
-                    } else {
-                        let offset = start_offset + ch_count;
-                        return Err(ExprError::new(
-                            self.source,
-                            Some(offset..offset),
-                            &format!("invalid escape sequence \\{ch}"),
-                        ));
-                    }
-                } else if ch == '\\' {
-                    escape = true;
-                } else if ch == '\'' {
-                    break;
-                } else {
-                    value.push(ch);
-                }
-            }
-
-            self.s = &self.s[ch_count..];
-
-            let after_len = self.s.len();
-            self.offset += before_len - after_len;
+    pub fn try_take_re(&mut self, re: &regex::Regex) -> Option<ReaderResult> {
+        if let Some(captures) = re.captures(self.s) {
+            let len = captures.get(0).unwrap().len();
+            let location = self.offset..self.offset + len;
+            self.s = &self.s[len..];
+            self.offset += len;
             self.skip_whitespace();
-            Ok(Some(ReaderResult {
-                location: start_offset..self.offset,
-                value: value.to_string(),
-            }))
+            Some(ReaderResult {
+                location: location.clone(),
+                text: &self.source[location],
+            })
         } else {
-            Ok(None)
+            None
         }
+    }
+
+    pub fn try_take_string(&mut self) -> ExprResult<Option<ReaderResult>> {
+        if !self.s.starts_with("'") {
+            return Ok(None);
+        }
+        let start = self.offset;
+        self.s = &self.s[1..];
+        self.offset += 1;
+
+        let mut escape = false;
+        while !self.s.is_empty() {
+            if escape {
+                self.s = &self.s[1..];
+                self.offset += 1;
+                escape = false;
+            } else if self.s.starts_with("'") {
+                self.s = &self.s[1..];
+                self.offset += 1;
+                let location = start..self.offset;
+                return Ok(Some(ReaderResult {
+                    location: location.clone(),
+                    text: &self.source[location.clone()],
+                }));
+            } else if self.s.starts_with("\\") {
+                self.s = &self.s[1..];
+                self.offset += 1;
+                escape = true;
+            } else {
+                self.s = &self.s[1..];
+                self.offset += 1;
+            }
+        }
+        Err(ExprError {
+            source: self.source.to_owned(),
+            location: Some(self.offset..self.offset),
+            message: "missing closing quote".to_string(),
+        })
     }
 
     pub fn get_offset(&self) -> usize {
@@ -105,7 +98,7 @@ impl<'a> InputReader<'a> {
         self.s.len()
     }
 
-    pub fn get_source(&self) -> &str {
+    pub fn get_source(&'a self) -> &'a str {
         self.source
     }
 
@@ -118,9 +111,7 @@ impl<'a> InputReader<'a> {
 }
 
 #[derive(Debug)]
-pub struct ReaderResult<T> {
+pub struct ReaderResult<'a> {
     pub location: Range<usize>,
-    pub value: T,
+    pub text: &'a str,
 }
-
-pub type ReResult<'a> = ReaderResult<Captures<'a>>;

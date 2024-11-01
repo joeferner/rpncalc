@@ -78,6 +78,12 @@ mod test {
     }
 
     #[test]
+    pub fn test_parse_string_no_closing_quote() {
+        let mut state = RpnState::new().unwrap();
+        state.push_str("'test").expect_err("missing end quote");
+    }
+
+    #[test]
     pub fn test_parse_decimal() {
         test_expr!("-42.5", StackItem::Number(-42.5, 10));
     }

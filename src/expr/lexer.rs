@@ -3,7 +3,7 @@ use std::ops::Range;
 use regex::Regex;
 
 use super::{
-    reader::{InputReader, ReResult, ReaderResult},
+    reader::{InputReader, ReaderResult},
     ExprError, ExprResult,
 };
 
@@ -11,11 +11,11 @@ use super::{
 pub enum ExprTokenType {
     StartOfInput,
     EndOfInput,
-    DecimalNumber(f64),
-    HexNumber(i128),
-    Operator(String),
-    Identifier(String),
-    String(String),
+    DecimalNumber,
+    HexNumber,
+    Operator,
+    Identifier,
+    String,
     LeftParen,
     RightParen,
     Comma,
@@ -25,6 +25,7 @@ pub enum ExprTokenType {
 pub struct ExprToken {
     pub token_type: ExprTokenType,
     pub location: Range<usize>,
+    pub text: String,
 }
 
 pub struct ExprLexer {
@@ -58,33 +59,6 @@ impl ExprLexer {
     pub fn skip_end_of_input(&mut self) -> ExprResult<()> {
         self.take_token(ExprTokenType::EndOfInput)?;
         Ok(())
-    }
-
-    pub fn take_operator(&mut self) -> ExprResult<String> {
-        self.take_token_map("operator", |t| match &t.token_type {
-            ExprTokenType::Operator(op) => Some(op.clone()),
-            _ => None,
-        })
-    }
-
-    fn take_token_map<F, T>(&mut self, token_name: &str, test: F) -> ExprResult<T>
-    where
-        F: FnOnce(&ExprToken) -> Option<T>,
-    {
-        if let Some(t) = self.tokens.first() {
-            if let Some(v) = test(t) {
-                self.tokens.remove(0);
-                Ok(v)
-            } else {
-                Err(ExprError::new(
-                    &self.source,
-                    Some(t.location.clone()),
-                    &format!("expected {token_name} but found {:?}", t.token_type),
-                ))
-            }
-        } else {
-            Err(ExprError::new(&self.source, None, "reached end of input"))
-        }
     }
 
     pub fn take_token(&mut self, token_type: ExprTokenType) -> ExprResult<ExprToken> {
@@ -151,26 +125,26 @@ fn lex_str(
     tokens.push(ExprToken {
         token_type: ExprTokenType::StartOfInput,
         location: reader.get_offset()..reader.get_offset(),
+        text: "".to_string(),
     });
 
-    let source = reader.get_source().to_string();
-
     while reader.len() > 0 {
-        if let Some(location) = reader.try_take_str(",") {
+        if let Some(capture) = reader.try_take_str(",") {
             tokens.push(ExprToken {
                 token_type: ExprTokenType::Comma,
-                location,
+                location: capture.location.clone(),
+                text: capture.text.to_string(),
             });
         } else if let Some(captures) = reader.try_take_re(&state.hex_re) {
-            lex_hex_number(&source, captures, tokens)?;
+            lex_hex_number(&captures, tokens)?;
         } else if let Some(captures) = reader.try_take_re(&state.decimal_re) {
-            lex_decimal_number(&source, captures, tokens)?;
+            lex_decimal_number(&captures, tokens)?;
         } else if let Some(captures) = reader.try_take_re(&state.identifier_re) {
-            lex_identifier(captures, tokens)?;
+            lex_identifier(&captures, tokens)?;
         } else if let Some(captures) = reader.try_take_re(&state.char_re) {
-            lex_char(captures, tokens)?;
-        } else if let Some(str) = reader.try_take_string()? {
-            lex_string(str, tokens)?;
+            lex_char(&captures, tokens)?;
+        } else if let Some(captures) = reader.try_take_string()? {
+            lex_string(&captures, tokens)?;
         } else {
             return Err(ExprError::new(
                 reader.get_source(),
@@ -183,92 +157,60 @@ fn lex_str(
     tokens.push(ExprToken {
         token_type: ExprTokenType::EndOfInput,
         location: reader.get_offset()..reader.get_offset(),
+        text: "".to_string(),
     });
 
     Ok(())
 }
 
-fn lex_identifier(re_result: ReResult, tokens: &mut Vec<ExprToken>) -> ExprResult<()> {
-    let s = re_result.value.get(0).unwrap().as_str();
+fn lex_identifier(re_result: &ReaderResult, tokens: &mut Vec<ExprToken>) -> ExprResult<()> {
     tokens.push(ExprToken {
-        token_type: ExprTokenType::Identifier(s.to_string()),
-        location: re_result.location,
+        token_type: ExprTokenType::Identifier,
+        location: re_result.location.clone(),
+        text: re_result.text.to_string(),
     });
     Ok(())
 }
 
-fn lex_string(reader_result: ReaderResult<String>, tokens: &mut Vec<ExprToken>) -> ExprResult<()> {
+fn lex_string(re_result: &ReaderResult, tokens: &mut Vec<ExprToken>) -> ExprResult<()> {
     tokens.push(ExprToken {
-        token_type: ExprTokenType::String(reader_result.value),
-        location: reader_result.location,
+        token_type: ExprTokenType::String,
+        location: re_result.location.clone(),
+        text: re_result.text.to_string(),
     });
     Ok(())
 }
 
-fn lex_char(re_result: ReResult, tokens: &mut Vec<ExprToken>) -> ExprResult<()> {
-    let s = re_result.value.get(0).unwrap().as_str();
-    let token_type = if s == "(" {
+fn lex_char(re_result: &ReaderResult, tokens: &mut Vec<ExprToken>) -> ExprResult<()> {
+    let token_type = if re_result.text == "(" {
         ExprTokenType::LeftParen
-    } else if s == ")" {
+    } else if re_result.text == ")" {
         ExprTokenType::RightParen
     } else {
-        ExprTokenType::Operator(s.to_string())
+        ExprTokenType::Operator
     };
     tokens.push(ExprToken {
         token_type,
-        location: re_result.location,
+        location: re_result.location.clone(),
+        text: re_result.text.to_string(),
     });
     Ok(())
 }
 
-fn lex_hex_number(
-    source: &str,
-    re_result: ReResult,
-    tokens: &mut Vec<ExprToken>,
-) -> ExprResult<()> {
-    let s = re_result.value.get(0).unwrap().as_str();
-    let (s, neg) = if let Some(s) = s.strip_prefix("-") {
-        (s, -1)
-    } else if let Some(s) = s.strip_prefix("+") {
-        (s, 1)
-    } else {
-        (s, 1)
-    };
-
-    let s = s.trim_start_matches("0x");
-
-    match i128::from_str_radix(s, 16) {
-        Ok(v) => {
-            tokens.push(ExprToken {
-                token_type: ExprTokenType::HexNumber(neg * v),
-                location: re_result.location,
-            });
-            Ok(())
-        }
-        Err(e) => Err(ExprError::new(
-            source,
-            Some(re_result.location.clone()),
-            &format!("parse hexadecimal; error = {e}"),
-        )),
-    }
+fn lex_hex_number(re_result: &ReaderResult, tokens: &mut Vec<ExprToken>) -> ExprResult<()> {
+    tokens.push(ExprToken {
+        token_type: ExprTokenType::HexNumber,
+        location: re_result.location.clone(),
+        text: re_result.text.to_string(),
+    });
+    Ok(())
 }
 
-fn lex_decimal_number(
-    source: &str,
-    re_result: ReResult,
-    tokens: &mut Vec<ExprToken>,
-) -> ExprResult<()> {
-    let s = re_result.value.get(0).unwrap().as_str();
-    let v = s.parse::<f64>().map_err(|e| {
-        ExprError::new(
-            source,
-            Some(re_result.location.clone()),
-            &format!("parse decimal; error = {e}"),
-        )
-    })?;
+fn lex_decimal_number(re_result: &ReaderResult, tokens: &mut Vec<ExprToken>) -> ExprResult<()> {
     tokens.push(ExprToken {
-        token_type: ExprTokenType::DecimalNumber(v),
-        location: re_result.location,
+        token_type: ExprTokenType::DecimalNumber,
+        location: re_result.location.clone(),
+        text: re_result.text.to_string(),
     });
     Ok(())
 }

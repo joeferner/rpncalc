@@ -83,7 +83,7 @@ pub fn draw(frame: &mut Frame, state: &mut RpnState) {
         input_area,
     );
     frame.render_widget(
-        Paragraph::new(info_text).wrap(Wrap { trim: true }).block(
+        Paragraph::new(info_text).wrap(Wrap { trim: false }).block(
             Block::bordered()
                 .border_set(border::Set {
                     top_left: line::NORMAL.horizontal_down,

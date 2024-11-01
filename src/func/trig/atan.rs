@@ -19,6 +19,18 @@ impl Func for ATanFunc {
         let angle_mode = state.angle_mode;
         execute_unary(state, |a| a.atan(angle_mode))
     }
+
+    fn name(&self) -> &str {
+        "atan"
+    }
+
+    fn aliases(&self) -> Vec<&str> {
+        vec![]
+    }
+
+    fn description(&self) -> &str {
+        "The atan function returns the inverse tangent (in the current angle mode) of a number."
+    }
 }
 
 #[cfg(test)]

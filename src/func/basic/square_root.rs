@@ -18,6 +18,18 @@ impl Func for SquareRootFunc {
     fn execute(&self, state: &mut RpnState) -> Result<Box<dyn UndoEvent>> {
         execute_unary(state, |a| a.sqrt())
     }
+
+    fn name(&self) -> &str {
+        "sqrt"
+    }
+
+    fn aliases(&self) -> Vec<&str> {
+        vec![]
+    }
+
+    fn description(&self) -> &str {
+        "The square root (sqrt) function returns the square root of a number."
+    }
 }
 
 #[cfg(test)]

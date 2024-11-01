@@ -19,6 +19,18 @@ impl Func for ACosFunc {
         let angle_mode = state.angle_mode;
         execute_unary(state, |a| a.acos(angle_mode))
     }
+
+    fn name(&self) -> &str {
+        "acos"
+    }
+
+    fn aliases(&self) -> Vec<&str> {
+        vec![]
+    }
+
+    fn description(&self) -> &str {
+        "The acos function returns the inverse cosine (in the current angle mode) of a number."
+    }
 }
 
 #[cfg(test)]

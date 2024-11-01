@@ -18,6 +18,18 @@ impl Func for NegateFunc {
     fn execute(&self, state: &mut RpnState) -> Result<Box<dyn UndoEvent>> {
         execute_unary(state, |a| a.negate())
     }
+
+    fn name(&self) -> &str {
+        "neg"
+    }
+
+    fn aliases(&self) -> Vec<&str> {
+        vec![]
+    }
+
+    fn description(&self) -> &str {
+        "The unary negation operator produces the negative of its operand."
+    }
 }
 
 #[cfg(test)]

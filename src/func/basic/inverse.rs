@@ -19,6 +19,18 @@ impl Func for InverseFunc {
     fn execute(&self, state: &mut RpnState) -> Result<Box<dyn UndoEvent>> {
         execute_unary(state, |a| StackItem::Number(1.0, 10).divide(a))
     }
+
+    fn name(&self) -> &str {
+        "inv"
+    }
+
+    fn aliases(&self) -> Vec<&str> {
+        vec![]
+    }
+
+    fn description(&self) -> &str {
+        "The inverse operator produces the inverse (1/x) of its operand."
+    }
 }
 
 #[cfg(test)]

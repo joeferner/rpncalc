@@ -25,6 +25,18 @@ impl Func for RadiansFunc {
             new_mode: AngleMode::Radians,
         }))
     }
+
+    fn name(&self) -> &str {
+        "rad"
+    }
+
+    fn aliases(&self) -> Vec<&str> {
+        vec![]
+    }
+
+    fn description(&self) -> &str {
+        "The rad function sets the current angle mode to radians"
+    }
 }
 
 #[cfg(test)]

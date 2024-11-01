@@ -1,5 +1,3 @@
-use std::{collections::HashMap, sync::Arc};
-
 use anyhow::{anyhow, Result};
 use basic::basic_register_functions;
 use trig::trig_register_functions;
@@ -15,14 +13,20 @@ pub mod basic;
 pub mod trig;
 pub mod variable;
 
-pub fn register_functions(functions: &mut HashMap<String, Arc<Box<dyn Func>>>) {
-    basic_register_functions(functions);
-    trig_register_functions(functions);
-    variable_register_functions(functions);
+pub fn register_functions(state: &mut RpnState) {
+    basic_register_functions(state);
+    trig_register_functions(state);
+    variable_register_functions(state);
 }
 
-pub trait Func {
+pub trait Func: Send + Sync {
     fn execute(&self, state: &mut RpnState) -> Result<Box<dyn UndoEvent>>;
+
+    fn name(&self) -> &str;
+
+    fn aliases(&self) -> Vec<&str>;
+
+    fn description(&self) -> &str;
 }
 
 pub(super) fn execute_binary<F>(state: &mut RpnState, calc: F) -> Result<Box<dyn UndoEvent>>

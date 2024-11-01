@@ -1,14 +1,17 @@
+use std::sync::Arc;
+
 use annotate_snippets::{Level, Renderer};
 use log::error;
 use ratatui::layout::Constraint::{Length, Min, Percentage};
 use ratatui::layout::{Alignment, Position};
 use ratatui::symbols::{border, line};
 use ratatui::text::Text;
-use ratatui::widgets::{Borders, List, ListDirection, ListItem, Paragraph};
+use ratatui::widgets::{Borders, List, ListDirection, ListItem, Paragraph, Wrap};
 use ratatui::{layout::Layout, widgets::Block, Frame};
 
 use crate::expr::run::run_expression;
 use crate::expr::ExprError;
+use crate::func::Func;
 use crate::stack::item::{StackItem, StackItemToStringOpts};
 use crate::state::angle_mode::AngleMode;
 use crate::state::RpnState;
@@ -80,7 +83,7 @@ pub fn draw(frame: &mut Frame, state: &mut RpnState) {
         input_area,
     );
     frame.render_widget(
-        Paragraph::new(info_text).block(
+        Paragraph::new(info_text).wrap(Wrap { trim: true }).block(
             Block::bordered()
                 .border_set(border::Set {
                     top_left: line::NORMAL.horizontal_down,
@@ -110,10 +113,14 @@ fn get_info_text(state: &mut RpnState, width: usize) -> String {
         }
     }
 
+    let mut func: Option<Arc<Box<dyn Func>>> = None;
     let n = if state.ui_input_state.is_empty() {
         state.stack.peek(0).cloned()
     } else {
         let s = state.ui_input_state.get_input().to_string();
+
+        func = state.functions.get(&s).cloned();
+
         match run_expression(&s, state) {
             Ok(_) => {
                 let v = state.stack.peek(0).cloned();
@@ -125,6 +132,14 @@ fn get_info_text(state: &mut RpnState, width: usize) -> String {
             Err(_) => None,
         }
     };
+
+    let mut help = "".to_string();
+    if let Some(f) = func {
+        help += &format!("\n{} - {}", f.name(), f.description());
+        if !f.aliases().is_empty() {
+            help += &format!("\n\naliases: {}", f.aliases().join(", "));
+        }
+    }
 
     if let Some(n) = n {
         let hex = if n.is_integer() {
@@ -183,9 +198,10 @@ fn get_info_text(state: &mut RpnState, width: usize) -> String {
             "".to_string()
         };
 
-        return format!("Hex: {}\nDec: {}\nOct: {}\nBin: {}\n", hex, dec, oct, bin);
+        format!("Hex: {hex}\nDec: {dec}\nOct: {oct}\nBin: {bin}\n{help}")
+    } else {
+        format!("Hex:\nDec:\nOct:\nBin:\n{help}")
     }
-    "Hex:\nDec:\nOct:\nBin:\n".to_string()
 }
 
 fn get_status_right_text(state: &RpnState) -> String {

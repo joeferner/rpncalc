@@ -19,6 +19,18 @@ impl Func for TanFunc {
         let angle_mode = state.angle_mode;
         execute_unary(state, |a| a.tan(angle_mode))
     }
+
+    fn name(&self) -> &str {
+        "tan"
+    }
+
+    fn aliases(&self) -> Vec<&str> {
+        vec![]
+    }
+
+    fn description(&self) -> &str {
+        "The tan function returns the tangent of a number in the current angle mode."
+    }
 }
 
 #[cfg(test)]

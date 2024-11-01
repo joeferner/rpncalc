@@ -18,6 +18,18 @@ impl Func for SubtractFunc {
     fn execute(&self, state: &mut RpnState) -> Result<Box<dyn UndoEvent>> {
         execute_binary(state, |a, b| a.subtract(b))
     }
+
+    fn name(&self) -> &str {
+        "subtract"
+    }
+
+    fn aliases(&self) -> Vec<&str> {
+        vec!["-"]
+    }
+
+    fn description(&self) -> &str {
+        "The subtraction (-) operator subtracts the two operands, producing their difference."
+    }
 }
 
 #[cfg(test)]

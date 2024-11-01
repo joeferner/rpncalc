@@ -38,20 +38,12 @@ pub struct RpnState {
 
 impl RpnState {
     pub fn new() -> Result<Self> {
-        let mut functions: HashMap<String, Arc<Box<dyn Func>>> = HashMap::new();
-        register_functions(&mut functions);
-
-        let mut constants: HashMap<String, Arc<Constant>> = HashMap::new();
-        constants.insert("pi".to_string(), Arc::new(Constant::new(f64::consts::PI)));
-        constants.insert("e".to_string(), Arc::new(Constant::new(f64::consts::E)));
-        constants.insert("tau".to_string(), Arc::new(Constant::new(f64::consts::TAU)));
-
-        Ok(Self {
+        let mut state = Self {
             locale: SystemLocale::default()?,
             stack: Stack::new(),
             angle_mode: AngleMode::Degrees,
-            functions,
-            constants,
+            functions: HashMap::new(),
+            constants: HashMap::new(),
             variables: HashMap::default(),
             undo_stack: UndoStack::new(),
             error: None,
@@ -60,7 +52,21 @@ impl RpnState {
             ui_stack_state: ListState::default(),
             precision: 10,
             scientific_notation_limit: 1_000_000_000.0,
-        })
+        };
+
+        register_functions(&mut state);
+
+        state
+            .constants
+            .insert("pi".to_string(), Arc::new(Constant::new(f64::consts::PI)));
+        state
+            .constants
+            .insert("e".to_string(), Arc::new(Constant::new(f64::consts::E)));
+        state
+            .constants
+            .insert("tau".to_string(), Arc::new(Constant::new(f64::consts::TAU)));
+
+        Ok(state)
     }
 
     pub fn push_str(&mut self, s: &str) -> Result<()> {
@@ -90,6 +96,14 @@ impl RpnState {
             Ok(())
         } else {
             Err(anyhow!("Pop failed, stack is empty"))
+        }
+    }
+
+    pub fn register_function(&mut self, func: Box<dyn Func>) {
+        let func = Arc::new(func);
+        self.functions.insert(func.name().to_string(), func.clone());
+        for alias in func.aliases() {
+            self.functions.insert(alias.to_string(), func.clone());
         }
     }
 }

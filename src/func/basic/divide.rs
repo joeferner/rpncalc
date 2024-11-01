@@ -18,6 +18,18 @@ impl Func for DivideFunc {
     fn execute(&self, state: &mut RpnState) -> Result<Box<dyn UndoEvent>> {
         execute_binary(state, |a, b| a.divide(b))
     }
+
+    fn name(&self) -> &str {
+        "divide"
+    }
+
+    fn aliases(&self) -> Vec<&str> {
+        vec!["/"]
+    }
+
+    fn description(&self) -> &str {
+        "The division (/) operator produces the quotient of its operands where the left operand is the dividend and the right operand is the divisor."
+    }
 }
 
 #[cfg(test)]

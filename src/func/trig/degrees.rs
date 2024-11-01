@@ -25,6 +25,18 @@ impl Func for DegreesFunc {
             new_mode: AngleMode::Degrees,
         }))
     }
+
+    fn name(&self) -> &str {
+        "deg"
+    }
+
+    fn aliases(&self) -> Vec<&str> {
+        vec![]
+    }
+
+    fn description(&self) -> &str {
+        "The deg function sets the current angle mode to degrees"
+    }
 }
 
 #[cfg(test)]

@@ -35,6 +35,18 @@ impl Func for StoreFunc {
             previous_variable_value,
         }))
     }
+
+    fn name(&self) -> &str {
+        "store"
+    }
+
+    fn aliases(&self) -> Vec<&str> {
+        vec![]
+    }
+
+    fn description(&self) -> &str {
+        "Stores the first operand in the variable named in the second operand."
+    }
 }
 
 #[derive(Debug)]

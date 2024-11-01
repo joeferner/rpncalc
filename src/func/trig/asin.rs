@@ -19,6 +19,18 @@ impl Func for ASinFunc {
         let angle_mode = state.angle_mode;
         execute_unary(state, |a| a.asin(angle_mode))
     }
+
+    fn name(&self) -> &str {
+        "asin"
+    }
+
+    fn aliases(&self) -> Vec<&str> {
+        vec![]
+    }
+
+    fn description(&self) -> &str {
+        "The asin function returns the inverse sine (in the current angle mode) of a number."
+    }
 }
 
 #[cfg(test)]

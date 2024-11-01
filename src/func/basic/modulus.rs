@@ -18,6 +18,18 @@ impl Func for ModulusFunc {
     fn execute(&self, state: &mut RpnState) -> Result<Box<dyn UndoEvent>> {
         execute_binary(state, |a, b| a.modulus(b))
     }
+
+    fn name(&self) -> &str {
+        "mod"
+    }
+
+    fn aliases(&self) -> Vec<&str> {
+        vec!["%"]
+    }
+
+    fn description(&self) -> &str {
+        "The remainder (%) operator returns the remainder left over when one operand is divided by a second operand. It always takes the sign of the dividend."
+    }
 }
 
 #[cfg(test)]

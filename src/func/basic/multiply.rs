@@ -18,6 +18,18 @@ impl Func for MultiplyFunc {
     fn execute(&self, state: &mut RpnState) -> Result<Box<dyn UndoEvent>> {
         execute_binary(state, |a, b| a.multiply(b))
     }
+
+    fn name(&self) -> &str {
+        "multiply"
+    }
+
+    fn aliases(&self) -> Vec<&str> {
+        vec!["*"]
+    }
+
+    fn description(&self) -> &str {
+        "The multiplication (*) operator produces the product of the operands."
+    }
 }
 
 #[cfg(test)]

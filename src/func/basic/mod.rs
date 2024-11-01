@@ -1,5 +1,3 @@
-use std::{collections::HashMap, sync::Arc};
-
 use add::AddFunc;
 use divide::DivideFunc;
 use inverse::InverseFunc;
@@ -10,7 +8,7 @@ use square::SquareFunc;
 use square_root::SquareRootFunc;
 use subtract::SubtractFunc;
 
-use super::Func;
+use crate::state::RpnState;
 
 pub mod add;
 pub mod divide;
@@ -22,32 +20,14 @@ pub mod square;
 pub mod square_root;
 pub mod subtract;
 
-pub fn basic_register_functions(functions: &mut HashMap<String, Arc<Box<dyn Func>>>) {
-    let add_func: Arc<Box<dyn Func>> = Arc::new(Box::new(AddFunc::new()));
-    functions.insert("add".to_string(), add_func.clone());
-    functions.insert("+".to_string(), add_func);
-
-    let subtract_func: Arc<Box<dyn Func>> = Arc::new(Box::new(SubtractFunc::new()));
-    functions.insert("subtract".to_string(), subtract_func.clone());
-    functions.insert("-".to_string(), subtract_func);
-
-    let multiply_func: Arc<Box<dyn Func>> = Arc::new(Box::new(MultiplyFunc::new()));
-    functions.insert("multiply".to_string(), multiply_func.clone());
-    functions.insert("*".to_string(), multiply_func);
-
-    let divide_func: Arc<Box<dyn Func>> = Arc::new(Box::new(DivideFunc::new()));
-    functions.insert("divide".to_string(), divide_func.clone());
-    functions.insert("/".to_string(), divide_func);
-
-    let modulus_func: Arc<Box<dyn Func>> = Arc::new(Box::new(ModulusFunc::new()));
-    functions.insert("mod".to_string(), modulus_func.clone());
-    functions.insert("%".to_string(), modulus_func);
-
-    functions.insert("neg".to_string(), Arc::new(Box::new(NegateFunc::new())));
-    functions.insert("inv".to_string(), Arc::new(Box::new(InverseFunc::new())));
-    functions.insert(
-        "sqrt".to_string(),
-        Arc::new(Box::new(SquareRootFunc::new())),
-    );
-    functions.insert("sq".to_string(), Arc::new(Box::new(SquareFunc::new())));
+pub fn basic_register_functions(state: &mut RpnState) {
+    state.register_function(Box::new(AddFunc::new()));
+    state.register_function(Box::new(SubtractFunc::new()));
+    state.register_function(Box::new(MultiplyFunc::new()));
+    state.register_function(Box::new(DivideFunc::new()));
+    state.register_function(Box::new(ModulusFunc::new()));
+    state.register_function(Box::new(NegateFunc::new()));
+    state.register_function(Box::new(InverseFunc::new()));
+    state.register_function(Box::new(SquareRootFunc::new()));
+    state.register_function(Box::new(SquareFunc::new()));
 }

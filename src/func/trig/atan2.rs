@@ -19,6 +19,18 @@ impl Func for ATan2Func {
         let angle_mode = state.angle_mode;
         execute_binary(state, |a, b| a.atan2(b, angle_mode))
     }
+
+    fn name(&self) -> &str {
+        "atan2"
+    }
+
+    fn aliases(&self) -> Vec<&str> {
+        vec![]
+    }
+
+    fn description(&self) -> &str {
+        "The atan2 function returns the angle in the plane (in the current angle mode) between the positive x-axis and the ray from (0, 0) to the point (x, y), for atan2(y, x)."
+    }
 }
 
 #[cfg(test)]

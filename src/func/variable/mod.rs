@@ -1,11 +1,9 @@
-use std::{collections::HashMap, sync::Arc};
-
 use store::StoreFunc;
 
-use super::Func;
+use crate::state::RpnState;
 
 pub mod store;
 
-pub fn variable_register_functions(functions: &mut HashMap<String, Arc<Box<dyn Func>>>) {
-    functions.insert("store".to_string(), Arc::new(Box::new(StoreFunc::new())));
+pub fn variable_register_functions(state: &mut RpnState) {
+    state.register_function(Box::new(StoreFunc::new()));
 }

@@ -1,5 +1,3 @@
-use std::{collections::HashMap, sync::Arc};
-
 use acos::ACosFunc;
 use anyhow::{anyhow, Result};
 use asin::ASinFunc;
@@ -16,8 +14,6 @@ use crate::{
     undo_action::UndoEvent,
 };
 
-use super::Func;
-
 pub mod acos;
 pub mod asin;
 pub mod atan;
@@ -28,16 +24,16 @@ pub mod radians;
 pub mod sin;
 pub mod tan;
 
-pub fn trig_register_functions(functions: &mut HashMap<String, Arc<Box<dyn Func>>>) {
-    functions.insert("rad".to_string(), Arc::new(Box::new(RadiansFunc::new())));
-    functions.insert("deg".to_string(), Arc::new(Box::new(DegreesFunc::new())));
-    functions.insert("asin".to_string(), Arc::new(Box::new(ASinFunc::new())));
-    functions.insert("sin".to_string(), Arc::new(Box::new(SinFunc::new())));
-    functions.insert("acos".to_string(), Arc::new(Box::new(ACosFunc::new())));
-    functions.insert("cos".to_string(), Arc::new(Box::new(CosFunc::new())));
-    functions.insert("atan".to_string(), Arc::new(Box::new(ATanFunc::new())));
-    functions.insert("atan2".to_string(), Arc::new(Box::new(ATan2Func::new())));
-    functions.insert("tan".to_string(), Arc::new(Box::new(TanFunc::new())));
+pub fn trig_register_functions(state: &mut RpnState) {
+    state.register_function(Box::new(RadiansFunc::new()));
+    state.register_function(Box::new(DegreesFunc::new()));
+    state.register_function(Box::new(ASinFunc::new()));
+    state.register_function(Box::new(SinFunc::new()));
+    state.register_function(Box::new(ACosFunc::new()));
+    state.register_function(Box::new(CosFunc::new()));
+    state.register_function(Box::new(ATanFunc::new()));
+    state.register_function(Box::new(ATan2Func::new()));
+    state.register_function(Box::new(TanFunc::new()));
 }
 
 #[derive(Debug)]

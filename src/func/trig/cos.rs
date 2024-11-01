@@ -19,6 +19,18 @@ impl Func for CosFunc {
         let angle_mode = state.angle_mode;
         execute_unary(state, |a| a.cos(angle_mode))
     }
+
+    fn name(&self) -> &str {
+        "cos"
+    }
+
+    fn aliases(&self) -> Vec<&str> {
+        vec![]
+    }
+
+    fn description(&self) -> &str {
+        "The cos function returns the cosine of a number in the current angle mode."
+    }
 }
 
 #[cfg(test)]

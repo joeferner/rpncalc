@@ -19,6 +19,18 @@ impl Func for SinFunc {
         let angle_mode = state.angle_mode;
         execute_unary(state, |a| a.sin(angle_mode))
     }
+
+    fn name(&self) -> &str {
+        "sin"
+    }
+
+    fn aliases(&self) -> Vec<&str> {
+        vec![]
+    }
+
+    fn description(&self) -> &str {
+        "The sin function returns the sine of a number in the current angle mode."
+    }
 }
 
 #[cfg(test)]

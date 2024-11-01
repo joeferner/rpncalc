@@ -19,6 +19,18 @@ impl Func for SquareFunc {
     fn execute(&self, state: &mut RpnState) -> Result<Box<dyn UndoEvent>> {
         execute_unary(state, |a| a.pow(&StackItem::Number(2.0, 10)))
     }
+
+    fn name(&self) -> &str {
+        "sq"
+    }
+
+    fn aliases(&self) -> Vec<&str> {
+        vec![]
+    }
+
+    fn description(&self) -> &str {
+        "The square (sq) function returns the square of a number (x^2)."
+    }
 }
 
 #[cfg(test)]

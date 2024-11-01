@@ -18,6 +18,18 @@ impl Func for AddFunc {
     fn execute(&self, state: &mut RpnState) -> Result<Box<dyn UndoEvent>> {
         execute_binary(state, |a, b| a.add(b))
     }
+
+    fn name(&self) -> &str {
+        "add"
+    }
+
+    fn aliases(&self) -> Vec<&str> {
+        vec!["+"]
+    }
+
+    fn description(&self) -> &str {
+        "The addition (+) operator produces the sum of numeric operands or string concatenation."
+    }
 }
 
 #[cfg(test)]
